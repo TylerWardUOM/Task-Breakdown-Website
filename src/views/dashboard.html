@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Dashboard - Task Breaker</title>
+    <link rel="stylesheet" href="/src/styles/styles.css"> <!-- Link to the external CSS file -->
+    <script src="/src/scripts/script.js" defer></script> <!-- Link to the JavaScript file -->
+</head>
+<body>
+    <header>
+        <h1>Task Breaker Dashboard</h1>
+        <nav>
+            <div class="nav-icons">
+                <span class="profile-icon">👤</span> <!-- Profile icon -->
+                <a href="#" class="button" id="settings-button">Settings</a>
+                <a href="#" class="button" id="logout-button">Log Out</a>
+            </div>
+        </nav>
+    </header>
+
+    <main>
+        <a href="new_task.html" class="button new-task-button" id="new-task-button">New Task</a>
+
+        <section class="task-list">
+            <h2>Your Tasks</h2>
+            <p id="no-tasks-message" style="display: none;">You don’t currently have any active tasks.</p> <!-- Message for empty task list -->
+            <ul id="task-list">
+                <!-- Task items will be dynamically populated here -->
+            </ul>
+        </section>
+
+        <aside class="sidebar">
+            <h2>Analytics</h2>
+            <p id="completed-tasks">Completed Tasks: 5</p>
+            <p id="pending-tasks">Pending Tasks: 3</p>
+            <p><a href="#">Focus Mode</a></p>
+            <p><a href="#">Completed Tasks</a></p>
+            <p><a href="#">Settings</a></p>
+        </aside>
+    </main>
+</body>
+</html>

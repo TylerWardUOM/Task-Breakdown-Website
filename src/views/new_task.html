@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Create New Task - Task Breaker</title>
+    <link rel="stylesheet" href="/src/styles/styles.css"> <!-- Link to the external CSS file -->
+    <script src="/src/scripts/new_task.js" defer></script> <!-- Link to the JavaScript file -->
+</head>
+<body>
+    <header>
+        <h1>Create New Task</h1>
+        <nav>
+            <div class="nav-icons">
+                <span class="profile-icon">👤</span>
+                <span id="current-username"></span> <!-- This span will display the username -->
+                <a href="dashboard.html" class="button">Back to Dashboard</a>
+            </div>
+        </nav>
+    </header>
+
+    <main>
+        <form id="task-form">
+            <div>
+                <label for="task-name">Task Name:</label>
+                <input type="text" id="task-name" required>
+            </div>
+            <div>
+                <label for="task-description">Task Description:</label>
+                <input id="task-description-form" required></input>
+            </div>
+            <div>
+                <label for="due-date">Due Date:</label>
+                <input type="date" id="due-date" required>
+            </div>
+            <button type="button" id="add-task-button">Continue</button>
+        </form>
+
+        <div id="subtask-section" style="display: none;">
+            <h2>Add Subtasks</h2>
+            <div id="subtasks"></div>
+            <div>
+                <input type="text" id="subtask-title" placeholder="Subtask Title" required>
+                <input type="number" id="time-estimate" placeholder="Time Estimate (hrs)" required>
+                <button id="add-subtask-button">Add Subtask</button>
+            </div>
+        </div>
+
+        <div>
+            <div>
+                <button id="cancel-button">Cancel</button>
+                <button id="edit-task-button" style="display: none;">Edit Task</button>
+                <button id="finish-task-button">Finish Creating Task</button>
+            </div>
+            
+        </div>
+    </main>
+</body>
+</html>
