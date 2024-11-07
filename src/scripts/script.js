@@ -158,3 +158,27 @@ document.getElementById('logout-button').addEventListener('click', function() {
     alert('You have been logged out.');
     window.location.href = 'login.html'; // Redirect to login page
 });
+
+// Retrieve and display the username
+async function displayUsername() {
+    const userId = localStorage.getItem('user_id'); // Make sure this is set when the user logs in
+    if (!userId) {
+        document.getElementById('current-username').textContent = 'Guest';
+        return;
+    }
+
+    try {
+        const response = await fetch(`http://localhost:5000/username?user_id=${userId}`);
+        if (response.ok) {
+            const data = await response.json();
+            document.getElementById('current-username').textContent = `${data.username}`;
+        } else {
+            document.getElementById('current-username').textContent = 'Guest';
+        }
+    } catch (error) {
+        console.error('Error fetching username:', error);
+        document.getElementById('current-username').textContent = 'Guest';
+    }
+}
+
+displayUsername()

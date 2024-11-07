@@ -313,7 +313,7 @@ function cancelEdit() {
 async function displayUsername() {
     const userId = localStorage.getItem('user_id'); // Make sure this is set when the user logs in
     if (!userId) {
-        document.getElementById('current-username').textContent = 'Hello, Guest!';
+        document.getElementById('current-username').textContent = 'Guest';
         return;
     }
 
@@ -321,15 +321,17 @@ async function displayUsername() {
         const response = await fetch(`http://localhost:5000/username?user_id=${userId}`);
         if (response.ok) {
             const data = await response.json();
-            document.getElementById('current-username').textContent = `Hello, ${data.username}!`;
+            document.getElementById('current-username').textContent = `${data.username}`;
         } else {
-            document.getElementById('current-username').textContent = 'Hello, Guest!';
+            document.getElementById('current-username').textContent = 'Guest';
         }
     } catch (error) {
         console.error('Error fetching username:', error);
-        document.getElementById('current-username').textContent = 'Hello, Guest!';
+        document.getElementById('current-username').textContent = 'Guest';
     }
 }
+
+displayUsername()
 
 
 
