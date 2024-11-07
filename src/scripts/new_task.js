@@ -18,7 +18,7 @@ window.onload = async function() {
 
     if (isEditMode && taskId) {
         document.getElementById('add-task-button').style.display = 'none';
-        document.getElementById('edit-task-button').style.display = 'block';
+        toggleEditButton(true);
 
         document.getElementById('finish-task-button').textContent = 'Finish Editing Task';
 
@@ -33,7 +33,7 @@ window.onload = async function() {
     } else {
         // Default to create mode
         document.getElementById('add-task-button').style.display = 'block';
-        document.getElementById('edit-task-button').style.display = 'none';
+        toggleEditButton(false);
     }
 };
 
@@ -124,7 +124,7 @@ function displayTaskDetails(title, description, dueDate) {
 
     document.getElementById('subtask-section').style.display = 'block';
     document.getElementById('finish-task-button').style.display = 'block';
-    document.getElementById('edit-task-button').style.display = 'block';
+    toggleEditButton(true);
 }
 
 function addSubtask() {
@@ -282,7 +282,7 @@ function saveTask() {
     // Show the subtask section and the finish button again
     document.getElementById('subtask-section').style.display = 'block';
     document.getElementById('finish-task-button').style.display = 'block';
-    document.getElementById('edit-task-button').style.display = 'block'; // Show edit button again
+    toggleEditButton(true); // Show edit button again
 
     alert('Task details updated successfully!');
 }
@@ -300,20 +300,31 @@ function cancelEdit() {
     // Show the subtask section and finish button again
     document.getElementById('subtask-section').style.display = 'block';
     document.getElementById('finish-task-button').style.display = 'block';
-    document.getElementById('edit-task-button').style.display = 'block'; // Show edit button again
+    toggleEditButton(true); // Show edit button again
 
     alert('Edit cancelled.');
 }
 
 
 
+function toggleEditButton(isEditMode) {
+    const editButton = document.getElementById('edit-task-button');
+    if (isEditMode) {
+        editButton.style.display = 'inline-block'; // Show the edit button
+    } else {
+        editButton.style.display = 'none'; // Hide the edit button and remove space
+    }
+    const buttonContainer = document.querySelector('.new-task-button-container');
+    buttonContainer.offsetHeight;  // Trigger reflow
+
+}
 
 
 // Retrieve and display the username
 async function displayUsername() {
     const userId = localStorage.getItem('user_id'); // Make sure this is set when the user logs in
     if (!userId) {
-        document.getElementById('current-username').textContent = 'Guest';
+        document.getElementById('current-username').textContent = 'Hello, Guest!';
         return;
     }
 
@@ -321,17 +332,15 @@ async function displayUsername() {
         const response = await fetch(`http://localhost:5000/username?user_id=${userId}`);
         if (response.ok) {
             const data = await response.json();
-            document.getElementById('current-username').textContent = `${data.username}`;
+            document.getElementById('current-username').textContent = `Hello, ${data.username}!`;
         } else {
-            document.getElementById('current-username').textContent = 'Guest';
+            document.getElementById('current-username').textContent = 'Hello, Guest!';
         }
     } catch (error) {
         console.error('Error fetching username:', error);
-        document.getElementById('current-username').textContent = 'Guest';
+        document.getElementById('current-username').textContent = 'Hello, Guest!';
     }
 }
-
-displayUsername()
 
 
 

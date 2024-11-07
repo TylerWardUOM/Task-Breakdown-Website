@@ -10,6 +10,8 @@ body {
     background-color: #f4f4f4;
     color: #333;
     text-align: center;
+    width: 100%;
+
 }
 
 header {
@@ -50,6 +52,7 @@ main {
     flex-direction: column;
     align-items: center;
     justify-content: center;
+    width: 100%;
 }
 
 h2 {
@@ -197,3 +200,64 @@ main {
     font-size: 2em; /* Make the timer text larger */
     margin: 20px 0; /* Space around the timer display */
 }
+
+
+/*Styles for new task page*/
+#add-task-button {
+    background-color: #007BFF; /* Green color */
+    color: white;
+    padding: 12px 24px;
+    border: none;
+    border-radius: 5px;
+    font-size: 1.1em;
+    cursor: pointer;
+    transition: background-color 0.3s ease, transform 0.3s ease;
+    margin-bottom: 10px;
+}
+
+#add-task-button:hover {
+    background-color: #0056b3; /* Darker green on hover */
+    transform: scale(1.01); /* Slight scaling effect */
+}
+/* Styles for the buttons */
+#cancel-button,
+#edit-task-button,
+#finish-task-button {
+    background-color: #007BFF; /* Blue color */
+    color: white;
+    padding: 12px 24px;
+    border: none;
+    border-radius: 5px;
+    font-size: 1.1em;
+    cursor: pointer;
+    transition: background-color 0.3s ease, transform 0.3s ease;
+    flex-grow: 1; /* Each button takes up equal space */
+    margin: 0; /* Remove any default margin */
+    flex-grow: 1;             /* Allow buttons to grow and take up available space */
+    min-width: 100px;         /* Optional: prevent buttons from becoming too small */
+}
+
+#cancel-button:hover,
+#edit-task-button:hover,
+#finish-task-button:hover {
+    background-color: #0056b3; /* Darker blue on hover */
+    transform: scale(1.01);
+}
+
+/* The edit task button hidden by opacity and visibility */
+#edit-task-button {
+    display: none; /* Completely remove from layout when not visible */
+}
+
+
+/* Button container styles */
+.new-task-button-container {
+    display: flex;            /* Flexbox layout */
+    gap: 10px;                /* Space between the buttons */
+    justify-content: space-between; /* Space out the buttons */
+    width: 100%;              /* Ensure container takes full width */
+    align-items: center;      /* Vertically align the buttons */
+    margin: 0;                /* Ensure no margin issues */
+    flex-wrap: nowrap;
+}
+
