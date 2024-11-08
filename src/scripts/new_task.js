@@ -146,16 +146,31 @@ function addSubtask() {
 
 function addSubtaskToList(subtask) {
     const subtaskList = document.getElementById('subtasks');
+    
+    // Create the subtask item container with the 'task-item' class
     const subtaskItem = document.createElement('div');
-    subtaskItem.className = 'subtask-item';
-    subtaskItem.innerHTML = `
-        <span>${subtask.title} - Estimated time: ${subtask.time_estimate} hrs</span>
-        <button class="edit-subtask-button">Edit</button>
-        <button class="delete-subtask-button">Delete</button>
-    `;
-    subtaskList.appendChild(subtaskItem);
+    subtaskItem.className = 'task-item'; // Reusing the task-item class
 
-    subtaskItem.querySelector('.delete-subtask-button').addEventListener('click', function() {
+    // Create the content span for the subtask title and estimated time
+    const subtaskContent = document.createElement('span');
+    subtaskContent.textContent = `${subtask.title} - Estimated time: ${subtask.time_estimate} hrs`;
+
+    // Create the task-actions container
+    const taskActions = document.createElement('div');
+    taskActions.className = 'task-actions';
+
+    // Create Edit and Delete buttons, add classes, and append to taskActions
+    const editButton = document.createElement('button');
+    editButton.className = 'edit-subtask-button button';
+    editButton.textContent = 'Edit';
+    editButton.addEventListener('click', function() {
+        alert('Edit functionality not implemented yet.');
+    });
+
+    const deleteButton = document.createElement('button');
+    deleteButton.className = 'delete-subtask-button button';
+    deleteButton.textContent = 'Delete';
+    deleteButton.addEventListener('click', function() {
         const index = subtasks.indexOf(subtask);
         if (index > -1) {
             subtasks.splice(index, 1);
@@ -163,10 +178,18 @@ function addSubtaskToList(subtask) {
         }
     });
 
-    subtaskItem.querySelector('.edit-subtask-button').addEventListener('click', function() {
-        alert('Edit functionality not implemented yet.');
-    });
+    // Append buttons to taskActions container
+    taskActions.appendChild(editButton);
+    taskActions.appendChild(deleteButton);
+
+    // Append content and actions to subtaskItem
+    subtaskItem.appendChild(subtaskContent);
+    subtaskItem.appendChild(taskActions);
+
+    // Append the completed subtaskItem to the subtask list
+    subtaskList.appendChild(subtaskItem);
 }
+
 
 
 

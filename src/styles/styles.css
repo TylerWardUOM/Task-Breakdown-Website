@@ -11,6 +11,7 @@ body {
     color: #333;
     text-align: center;
     width: 100%;
+    overflow-x: hidden;
 
 }
 
@@ -203,46 +204,54 @@ main {
 
 
 /*Styles for new task page*/
+#add-subtask-button,
 #add-task-button {
     background-color: #007BFF; /* Green color */
     color: white;
-    padding: 12px 24px;
+    position: relative;
+    align-self: center;
+    padding: 10px 24px;
     border: none;
     border-radius: 5px;
     font-size: 1.1em;
     cursor: pointer;
     transition: background-color 0.3s ease, transform 0.3s ease;
     margin-bottom: 10px;
+    white-space: nowrap; /* Prevent text wrapping within button */
+
 }
 
 #add-task-button:hover {
     background-color: #0056b3; /* Darker green on hover */
     transform: scale(1.01); /* Slight scaling effect */
 }
+
 /* Styles for the buttons */
 #cancel-button,
 #edit-task-button,
 #finish-task-button {
-    background-color: #007BFF; /* Blue color */
+    background-color: #007BFF;
     color: white;
-    padding: 12px 24px;
+    padding: 10px 24px;
     border: none;
     border-radius: 5px;
     font-size: 1.1em;
     cursor: pointer;
     transition: background-color 0.3s ease, transform 0.3s ease;
-    flex-grow: 1; /* Each button takes up equal space */
-    margin: 0; /* Remove any default margin */
-    flex-grow: 1;             /* Allow buttons to grow and take up available space */
-    min-width: 100px;         /* Optional: prevent buttons from becoming too small */
+    white-space: nowrap; /* Prevent text wrapping within button */
+    margin: 0;
+    display: flex; /* Ensure even text distribution */
+    align-items: center; /* Center text within button */
 }
 
+#add-subtask-button:hover,
 #cancel-button:hover,
 #edit-task-button:hover,
 #finish-task-button:hover {
-    background-color: #0056b3; /* Darker blue on hover */
+    background-color: #0056b3;
     transform: scale(1.01);
 }
+
 
 /* The edit task button hidden by opacity and visibility */
 #edit-task-button {
@@ -252,12 +261,22 @@ main {
 
 /* Button container styles */
 .new-task-button-container {
-    display: flex;            /* Flexbox layout */
-    gap: 10px;                /* Space between the buttons */
-    justify-content: space-between; /* Space out the buttons */
-    width: 100%;              /* Ensure container takes full width */
-    align-items: center;      /* Vertically align the buttons */
-    margin: 0;                /* Ensure no margin issues */
-    flex-wrap: nowrap;
+    display: flex;
+    gap: 10px; /* Space between the buttons */
+    justify-content: center; /* Center buttons in container */
+    align-items: center; /* Vertically align the buttons */
+    flex-wrap: nowrap; /* Prevent wrapping */
+    width: auto; /* Adjust to content */
+    max-width: 100%; /* Ensure container doesn’t exceed available space */
+    margin: 0 auto; /* Center container horizontally */
 }
 
+#task-details {
+    background: white;
+    padding: 20px; /* Slightly more padding than .task-item for larger content */
+    margin: 20px 0; /* Space above and below */
+    border-radius: 8px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    width: 500px; /* Set width to fill most of the page, adjust as needed */
+    max-width: 600px; /* Max width for better readability */
+}
