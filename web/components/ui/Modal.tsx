@@ -12,8 +12,9 @@ const Modal: React.FC<ModalProps> = ({ isOpen, onClose, children }) => {
 
   return (
     <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
-      <div className="bg-white p-6 rounded shadow-lg relative">
-        <button className="absolute top-2 right-2" onClick={onClose}>
+      {/* Updated modal container width */}
+      <div className="bg-white rounded-lg shadow-lg max-w-3xl w-full p-6 relative">
+        <button className="absolute top-3 right-3 text-xl" onClick={onClose}>
           &times;
         </button>
         {children}
