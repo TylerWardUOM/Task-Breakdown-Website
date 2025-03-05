@@ -1,0 +1,23 @@
+web/
+│── src/
+│   ├── components/          # Reusable UI components
+│   │   ├── layout/          # Navbar, Sidebar, Footer
+│   │   ├── ui/              # Buttons, Modals, Forms
+│   │   ├── task/            # Task Cards, Task Lists
+│   │   ├── dashboard/       # Widgets, Charts, Overview
+│   │   ├── analytics/       # Graphs, Productivity Stats
+│   ├── pages/               # Next.js pages (routes)
+│   │   ├── index.tsx        # Landing Page
+│   │   ├── dashboard.tsx    # User Dashboard
+│   │   ├── tasks.tsx        # Task List Page
+│   │   ├── focus.tsx        # Focus Mode Page
+│   │   ├── calendar.tsx     # Calendar Page
+│   │   ├── analytics.tsx    # Stats & Productivity
+│   ├── hooks/               # Custom React Hooks (useTasks, useAuth)
+│   ├── context/             # Global State (AuthContext, TaskContext)
+│   ├── lib/                 # API calls, Firebase, helper functions
+│   ├── styles/              # Tailwind CSS, global styles
+│   ├── assets/              # Images, icons, fonts
+│   ├── utils/               # Utility functions (date formatting, sorting)
+│── package.json             # Dependencies
+│── .env.example             # Environment Variables
