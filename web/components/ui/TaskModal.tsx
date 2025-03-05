@@ -1,15 +1,12 @@
-import React, { useState } from "react";
-import ColourChangingSlider from "./ColourChangingSlider";
-import SubtaskInput from "./SubtaskInput";
-import SubtaskList from "./SubtaskList";  // Subtasks management
-import TaskDependencies from "./TaskDependencies";  // Dependency management
+import React, { useState, useEffect } from "react";
+import ColourChangingSlider from "./ColourChangingSlider"; // Slider for importance
 
 const TaskModal: React.FC<{
   onClose: () => void;
   onSave: (task: any) => void;
-  existingTask?: any; // Optional existing task for dependencies
+  existingTask?: any; // Optional existing task for editing
 }> = ({ onClose, onSave, existingTask }) => {
-  // Step tracking state
+  // Step tracking state (Only Step 1 now)
   const [currentStep, setCurrentStep] = useState(1);
 
   // Task details state (Step 1)
@@ -18,23 +15,21 @@ const TaskModal: React.FC<{
   const [duration, setDuration] = useState(0);
   const [importanceValue, setImportanceValue] = useState(5);
   const [description, setDescription] = useState("");
-  const [repeatTask, setRepeatTask] = useState(false);
+  const [repeatTask, setRepeatTask] = useState("Daily"); // Default to Daily
+  const [category, setCategory] = useState("Life");
 
-  // Subtask handling state (Step 2)
-  const [subtasks, setSubtasks] = useState<any[]>([]);
-  const [nextId, setNextId] = useState(1); // State to track the next ID for subtasks
-
-  const handleAddSubtask = (subtask: any) => {
-    setSubtasks((prevSubtasks) => [...prevSubtasks, subtask]);
-    setNextId((prevId) => prevId + 1); // Increment ID after adding subtask
-  };
-
-  const handleRemoveSubtask = (id: number) => {
-    setSubtasks((prevSubtasks) => prevSubtasks.filter((subtask) => subtask.id !== id));
-  };
-
-  // Dependencies (Step 3)
-  const [dependency, setDependency] = useState<string | undefined>(existingTask?.title);
+  // If there's an existing task, populate the form with its data
+  useEffect(() => {
+    if (existingTask) {
+      setTaskTitle(existingTask.title);
+      setDueDate(existingTask.dueDate);
+      setDuration(existingTask.duration);
+      setImportanceValue(existingTask.importance);
+      setDescription(existingTask.description);
+      setRepeatTask(existingTask.repeatTask);
+      setCategory(existingTask.category);
+    }
+  }, [existingTask]); // This effect runs only when `existingTask` changes
 
   const handleSaveTask = () => {
     const newTask = {
@@ -43,12 +38,11 @@ const TaskModal: React.FC<{
       duration,
       importance: importanceValue,
       description,
-      dependency,
-      subtasks,
       repeatTask,
+      category,
     };
-    onSave(newTask);
-    onClose();
+    onSave(newTask); // Save task and pass to the parent
+    onClose(); // Close the modal after saving
   };
 
   return (
@@ -58,7 +52,7 @@ const TaskModal: React.FC<{
       {/* Step 1: Task Info */}
       {currentStep === 1 && (
         <div className="mt-4 space-y-4">
-          <label className="block text-gray-700">Task Title:</label>
+          {/* Task Title */}
           <input
             type="text"
             placeholder="Task Title"
@@ -67,7 +61,7 @@ const TaskModal: React.FC<{
             onChange={(e) => setTaskTitle(e.target.value)}
           />
 
-          <label className="block text-gray-700">Task Description:</label>
+          {/* Task Description */}
           <textarea
             placeholder="Task Description"
             className="w-full p-2 border rounded"
@@ -75,23 +69,7 @@ const TaskModal: React.FC<{
             onChange={(e) => setDescription(e.target.value)}
           />
 
-          <label className="block text-gray-700">Due Date (Optional):</label>
-          <input
-            type="date"
-            className="w-full p-2 border rounded"
-            value={dueDate}
-            onChange={(e) => setDueDate(e.target.value)}
-          />
-
-          <label className="block text-gray-700">Estimated Duration:</label>
-          <input
-            type="number"
-            placeholder="Duration (minutes)"
-            className="w-full p-2 border rounded"
-            value={duration}
-            onChange={(e) => setDuration(parseInt(e.target.value))}
-          />
-
+          {/* Task Importance Slider */}
           <ColourChangingSlider
             label="Task Importance"
             min={1}
@@ -102,30 +80,57 @@ const TaskModal: React.FC<{
             highText="High"
           />
 
-          <label className="block text-gray-700">Repeat Task:</label>
-          <input
-            type="checkbox"
-            checked={repeatTask}
-            onChange={() => setRepeatTask(!repeatTask)}
-          />
-        </div>
-      )}
+          {/* Due Date (Label and Input in same row) */}
+          <div className="flex items-center space-x-2">
+            <label className="text-gray-700">Due Date (Optional):</label>
+            <input
+              type="date"
+              className="w-full p-2 border rounded"
+              value={dueDate}
+              onChange={(e) => setDueDate(e.target.value)}
+            />
+          </div>
 
-      {/* Step 2: Add Subtasks */}
-      {currentStep === 2 && (
-        <div>
-          <SubtaskInput onAddSubtask={handleAddSubtask} nextId={nextId} />
-          <SubtaskList subtasks={subtasks} onRemoveSubtask={handleRemoveSubtask} setSubtasks={setSubtasks} />
-        </div>
-      )}
+          {/* Duration (Label and Input in same row below Due Date) */}
+          <div className="flex items-center space-x-2">
+            <label className="text-gray-700">Estimated Duration:</label>
+            <input
+              type="number"
+              placeholder="Duration (minutes)"
+              className="w-full p-2 border rounded"
+              value={duration}
+              onChange={(e) => setDuration(parseInt(e.target.value))}
+            />
+          </div>
 
-      {/* Step 3: Task Dependencies */}
-      {currentStep === 3 && (
-        <div>
-          <TaskDependencies
-            dependency={dependency}
-            onChange={(task: string) => setDependency(task)}
-          />
+          {/* Repeat Task (Select dropdown) */}
+          <div className="flex items-center space-x-2">
+            <label className="text-gray-700">Repeat Task:</label>
+            <select
+              className="p-2 border rounded"
+              value={repeatTask}
+              onChange={(e) => setRepeatTask(e.target.value)}
+            >
+              <option value="Daily">Daily</option>
+              <option value="Weekly">Weekly</option>
+              <option value="Monthly">Monthly</option>
+              <option value="Other">Other</option>
+            </select>
+          </div>
+
+          {/* Category (Select dropdown) */}
+          <div className="flex items-center space-x-2">
+            <label className="text-gray-700">Category:</label>
+            <select
+              className="p-2 border rounded"
+              value={category}
+              onChange={(e) => setCategory(e.target.value)}
+            >
+              <option value="Work">Work</option>
+              <option value="Life">Life</option>
+              <option value="Other">Other</option>
+            </select>
+          </div>
         </div>
       )}
 
@@ -139,7 +144,7 @@ const TaskModal: React.FC<{
             Back
           </button>
         )}
-        {currentStep < 3 ? (
+        {currentStep < 1 ? (
           <button
             className="bg-blue-500 text-white px-4 py-2 rounded"
             onClick={() => setCurrentStep(currentStep + 1)}
