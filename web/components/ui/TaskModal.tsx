@@ -1,24 +1,25 @@
 import React, { useState, useEffect } from "react";
-import ColourChangingSlider from "./ColourChangingSlider"; // Slider for importance
+import ImportanceSelector from "./ImportanceSelector"; // Now using the emoji selector!
+import { v4 as uuidv4 } from "uuid"; // Importing UUID library
 
 const TaskModal: React.FC<{
   onClose: () => void;
   onSave: (task: any) => void;
-  existingTask?: any; // Optional existing task for editing
+  existingTask?: any;
 }> = ({ onClose, onSave, existingTask }) => {
-  // Step tracking state (Only Step 1 now)
-  const [currentStep, setCurrentStep] = useState(1);
-
-  // Task details state (Step 1)
+  // Task details state
   const [taskTitle, setTaskTitle] = useState("");
-  const [dueDate, setDueDate] = useState<string | undefined>(""); // Optional due date
-  const [duration, setDuration] = useState(0);
-  const [importanceValue, setImportanceValue] = useState(5);
+  const [dueDate, setDueDate] = useState<string | undefined>(""); // Optional
+  const [duration, setDuration] = useState<number | undefined>(undefined); // Optional
+  const [importanceValue, setImportanceValue] = useState(6); // Default to Medium
   const [description, setDescription] = useState("");
-  const [repeatTask, setRepeatTask] = useState("Daily"); // Default to Daily
-  const [category, setCategory] = useState("Life");
+  const [repeatTask, setRepeatTask] = useState("None"); // Default to "None"
+  const [category, setCategory] = useState("General"); // Default to "General"
 
-  // If there's an existing task, populate the form with its data
+  // Toggle for "More Options"
+  const [showMoreOptions, setShowMoreOptions] = useState(false);
+
+  // Populate fields if editing an existing task
   useEffect(() => {
     if (existingTask) {
       setTaskTitle(existingTask.title);
@@ -26,13 +27,14 @@ const TaskModal: React.FC<{
       setDuration(existingTask.duration);
       setImportanceValue(existingTask.importance);
       setDescription(existingTask.description);
-      setRepeatTask(existingTask.repeatTask);
-      setCategory(existingTask.category);
+      setRepeatTask(existingTask.repeatTask || "None"); // Ensure "None" is used if missing
+      setCategory(existingTask.category || "General"); // Ensure "General" is used if missing
     }
-  }, [existingTask]); // This effect runs only when `existingTask` changes
+  }, [existingTask]);
 
   const handleSaveTask = () => {
     const newTask = {
+      id: uuidv4(), // Generate unique ID on frontend
       title: taskTitle,
       dueDate,
       duration,
@@ -41,91 +43,92 @@ const TaskModal: React.FC<{
       repeatTask,
       category,
     };
-    onSave(newTask); // Save task and pass to the parent
-    onClose(); // Close the modal after saving
+
+    onSave(newTask); // Pass the task with the generated ID
+    onClose();
   };
 
   return (
     <div className="w-full space-y-4">
       <h2 className="text-xl font-bold">{existingTask ? "Edit Task" : "Create Task"}</h2>
 
-      {/* Step 1: Task Info */}
-      {currentStep === 1 && (
-        <div className="mt-4 space-y-4">
-          {/* Task Title */}
-          <input
-            type="text"
-            placeholder="Task Title"
-            className="w-full p-2 border rounded"
-            value={taskTitle}
-            onChange={(e) => setTaskTitle(e.target.value)}
-          />
+      {/* Task Title */}
+      <input
+        type="text"
+        placeholder="Task Title"
+        className="w-full p-2 border rounded"
+        value={taskTitle}
+        onChange={(e) => setTaskTitle(e.target.value)}
+      />
 
-          {/* Task Description */}
-          <textarea
-            placeholder="Task Description"
-            className="w-full p-2 border rounded"
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
-          />
+      {/* Task Description */}
+      <textarea
+        placeholder="Task Description (Optional)"
+        className="w-full p-2 border rounded text-sm"
+        value={description}
+        onChange={(e) => setDescription(e.target.value)}
+      />
 
-          {/* Task Importance Slider */}
-          <ColourChangingSlider
-            label="Task Importance"
-            min={1}
-            max={10}
-            value={importanceValue}
-            onChange={setImportanceValue}
-            lowText="Low"
-            highText="High"
-          />
+      {/* Task Importance Selector */}
+      <ImportanceSelector value={importanceValue} onChange={setImportanceValue} />
 
-          {/* Due Date (Label and Input in same row) */}
+      {/* Due Date & Duration */}
+      <div className="flex items-center space-x-2">
+        <label className="text-gray-700 text-sm">Due Date (Optional):</label>
+        <input
+          type="date"
+          className="p-2 border rounded flex-1 text-sm"
+          value={dueDate}
+          onChange={(e) => setDueDate(e.target.value)}
+        />
+      </div>
+
+      <div className="flex items-center space-x-2">
+        <label className="text-gray-700 text-sm">Duration (mins):</label>
+        <input
+          type="number"
+          placeholder="Optional"
+          className="p-2 border rounded flex-1 text-sm"
+          value={duration || ""}
+          onChange={(e) => setDuration(e.target.value ? parseInt(e.target.value) : undefined)}
+        />
+      </div>
+
+      {/* More Options Toggle */}
+      <button
+        onClick={() => setShowMoreOptions(!showMoreOptions)}
+        className="text-blue-600 text-sm underline"
+      >
+        {showMoreOptions ? "Hide Options ⬆" : "More Options ⬇"}
+      </button>
+
+      {/* More Options Section */}
+      {showMoreOptions && (
+        <div className="mt-2 space-y-2 border-t pt-2">
+          {/* Repeat Task */}
           <div className="flex items-center space-x-2">
-            <label className="text-gray-700">Due Date (Optional):</label>
-            <input
-              type="date"
-              className="w-full p-2 border rounded"
-              value={dueDate}
-              onChange={(e) => setDueDate(e.target.value)}
-            />
-          </div>
-
-          {/* Duration (Label and Input in same row below Due Date) */}
-          <div className="flex items-center space-x-2">
-            <label className="text-gray-700">Estimated Duration:</label>
-            <input
-              type="number"
-              placeholder="Duration (minutes)"
-              className="w-full p-2 border rounded"
-              value={duration}
-              onChange={(e) => setDuration(parseInt(e.target.value))}
-            />
-          </div>
-
-          {/* Repeat Task (Select dropdown) */}
-          <div className="flex items-center space-x-2">
-            <label className="text-gray-700">Repeat Task:</label>
+            <label className="text-gray-700 text-sm">Repeat Task:</label>
             <select
-              className="p-2 border rounded"
+              className="p-2 border rounded flex-1 text-sm"
               value={repeatTask}
               onChange={(e) => setRepeatTask(e.target.value)}
             >
+              <option value="None">None</option>
               <option value="Daily">Daily</option>
               <option value="Weekly">Weekly</option>
               <option value="Monthly">Monthly</option>
-              <option value="Other">Other</option>
             </select>
           </div>
 
-          {/* Category (Select dropdown) */}
+          {/* Category */}
           <div className="flex items-center space-x-2">
-            <label className="text-gray-700">Category:</label>
+            <label className="text-gray-700 text-sm">Category:</label>
             <select
-              className="p-2 border rounded"
+              className="p-2 border rounded flex-1 text-sm"
               value={category}
               onChange={(e) => setCategory(e.target.value)}
             >
+              <option value="General">General</option>
               <option value="Work">Work</option>
               <option value="Life">Life</option>
               <option value="Other">Other</option>
@@ -134,31 +137,14 @@ const TaskModal: React.FC<{
         </div>
       )}
 
-      {/* Navigation buttons */}
-      <div className="mt-4 flex justify-between space-x-2">
-        {currentStep > 1 && (
-          <button
-            className="bg-gray-300 px-4 py-2 rounded"
-            onClick={() => setCurrentStep(currentStep - 1)}
-          >
-            Back
-          </button>
-        )}
-        {currentStep < 1 ? (
-          <button
-            className="bg-blue-500 text-white px-4 py-2 rounded"
-            onClick={() => setCurrentStep(currentStep + 1)}
-          >
-            Next
-          </button>
-        ) : (
-          <button
-            className="bg-green-500 text-white px-4 py-2 rounded"
-            onClick={handleSaveTask}
-          >
-            Save Task
-          </button>
-        )}
+      {/* Save & Close Buttons */}
+      <div className="mt-4 flex justify-between">
+        <button className="bg-gray-300 px-4 py-2 rounded" onClick={onClose}>
+          Cancel
+        </button>
+        <button className="bg-green-500 text-white px-4 py-2 rounded" onClick={handleSaveTask}>
+          Save Task
+        </button>
       </div>
     </div>
   );
