@@ -1,0 +1,29 @@
+{
+  "compilerOptions": {
+    "target": "ES2016",                           /* Set the JavaScript version for emitted JavaScript */
+    "module": "commonjs",                         /* Specify module code generation */
+    "strict": true,                               /* Enable strict type-checking options */
+    "esModuleInterop": true,                      /* Emit additional JavaScript to ease support for importing CommonJS modules */
+    "skipLibCheck": true,                         /* Skip type checking all .d.ts files to avoid unnecessary checks */
+    "forceConsistentCasingInFileNames": true,     /* Ensure that file name casing is consistent */
+    "outDir": "./dist",                           /* Specify the output folder for the compiled files */
+    "rootDir": "./src",                           /* Specify the root folder for TypeScript files */
+    "resolveJsonModule": true,                    /* Allow importing of .json files */
+    "moduleResolution": "node",                   /* Module resolution strategy (Node-style resolution) */
+    "strictNullChecks": true,                     /* Enable strict checking for null and undefined */
+    "noImplicitAny": true,                        /* Enable error reporting for expressions with an implied 'any' type */
+    "noUnusedLocals": true,                       /* Enable error reporting for unused local variables */
+    "noUnusedParameters": true,                   /* Enable error reporting for unused function parameters */
+    "noImplicitReturns": true,                    /* Ensure all functions have explicit return values */
+    "noFallthroughCasesInSwitch": true,           /* Ensure there’s no fallthrough in switch statements */
+    "skipDefaultLibCheck": true,                  /* Skip checking the default library files */
+    "typeRoots": ["./node_modules/@types"],       /* Specify the folder containing custom types */
+    "types": ["node", "express"]                  /* Include the Node.js and Express types */
+  },
+  "include": [
+    "src/**/*.ts"                                 /* Include all TypeScript files in the src folder */
+  ],
+  "exclude": [
+    "node_modules"                                /* Exclude node_modules from compilation */
+  ]
+}

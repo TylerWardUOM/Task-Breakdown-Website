@@ -1,31 +1,62 @@
 "use client";
-import Link from "next/link";
-import { useState } from "react";
+import { useContext } from "react";
+import { useRouter } from "next/navigation";
+import { useAuth } from "../../lib/authContext"; // Import the useAuth hook
+import { logout } from "../../lib/auth"; // Import the useAuth hook
 
 const Navbar = () => {
-  // State to track if the user is logged in
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const { isAuthenticated, userName, loading } = useAuth(); // Access auth state from context
+  const router = useRouter();
+
+  const handleLogout = async () => {
+    // Assuming you have a logout function in your AuthContext or lib/auth
+    await logout(); // Call logout from AuthContext
+    router.push("/"); // Redirect to home or login page
+  };
 
   return (
     <nav className="flex justify-between items-center h-16 w-full bg-gray-800 text-white px-6">
       {/* Logo */}
-      <Link href="/">
-        <span className="text-xl font-bold cursor-pointer">MyApp</span>
-      </Link>
-      
+      <span className="text-xl font-bold cursor-pointer">MyApp</span>
+
       {/* Navigation Links */}
       <div className="space-x-4">
-        <Link href="/features" className="hover:underline">Features</Link>
-        <Link href="/pricing" className="hover:underline">Pricing</Link>
+        <a href="/features" className="hover:underline">Features</a>
+        <a href="/pricing" className="hover:underline">Pricing</a>
       </div>
-      
-      {/* Login/Logout Button */}
-      <button
-        onClick={() => setIsAuthenticated(!isAuthenticated)}
-        className="bg-blue-500 hover:bg-blue-600 px-4 py-2 rounded"
-      >
-        {isAuthenticated ? "Logout" : "Login"}
-      </button>
+
+      {/* Login/Logout and User Info */}
+      <div className="flex items-center space-x-4">
+        {loading ? (
+          <p>Loading...</p> // Optional loading state while checking auth
+        ) : isAuthenticated ? (
+          <>
+            {/* Display username if authenticated */}
+            <span className="text-sm text-white">{userName}</span>
+            <button
+              onClick={handleLogout}
+              className="bg-blue-500 hover:bg-blue-600 px-4 py-2 rounded"
+            >
+              Logout
+            </button>
+          </>
+        ) : (
+          <>
+            <button
+              onClick={() => router.push("/login")}
+              className="bg-blue-500 hover:bg-blue-600 px-4 py-2 rounded"
+            >
+              Login
+            </button>
+            <button
+              onClick={() => router.push("/register")}
+              className="bg-green-500 hover:bg-green-600 px-4 py-2 rounded"
+            >
+              Register
+            </button>
+          </>
+        )}
+      </div>
     </nav>
   );
 };
