@@ -39,12 +39,12 @@ export const getTaskByIdFromDB = async (user_id: number, taskId: number) => {
     return result.rows[0]; // Return a single task
 };
 
-// Update an existing task in the database
+// Update a task in the database
 export const updateTaskInDB = async (
     taskId: number,
     title: string | null,
     description: string | null,
-    due_date: Date | null,
+    due_date: string | null,
     importance_factor: number | null,
     duration: string | null,
     repeat_interval: string | null,
@@ -53,24 +53,61 @@ export const updateTaskInDB = async (
     completed: boolean | null,
     completed_at: Date | null
 ) => {
-    const query = `
-        UPDATE tasks SET
-            title = COALESCE($2, title),
-            description = COALESCE($3, description),
-            due_date = COALESCE($4, due_date),
-            importance_factor = COALESCE($5, importance_factor),
-            duration = COALESCE($6, duration),
-            repeat_interval = COALESCE($7, repeat_interval),
-            category_id = COALESCE($8, category_id),
-            notes = COALESCE($9, notes),
-            completed = COALESCE($10, completed),
-            completed_at = COALESCE($11, completed_at),
-            updated_at = NOW()
-        WHERE id = $1
-        RETURNING *;
-    `;
-    const values = [taskId, title, description, due_date, importance_factor, duration, repeat_interval, category_id, notes, completed, completed_at];
-    return pool.query(query, values);
+    try {
+        let query = `UPDATE tasks SET `;
+        const values: any[] = [];
+        const columns: string[] = [];
+
+        if (title !== null) {
+            columns.push('title');
+            values.push(title);
+        }
+        if (description !== null) {
+            columns.push('description');
+            values.push(description);
+        }
+        if (due_date !== null) {
+            columns.push('due_date');
+            values.push(due_date);
+        }
+        if (importance_factor !== null) {
+            columns.push('importance_factor');
+            values.push(importance_factor);
+        }
+        if (duration !== null) {
+            columns.push('duration');
+            values.push(duration);
+        }
+        if (repeat_interval !== null) {
+            columns.push('repeat_interval');
+            values.push(repeat_interval);
+        }
+        if (category_id !== null) {
+            columns.push('category_id');
+            values.push(category_id);
+        }
+        if (notes !== null) {
+            columns.push('notes');
+            values.push(notes);
+        }
+        if (completed !== null) {
+            columns.push('completed');
+            values.push(completed);
+        }
+        if (completed_at !== null) {
+            columns.push('completed_at');
+            values.push(completed_at);
+        }
+
+        // Adding task ID at the end of the query
+        query += columns.join(', ') + ` WHERE id = $${values.length + 1} RETURNING *`;
+        values.push(taskId);
+
+        const result = await pool.query(query, values);
+        return result;
+    } catch (err) {
+        throw new Error('Error updating task in the database');
+    }
 };
 
 // Delete a task from the database
