@@ -1,23 +1,38 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { FiPlusCircle } from "react-icons/fi";
 import Button from "../../components/ui/Button2";
 import Card from "../../components/ui/Card";
 import Modal from "../../components/ui/Modal";
-import TaskModal from "../../components/ui/TaskModal"; 
+import TaskModal from "../../components/ui/TaskModal";
 import Toast from "../../components/ui/Toast";
+import { useAuth } from "../../lib/authContext"; // Import the useAuth hook
+import { useRouter } from "next/navigation"; // Import useRouter for redirection
 
 export default function Dashboard() {
+  const { isAuthenticated, loading, userName } = useAuth(); // Get authentication status from context
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isToastVisible, setIsToastVisible] = useState(false);
   const [tasks, setTasks] = useState([
     { id: 1, title: "Urgent Task", priority: "High" },
     { id: 2, title: "Meeting at 3 PM", priority: "Upcoming" },
   ]);
+  const router = useRouter();
+
+  useEffect(() => {
+    if (!loading && !isAuthenticated) {
+      // Redirect to login page if user is not authenticated
+      router.push("/login");
+    }
+  }, [loading, isAuthenticated, router]);
+
+  if (loading) {
+    return <p>Loading...</p>; // Display loading state while checking auth
+  }
 
   return (
     <div className="flex-1 p-6 overflow-y-auto">
-      <h1 className="text-2xl font-semibold">Good morning, User! 🌞</h1>
+      <h1 className="text-2xl font-semibold">Good morning, {userName}!</h1>
       <p className="text-gray-500 italic mt-2">"Inspirational Quote of the Day"</p>
 
       {/* Focus Mode & Add Task Buttons */}
@@ -55,10 +70,9 @@ export default function Dashboard() {
       </div>
 
       {/* Task Modal */}
-      <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)}  width="max-w-[20%]">
+      <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} width="max-w-[20%]">
         <TaskModal onClose={() => setIsModalOpen(false)} onSave={() => {}} />
       </Modal>
-
 
       {/* Toast Notification */}
       {isToastVisible && <Toast message="This is a notification!" onClose={() => setIsToastVisible(false)} />}
