@@ -18,7 +18,7 @@ const PORT = process.env.PORT || 5000;
 // Middleware
 app.use(cors({
   origin: 'http://localhost:3000',  // Allow requests from your Next.js frontend
-  methods: 'GET,POST',
+  methods: 'GET,POST,PUT',
   credentials: true,
 }));
 app.use(express.json());

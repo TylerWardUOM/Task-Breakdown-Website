@@ -1,7 +1,7 @@
 "use client";
 
 import { createContext, useState, useEffect, useContext, ReactNode } from "react";
-import { getAuth, onAuthStateChanged } from "firebase/auth"; // Firebase Auth methods
+import { getAuth, onAuthStateChanged, getIdToken } from "firebase/auth"; // Firebase Auth methods
 import { app } from "./firebase"; // Firebase app initialization file
 import { getUserData } from "./user"; // Import your function to get user data
 
@@ -9,6 +9,7 @@ interface AuthContextType {
   isAuthenticated: boolean;
   userName: string | null;
   loading: boolean;
+  firebaseToken: string | null; // Add token in context
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -20,8 +21,15 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [userName, setUserName] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const [firebaseToken, setFirebaseToken] = useState<string | null>(null);
 
   useEffect(() => {
+    // Check localStorage for token on reload
+    const storedToken = localStorage.getItem("firebaseToken");
+    if (storedToken) {
+      setFirebaseToken(storedToken);
+    }
+
     // Set up Firebase auth state listener
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       if (user) {
@@ -32,9 +40,16 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         if (fetchedUserData) {
           setUserName(fetchedUserData.username);
         }
+
+        // Get Firebase token
+        const token = await getIdToken(user);
+        setFirebaseToken(token);
+        localStorage.setItem("firebaseToken", token); // Persist the token in localStorage
       } else {
         setIsAuthenticated(false);
         setUserName(null);
+        setFirebaseToken(null);
+        localStorage.removeItem("firebaseToken"); // Clear the token on logout
       }
       setLoading(false); // Set loading to false after checking the auth state
     });
@@ -44,7 +59,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   }, []);
 
   return (
-    <AuthContext.Provider value={{ isAuthenticated, userName, loading }}>
+    <AuthContext.Provider value={{ isAuthenticated, userName, loading, firebaseToken }}>
       {children}
     </AuthContext.Provider>
   );

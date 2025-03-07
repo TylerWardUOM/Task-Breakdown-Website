@@ -13,30 +13,44 @@ declare global {
 
 // Verify Firebase ID token middleware
 export const verifyToken = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
-  const token = req.headers.authorization?.split('Bearer ')[1];
+  console.log("🔍 [verifyToken] Middleware triggered");
+
+  // Extract token from Authorization header
+  const authHeader = req.headers.authorization;
+  console.log("📌 Authorization Header:", authHeader);
+
+  const token = authHeader?.startsWith("Bearer ") ? authHeader.split("Bearer ")[1] : null;
 
   if (!token) {
-    res.status(401).json({ error: "Unauthorized" });
+    console.warn("❌ No token found in Authorization header");
+    res.status(401).json({ error: "Unauthorized - No token provided" });
     return;
   }
 
   try {
+    console.log("🔍 [verifyToken] Verifying token...");
+
     // Verify the Firebase ID token
     const decodedToken = await admin.auth().verifyIdToken(token);
+    console.log("✅ Decoded Token:", decodedToken);
 
-    // Fetch the user from the database using the uid from the token
+    // Fetch the user from the database using the UID from the token
     const user = await getUserByUID(decodedToken.uid);
+    console.log("📌 Retrieved User from DB:", user);
 
     if (!user) {
-        res.status(404).json({ error: "User not found in the database" });
+      console.warn("⚠️ User not found in the database for UID:", decodedToken.uid);
+      res.status(404).json({ error: "User not found in the database" });
       return;
     }
 
     // Attach user data (including user ID) to the request object
-    req.user = user;  // Attach the full user data to req.user (now it will contain the user info from the database)
-    next();  // Proceed to the next middleware or route handler
+    req.user = user;
+    console.log("✅ [verifyToken] User attached to request:", req.user);
+
+    next(); // Proceed to the next middleware or route handler
   } catch (error) {
-    console.error("Error verifying token:", error);
+    console.error("❌ Error verifying token:", error);
     res.status(401).json({ error: "Invalid token" });
   }
 };

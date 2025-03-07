@@ -9,7 +9,8 @@ import {
   completeTask, 
   getFilteredTasks, 
   createRepeatedTask, 
-  getTasksWithPagination 
+  getTasksWithPagination,
+  uncompleteTask
 } from '../controllers/taskController';  // Adjust path as necessary
 import { verifyToken } from '../middlewares/authMiddleware';
 
@@ -31,10 +32,13 @@ router.put('/update', updateTask);
 router.delete('/delete', deleteTask);
 
 // Route to add a note to a task
-router.post('/taskId/addnotes', addNoteToTask);
+router.post('/:taskId/addnotes', addNoteToTask);
 
 // Route to mark a task as completed
-router.put('/taskId/complete', completeTask);
+router.put('/:taskId/complete', completeTask);
+
+router.put('/:taskId/uncomplete', uncompleteTask);
+
 
 // Route to get filtered tasks based on query parameters (category, due_date, importance_factor)
 router.get('/filter', getFilteredTasks);
