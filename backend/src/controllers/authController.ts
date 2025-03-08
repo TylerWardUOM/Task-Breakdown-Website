@@ -7,14 +7,22 @@ import { createUserInDB, getUserByFirebaseUID } from "../models/userModel";  // 
 
 dotenv.config();
 
-// Firebase Admin Initialization
-const serviceAccount = require("../../serviceAccountKey.json");  // Ensure the path to your service account key is correct
+let serviceAccount;
+
+if (process.env.FIREBASE_SERVICE_ACCOUNT_JSON) {
+  // If environment variable contains JSON string, parse it
+  serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT_JSON);
+} else {
+  // Fallback to local file path for local development
+  serviceAccount = require("../../serviceAccountKey.json");
+}
+
+// Initialize Firebase Admin with the service account
 if (!admin.apps.length) {
   admin.initializeApp({
     credential: admin.credential.cert(serviceAccount),
   });
 }
-
 
 // Register function on the backend (Node.js / Express)
 export const register = async (req: Request, res: Response): Promise<void> => {

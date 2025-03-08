@@ -16,7 +16,7 @@ export const getUserData = async (): Promise<any> => {
     const idToken = await user.getIdToken();
 
     // Make the API request to the backend to fetch user data
-    const response = await fetch('http://localhost:5000/api/user/me', {
+    const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/user/me`, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
