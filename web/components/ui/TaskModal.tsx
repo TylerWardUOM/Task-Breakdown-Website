@@ -2,7 +2,30 @@ import React, { useState, useEffect } from "react";
 import ImportanceSelector from "./ImportanceSelector";
 import { getFirebaseToken } from "../../lib/auth";
 
-const TaskModal: React.FC<{ onClose: () => void; onSave: (task: any) => void; existingTask?: any; }> = ({ onClose, onSave, existingTask }) => {
+interface RepeatInterval {
+  days?: number;
+  months?: number;
+}
+
+interface Task {
+  id: number;
+  user_id: number;
+  category_id: number | null;
+  title: string;
+  description: string | null;
+  due_date: string | null; // ISO 8601 string format
+  importance_factor: number | null;
+  repeat_interval: RepeatInterval | null;
+  notes: string | null;
+  completed: boolean | null;
+  completed_at: string | null; // ISO 8601 string format
+  created_at: string; // ISO 8601 string format
+  updated_at: string; // ISO 8601 string format
+  duration: number | null; // Duration in minutes
+  repeated: boolean;
+}
+
+const TaskModal: React.FC<{ onClose: () => void; onSave: (task: Task) => void; existingTask?: Task | null; }> = ({ onClose, onSave, existingTask }) => {
   const [taskTitle, setTaskTitle] = useState("");
   const [dueDate, setDueDate] = useState<string | null>(null);
   const [hours, setHours] = useState<number | null>(null);
@@ -37,7 +60,7 @@ const TaskModal: React.FC<{ onClose: () => void; onSave: (task: any) => void; ex
     }
   }, [existingTask]);
 
-  const formatDueDate = (date: string): string | null => {
+  const formatDueDate = (date: string | null): string | null => {
     if (!date) return null;  // If there's no date, return null
     
     const parsedDate = new Date(date);
@@ -48,7 +71,7 @@ const TaskModal: React.FC<{ onClose: () => void; onSave: (task: any) => void; ex
   };
 
   // Update this function to handle the repeat intervals correctly
-  const mapRepeatIntervalToDropdownValue = (repeatInterval: any) => {
+  const mapRepeatIntervalToDropdownValue = (repeatInterval: RepeatInterval) => {
     if (repeatInterval.days === 1) {
       return "Daily";
     }

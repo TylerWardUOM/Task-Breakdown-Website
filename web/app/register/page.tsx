@@ -57,9 +57,14 @@ const RegisterPage = () => {
           setError(data.error || 'Registration failed, please try again.');
         }
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Error during registration:", error);
-      setError(error.message || 'Registration failed, please try again.');
+    
+      if (error instanceof Error) {
+        setError(error.message || 'Registration failed, please try again.');
+      } else {
+        setError('Registration failed, please try again.'); // Handle non-Error types
+      }
     } finally {
       setIsLoading(false); // Reset loading state once the request is done
     }

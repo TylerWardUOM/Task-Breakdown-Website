@@ -1,5 +1,3 @@
-// ColourChangingSlider.tsx
-
 import React from "react";
 
 interface ColourChangingSliderProps {
@@ -12,7 +10,7 @@ interface ColourChangingSliderProps {
   highText: string;
 }
 
-const colourChangingSlider: React.FC<ColourChangingSliderProps> = ({
+const ColourChangingSlider: React.FC<ColourChangingSliderProps> = ({
   label,
   min,
   max,
@@ -21,22 +19,37 @@ const colourChangingSlider: React.FC<ColourChangingSliderProps> = ({
   lowText,
   highText,
 }) => {
-  const colours = ["green", "green", "green", "lightgreen", "yellow", "yellow", "orange", "orangered", "red", "red"];
+  const colours = [
+    "green",
+    "green",
+    "green",
+    "lightgreen",
+    "yellow",
+    "yellow",
+    "orange",
+    "orangered",
+    "red",
+    "red",
+  ];
 
   const colour = colours[value - 1];
 
   return (
     <div className="mt-4">
-      <label className="block text-gray-700">{label}</label>
+      <label htmlFor="slider" className="block text-gray-700">
+        {label}
+      </label>
       <div className="flex items-center justify-between">
         <span className="text-gray-500">{lowText}</span>
         <input
+          id="slider" // Adding the id for the label to associate with
           type="range"
           min={min}
           max={max}
           value={value}
           onChange={(e) => onChange(Number(e.target.value))}
           className="w-full appearance-none h-2 rounded-lg bg-gray-300"
+          aria-label={`${label} slider`} // Descriptive label for screen readers
           style={{
             background: `linear-gradient(to right, 
               ${colour} 0%, 
@@ -50,4 +63,4 @@ const colourChangingSlider: React.FC<ColourChangingSliderProps> = ({
   );
 };
 
-export default colourChangingSlider;
+export default ColourChangingSlider;
