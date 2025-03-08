@@ -1,7 +1,6 @@
 "use client";
 import { useState, useEffect } from "react";
 import { FiPlusCircle } from "react-icons/fi";
-import Button from "../../components/ui/Button2";
 import Card from "../../components/ui/Card";
 import Modal from "../../components/ui/Modal";
 import TaskModal from "../../components/ui/TaskModal";
@@ -13,10 +12,6 @@ export default function Dashboard() {
   const { isAuthenticated, loading, userName } = useAuth(); // Get authentication status from context
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isToastVisible, setIsToastVisible] = useState(false);
-  const [tasks, setTasks] = useState([
-    { id: 1, title: "Urgent Task", priority: "High" },
-    { id: 2, title: "Meeting at 3 PM", priority: "Upcoming" },
-  ]);
   const router = useRouter();
 
   useEffect(() => {
@@ -33,7 +28,7 @@ export default function Dashboard() {
   return (
     <div className="flex-1 p-6 overflow-y-auto">
       <h1 className="text-2xl font-semibold">Good morning, {userName}!</h1>
-      <p className="text-gray-500 italic mt-2">"Inspirational Quote of the Day"</p>
+      <p className="text-gray-500 italic mt-2">&quot;Inspirational Quote of the Day&quot;</p>
 
       {/* Focus Mode & Add Task Buttons */}
       <div className="mt-6 flex space-x-4">
@@ -59,14 +54,6 @@ export default function Dashboard() {
       {/* Tasks Overview */}
       <div className="mt-6">
         <h2 className="text-xl font-semibold">🔥 High Priority Tasks</h2>
-        <ul className="mt-3 space-y-2">
-          {tasks.map((task) => (
-            <li key={task.id} className="bg-white p-3 rounded-lg shadow flex justify-between">
-              <span>{task.title}</span>
-              <span className="text-red-500 font-semibold">{task.priority}</span>
-            </li>
-          ))}
-        </ul>
       </div>
 
       {/* Task Modal */}

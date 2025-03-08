@@ -7,13 +7,37 @@ import TaskModal from "../../components/ui/TaskModal";
 import { PlusCircleIcon, PencilIcon, CheckCircleIcon, XCircleIcon, EyeIcon } from "@heroicons/react/solid";
 import { useAuth } from "../../lib/authContext";
 
+
+interface RepeatInterval {
+  days?: number;
+  months?: number;
+}
+
+interface Task {
+  id: number;
+  user_id: number;
+  category_id: number | null;
+  title: string;
+  description: string | null;
+  due_date: string | null; // ISO 8601 string format
+  importance_factor: number | null;
+  repeat_interval: RepeatInterval | null;
+  notes: string | null;
+  completed: boolean | null;
+  completed_at: string | null; // ISO 8601 string format
+  created_at: string; // ISO 8601 string format
+  updated_at: string; // ISO 8601 string format
+  duration: number | null; // Duration in minutes
+  repeated: boolean;
+}
+
 const TaskListPage = () => {
-  const [tasks, setTasks] = useState<any[]>([]);
+  const [tasks, setTasks] = useState<Task[]>([]);
   const [loadingTasks, setLoadingTasks] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  //const [error, setError] = useState<string | null>(null);
   const { isAuthenticated, loading: authLoading, firebaseToken,redirectToLogin} = useAuth();
   const [isTaskModalOpen, setIsTaskModalOpen] = useState(false);
-  const [selectedTask, setSelectedTask] = useState<any>(null);
+  const [selectedTask, setSelectedTask] = useState<Task | null>(null);
   const router = useRouter();
 
   const [colorSchemeEnabled, setColorSchemeEnabled] = useState(true);
@@ -82,7 +106,7 @@ const TaskListPage = () => {
     setSelectedTask(null);
   };
 
-  const handleSaveTask = (updatedTask: any) => {
+  const handleSaveTask = (updatedTask: Task) => {
     if (selectedTask) {
       setTasks(tasks.map((task) => (task.id === updatedTask.id ? updatedTask : task)));
     } else {
@@ -99,7 +123,7 @@ const TaskListPage = () => {
     router.push(`/focus?task=${taskId}`);
   };
 
-  const renderActions = (task: any) => (
+  const renderActions = (task: Task) => (
     <div className="flex space-x-2">
       <button
         onClick={() => openTaskModal(task.id)}
@@ -170,10 +194,11 @@ const TaskListPage = () => {
           }          }
 
           const data = await response.json();
+          console.log(data); // Log the received data to inspect its structur
           setTasks(data);  // Directly setting raw tasks without formatting
         } catch (err) {
           console.error("Error fetching tasks:", err);
-          setError(err instanceof Error ? err.message : "An error occurred");
+          //etError(err instanceof Error ? err.message : "An error occurred");
         } finally {
           setLoadingTasks(false);
         }
@@ -181,7 +206,7 @@ const TaskListPage = () => {
 
       fetchTasks();
     }
-  }, [firebaseToken]);
+  }, [firebaseToken,redirectToLogin]);
 
   if (loadingTasks) {
     return <p>Loading tasks...</p>;

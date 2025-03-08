@@ -1,5 +1,5 @@
 "use client";
-import { useContext } from "react";
+//import { useContext } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "../../lib/authContext"; // Import the useAuth hook
 import { logout } from "../../lib/auth"; // Import the useAuth hook

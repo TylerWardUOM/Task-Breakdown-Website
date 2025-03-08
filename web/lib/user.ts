@@ -3,7 +3,13 @@ import { app } from "./firebase"; // Your Firebase app initialization file
 
 const auth = getAuth(app); // Firebase authentication instance
 
-export const getUserData = async (): Promise<any> => {
+interface User {
+  id: number;
+  email: string;
+  username: string;
+};
+
+export const getUserData = async (): Promise<User> => {
   try {
     // Get the current user from Firebase authentication
     const user = auth.currentUser;
@@ -31,6 +37,7 @@ export const getUserData = async (): Promise<any> => {
 
     // Parse and return the JSON response
     const data = await response.json();
+    console.log(data);
     return data;
   } catch (error) {
     console.error('Error fetching user data:', error);

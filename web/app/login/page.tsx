@@ -35,10 +35,14 @@ export default function LoginPage() {
           setError(data.error || "Login failed"); // Handle error if login fails
         }
       }
-    } catch (err: any) {
-      setError(err.message); // Set error if login fails
+    } catch (err: unknown) {
+      if (err instanceof Error) {
+        setError(err.message); // Set error if login fails
+      } else {
+        setError("An unknown error occurred"); // Handle non-Error types
+      }
     }
-  };
+  }
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-100">
@@ -81,10 +85,11 @@ export default function LoginPage() {
         </form>
 
         <p className="text-sm text-center mt-4">
-          Don't have an account?{' '}
+          Don&apos;t have an account?{' '}
           <a href="/register" className="text-blue-600 hover:underline">Register</a>
         </p>
       </div>
     </div>
   );
 }
+
