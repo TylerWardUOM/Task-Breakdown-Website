@@ -258,7 +258,6 @@ export const createRepeatedTask = async (req: Request, res: Response): Promise<v
         res.status(404).json({ message: 'Task not found' });
         return;
       }
-  
       const nextDueDate = calculateNextDueDate(task.due_date, repeat_interval);  // Calculate the next due date
       const newTask = await createTaskInDB(task.user_id, task.title, task.description, nextDueDate, task.importance_factor, task.duration, task.repeat_interval, task.category_id, task.notes);
       res.status(201).json(newTask.rows[0]);

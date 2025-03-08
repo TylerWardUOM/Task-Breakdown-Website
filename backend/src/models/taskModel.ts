@@ -49,7 +49,7 @@ export const updateTaskInDB = async (
     category_id: number | null,
     notes: string | null,
     completed: boolean | null,
-    completed_at: Date | null
+    completed_at: Date | null,
 ) => {
     const query = `
         UPDATE tasks SET
@@ -67,11 +67,26 @@ export const updateTaskInDB = async (
         WHERE id = $1
         RETURNING *;
     `;
-    const values = [taskId, title, description, due_date, importance_factor, duration, repeat_interval, category_id, notes, completed, completed_at];
+
+    const values = [
+        taskId, 
+        title, 
+        description, 
+        due_date, 
+        importance_factor, 
+        duration, 
+        repeat_interval, 
+        category_id, 
+        notes, 
+        completed, 
+        completed_at, 
+    ];
+
     return pool.query(query, values);
 };
 
 
+// Update a task with null values allowed in specific fields
 export const updateTaskWithNullsDB = async (
     taskId: number,
     title: string | null,
@@ -83,27 +98,42 @@ export const updateTaskWithNullsDB = async (
     category_id: number | null,
     notes: string | null,
     completed: boolean | null,
-    completed_at: Date | null
+    completed_at: Date | null,
 ) => {
     const query = `
         UPDATE tasks SET
-            title = $2,  -- Allow null to reset title
-            description = $3,  -- Allow null to reset description
-            due_date = $4,  -- Allow null to reset due date
-            importance_factor = $5,  -- Allow null to reset importance factor
-            duration = $6,  -- Allow null to reset duration
-            repeat_interval = $7,  -- Allow null to reset repeat interval
-            category_id = $8,  -- Allow null to reset category
-            notes = $9,  -- Allow null to reset notes
-            completed = $10,  -- Allow null to reset completed
-            completed_at = $11,  -- Allow null to reset completed_at
-            updated_at = NOW()  -- Timestamp of update
+            title = $2,
+            description = $3,
+            due_date = $4,
+            importance_factor = $5,
+            duration = $6,
+            repeat_interval = $7,
+            category_id = $8,
+            notes = $9,
+            completed = $10,
+            completed_at = $11,
+            updated_at = NOW()
         WHERE id = $1
         RETURNING *;
     `;
-    const values = [taskId, title, description, due_date, importance_factor, duration, repeat_interval, category_id, notes, completed, completed_at];
+    
+    const values = [
+        taskId, 
+        title, 
+        description, 
+        due_date, 
+        importance_factor, 
+        duration, 
+        repeat_interval, 
+        category_id, 
+        notes, 
+        completed, 
+        completed_at, 
+    ];
+
     return pool.query(query, values);
 };
+
 
 // Delete a task from the database
 export const deleteTaskFromDB = async (taskId: number) => {
@@ -151,17 +181,18 @@ export const getFilteredTasksFromDB = async (user_id: number, category_id?: stri
     return pool.query(query, values);
 };
 
-// Create a repeated task in the database
 export const createRepeatedTaskInDB = async (
     user_id: number,
     taskId: number,
     nextDueDate: Date
 ) => {
+    // Get the original task
     const task = await getTaskByIdFromDB(user_id, taskId);
-    if (!task) {
-        return null;
+    if (!task || task.repeated) {
+        return null; // Task not found or already repeated
     }
 
+    // Insert a new task with the next due date calculated
     const query = `
         INSERT INTO tasks (
             user_id, title, description, due_date, importance_factor,
@@ -182,8 +213,15 @@ export const createRepeatedTaskInDB = async (
         task.notes
     ];
 
-    return pool.query(query, values);
+    const result = await pool.query(query, values);
+
+    // Mark the original task as repeated so it won't be processed again
+    await markTaskAsRepeated(taskId);
+
+    return result.rows[0];
 };
+
+
 
 // Get tasks with pagination
 export const getTasksWithPaginationFromDB = async (user_id: number, page: number, limit: number) => {
@@ -192,18 +230,51 @@ export const getTasksWithPaginationFromDB = async (user_id: number, page: number
     return pool.query(query, [user_id, limit, offset]);
 };
 
+
 // Utility function to calculate the next due date for repeated tasks
-export const calculateNextDueDate = (due_date: Date, repeat_interval: string) => {
-    const interval = repeat_interval.toLowerCase();
+export const calculateNextDueDate = (due_date: Date, repeat_interval: any): Date => {
+    if (!repeat_interval) {
+        throw new Error("Invalid repeat interval");
+    }
+
     const nextDueDate = new Date(due_date);
 
-    if (interval.includes('day')) {
-        nextDueDate.setDate(nextDueDate.getDate() + 1);
-    } else if (interval.includes('week')) {
-        nextDueDate.setDate(nextDueDate.getDate() + 7);
-    } else if (interval.includes('month')) {
-        nextDueDate.setMonth(nextDueDate.getMonth() + 1);
+    // Check if repeat_interval is a PostgresInterval (i.e., an object with time unit like 'days', 'months', etc.)
+    if (repeat_interval instanceof Object && repeat_interval.days) {
+        nextDueDate.setDate(nextDueDate.getDate() + repeat_interval.days);
+    } else if (repeat_interval instanceof Object && repeat_interval.months) {
+        nextDueDate.setMonth(nextDueDate.getMonth() + repeat_interval.months);
+    } else {
+        throw new Error(`Unsupported repeat interval: ${repeat_interval}`);
     }
 
     return nextDueDate;
+};
+
+
+
+
+// Update a task to mark it as repeated after creating the repeated task
+export const markTaskAsRepeated = async (taskId: number) => {
+    const query = `
+        UPDATE tasks SET
+            repeated = TRUE
+        WHERE id = $1
+        RETURNING *;
+    `;
+    return pool.query(query, [taskId]);
+};
+
+
+// Find tasks to repeat (i.e., tasks whose repeat_next_due_date has passed)
+export const findTasksToRepeat = async (): Promise<any[]> => {
+    const currentDate = new Date();
+    const query = `
+        SELECT * FROM tasks
+        WHERE due_date <= $1
+          AND repeat_interval IS NOT NULL
+          AND repeated = FALSE
+    `;
+    const result = await pool.query(query, [currentDate]);
+    return result.rows;
 };

@@ -127,8 +127,9 @@ const TaskModal: React.FC<{ onClose: () => void; onSave: (task: any) => void; ex
       <ImportanceSelector value={importanceValue} onChange={setImportanceValue} />
 
       <div className="flex items-center space-x-2">
-        <label className="text-gray-700 text-sm">Due Date (Optional):</label>
+        <label htmlFor="date" className="text-gray-700 text-sm">Due Date (Optional):</label>
         <input
+          id="date"
           type="date"
           className="p-2 border rounded flex-1 text-sm"
           value={dueDate || ""}  // If dueDate is null, show empty
@@ -149,8 +150,13 @@ const TaskModal: React.FC<{ onClose: () => void; onSave: (task: any) => void; ex
       {showMoreOptions && (
         <div className="mt-2 space-y-2 border-t pt-2">
           <div className="flex items-center space-x-2">
-            <label className="text-gray-700 text-sm">Repeat Task:</label>
-            <select className="p-2 border rounded flex-1 text-sm" value={repeatTask} onChange={(e) => setRepeatTask(e.target.value)}>
+            <label htmlFor="repeatTask" className="text-gray-700 text-sm">Repeat Task:</label>
+            <select
+              id="repeatTask"  // Add id to the select element to associate it with the label
+              className="p-2 border rounded flex-1 text-sm"
+              value={repeatTask}
+              onChange={(e) => setRepeatTask(e.target.value)}
+            >
               <option value="None">None</option>
               <option value="Daily">Daily</option>
               <option value="Weekly">Weekly</option>
@@ -159,8 +165,13 @@ const TaskModal: React.FC<{ onClose: () => void; onSave: (task: any) => void; ex
           </div>
 
           <div className="flex items-center space-x-2">
-            <label className="text-gray-700 text-sm">Category:</label>
-            <select className="p-2 border rounded flex-1 text-sm" value={category} onChange={(e) => setCategory(e.target.value)}>
+            <label htmlFor="category" className="text-gray-700 text-sm">Category:</label>
+            <select
+              id="category"  // Add id to the select element to associate it with the label
+              className="p-2 border rounded flex-1 text-sm"
+              value={category}
+              onChange={(e) => setCategory(e.target.value)}
+            >
               <option value="1">General</option>
               <option value="2">Work</option>
               <option value="3">Personal</option>
@@ -169,6 +180,7 @@ const TaskModal: React.FC<{ onClose: () => void; onSave: (task: any) => void; ex
           </div>
         </div>
       )}
+
 
       <div className="mt-4 flex justify-between">
         <button className="bg-gray-300 px-4 py-2 rounded" onClick={onClose}>Cancel</button>
