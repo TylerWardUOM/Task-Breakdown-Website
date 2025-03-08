@@ -1,5 +1,4 @@
 import React from "react";
-import { PencilIcon, CheckCircleIcon, XCircleIcon, EyeIcon } from "@heroicons/react/solid";
 
 // Define the Task interface to match the backend data
 interface Task {
@@ -16,13 +15,23 @@ interface Task {
   completed_at: string | null;
 }
 
+interface ColorScheme {
+  overdue: string;        // Color for overdue tasks
+  lowPriority: string;    // Color for low priority tasks
+  mediumPriority: string; // Color for medium priority tasks
+  highPriority: string;   // Color for high priority tasks
+}
+
 interface TaskTableProps {
   tasks: Task[];
   onEdit?: (taskId: number) => void;
   onComplete?: (taskId: number) => void;
   onDelete?: (taskId: number) => void;
   onFocus?: (taskId: number) => void;
+  // @ts-ignore
   renderActions?: (task: Task) => JSX.Element;
+  colorScheme: ColorScheme;       // New prop for custom color schemes
+  colorSchemeEnabled: boolean;    // New prop to toggle the color gradient
 }
 
 // Calculates the task priority based on importance, due date and duration.
@@ -41,16 +50,16 @@ const calculatePriority = (task: Task): number => {
   // Task duration (assume minutes, default to 60 minutes)
   const duration = task.duration ?? 60;
 
-  // Hardcoded weights (future: user-configurable)
-  const weightImportance = 4;
-  const weightDueDate = 4;
-  const weightDuration = 4;
+  // Adjusted weights based on desired influence of each factor
+  const weightImportance = 3;  // Strong influence of importance
+  const weightDueDate = 5;     // Strong influence of due date
+  const weightDuration = 2;    // Moderate influence of duration
 
   // Calculate priority score
   const priorityScore =
     (weightImportance * (importance / Math.log2(duration + 1))) +
-    (weightDueDate * (1 / (daysUntilDue + 1))) +
-    (weightDuration * (1 / (duration + 1)));
+    (weightDueDate * (1 / (daysUntilDue + 1))) +  // More weight for tasks due soon
+    (weightDuration * (1 / (duration + 1)));      // Less weight for longer tasks
 
   // Normalize between 1 and 10
   const minPriority = 1;
@@ -74,41 +83,44 @@ const renderDueDate = (due_date: string | null) => {
   return new Date(due_date).toLocaleDateString();
 };
 
-// Formats a repeat interval value. Accepts either a string or an object.
-const formatRepeatInterval = (interval: any): string => {
-  if (typeof interval === "string") {
-    return interval;
-  } else if (typeof interval === "object" && interval.minutes !== undefined) {
-    return `${interval.minutes}m ${interval.seconds || 0}s`;
-  } else if (typeof interval === "object" && interval.days !== undefined) {
-    return `${interval.days} days`;
+// Determines the background color for a row based on priority and color scheme.
+const getPriorityColor = (priority: number, colorScheme: ColorScheme, colorSchemeEnabled: boolean): string => {
+  if (!colorSchemeEnabled) return ""; // If gradient is not enabled, return no color
+
+  // Overdue tasks should have a distinct color (red)
+  if (priority === 0) return colorScheme.overdue; // Red for overdue tasks
+
+  // Gradient logic for priority levels
+  if (priority <= 3) {
+    return colorScheme.lowPriority; // Low priority (Green)
+  } else if (priority <= 7) {
+    return colorScheme.mediumPriority; // Medium priority (Yellow)
+  } else {
+    return colorScheme.highPriority; // High priority (Red)
   }
-  return "Invalid interval";
 };
 
-// Processes a raw task object by applying default values and formatting certain fields.
-const processTask = (task: Task) => {
-  return {
-    ...task,
-    title: task.title || "Untitled Task",
-    description: task.description || null,
-    category_id: task.category_id ?? "General",
-    due_date: task.due_date ?? null,
-    importance_factor: task.importance_factor ?? 0,
-    duration: task.duration ?? null,
-    repeat_interval: task.repeat_interval ? formatRepeatInterval(task.repeat_interval) : null,
-    notes: task.notes || "",
-    completed: task.completed ?? false,
-    completed_at: task.completed_at ? new Date(task.completed_at).toLocaleString() : null,
-  };
-};
-
-const TaskTable: React.FC<TaskTableProps> = ({ tasks, onEdit, onComplete, onDelete, onFocus, renderActions }) => {
-  // Sort tasks by priority and completed status (completed tasks get priority 0)
+const TaskTable: React.FC<TaskTableProps> = ({ tasks, renderActions, colorScheme, colorSchemeEnabled }) => {
+  if (tasks.length === 0) {
+    return (
+      <div className="text-center p-4">
+        <p>No tasks available</p>
+      </div>
+    );
+  }
+  // Sort tasks by due date (overdue tasks first) and then by priority
   const sortedTasks = [...tasks].sort((a, b) => {
     const priorityA = a.completed ? 0 : calculatePriority(a);
     const priorityB = b.completed ? 0 : calculatePriority(b);
-    return priorityB - priorityA;
+
+    // Overdue tasks should be prioritized first (due date logic)
+    const overdueA = a.due_date && new Date(a.due_date) < new Date();
+    const overdueB = b.due_date && new Date(b.due_date) < new Date();
+
+    if (overdueA && !overdueB) return -1;
+    if (!overdueA && overdueB) return 1;
+
+    return priorityB - priorityA; // Then by priority
   });
 
   return (
@@ -126,51 +138,21 @@ const TaskTable: React.FC<TaskTableProps> = ({ tasks, onEdit, onComplete, onDele
         </thead>
         <tbody>
           {sortedTasks.map((task) => {
-            // Process the task to apply default values and formatting.
-            const processedTask = processTask(task);
+            const priority = calculatePriority(task);
+            const priorityColor = getPriorityColor(priority, colorScheme, colorSchemeEnabled);
             return (
-              <tr key={processedTask.id} className={processedTask.completed ? "opacity-50" : ""}>
+              <tr key={task.id} className={priorityColor}>
                 <td className="py-2 px-4">
-                  <span className={processedTask.completed ? "line-through text-gray-400" : ""}>
-                    {processedTask.title}
+                  <span className={task.completed ? "line-through text-gray-400" : ""}>
+                    {task.title || "Untitled Task"}
                   </span>
                 </td>
-                <td className="py-2 px-4">{calculatePriority(processedTask).toFixed(2)}</td>
-                <td className="py-2 px-4">{renderDueDate(processedTask.due_date)}</td>
-                <td className="py-2 px-4">{processedTask.category_id}</td>
-                <td className="py-2 px-4">{renderDuration(processedTask.duration)}</td>
+                <td className="py-2 px-4">{priority.toFixed(2)}</td>
+                <td className="py-2 px-4">{renderDueDate(task.due_date)}</td>
+                <td className="py-2 px-4">{task.category_id}</td>
+                <td className="py-2 px-4">{renderDuration(task.duration)}</td>
                 <td className="py-2 px-4 flex space-x-2">
-                  {renderActions ? renderActions(processedTask) : (
-                    <>
-                      {onEdit && (
-                        <button onClick={() => onEdit(processedTask.id)} className="bg-green-500 text-white px-4 py-2 rounded">
-                          <PencilIcon className="h-5 w-5" />
-                        </button>
-                      )}
-                      {onComplete && (
-                        <button
-                          onClick={() => onComplete(processedTask.id)}
-                          className={`px-4 py-2 rounded ${processedTask.completed ? "bg-red-500" : "bg-yellow-500"}`}
-                        >
-                          {processedTask.completed ? (
-                            <XCircleIcon className="h-5 w-5" />
-                          ) : (
-                            <CheckCircleIcon className="h-5 w-5" />
-                          )}
-                        </button>
-                      )}
-                      {onDelete && (
-                        <button onClick={() => onDelete(processedTask.id)} className="bg-red-500 text-white px-4 py-2 rounded">
-                          <XCircleIcon className="h-5 w-5" />
-                        </button>
-                      )}
-                      {onFocus && (
-                        <button onClick={() => onFocus(processedTask.id)} className="bg-purple-500 text-white px-4 py-2 rounded flex items-center space-x-2">
-                          <EyeIcon className="h-5 w-5" />
-                        </button>
-                      )}
-                    </>
-                  )}
+                  {renderActions ? renderActions(task) : null}
                 </td>
               </tr>
             );

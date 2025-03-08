@@ -4,17 +4,25 @@ import { useRouter } from "next/navigation";
 import TaskTable from "../../components/TaskTable";
 import Modal from "../../components/ui/Modal";
 import TaskModal from "../../components/ui/TaskModal";
-import { PlusCircleIcon } from "@heroicons/react/solid";
+import { PlusCircleIcon, PencilIcon, CheckCircleIcon, XCircleIcon, EyeIcon } from "@heroicons/react/solid";
 import { useAuth } from "../../lib/authContext";
 
 const TaskListPage = () => {
   const [tasks, setTasks] = useState<any[]>([]);
   const [loadingTasks, setLoadingTasks] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const { isAuthenticated, loading: authLoading, firebaseToken } = useAuth();
+  const { isAuthenticated, loading: authLoading, firebaseToken,redirectToLogin} = useAuth();
   const [isTaskModalOpen, setIsTaskModalOpen] = useState(false);
   const [selectedTask, setSelectedTask] = useState<any>(null);
   const router = useRouter();
+
+  const [colorSchemeEnabled, setColorSchemeEnabled] = useState(true);
+  const [colorScheme] = useState({
+    overdue: "bg-red-600",        // Overdue tasks color
+    lowPriority: "bg-green-200",  // Low priority color
+    mediumPriority: "bg-yellow-200", // Medium priority color
+    highPriority: "bg-red-200",   // High priority color
+  });
 
   const openNewTaskModal = () => {
     setSelectedTask(null);
@@ -42,8 +50,11 @@ const TaskListPage = () => {
       });
 
       if (!response.ok) {
-        throw new Error(`Failed to ${task.completed ? "unmark" : "mark"} task as complete`);
-      }
+        if (response.status === 401) {
+          redirectToLogin(); // Handle token expiry and redirect to login
+        } else {
+          throw new Error(`Failed to ${task.completed ? "unmark" : "mark"} task as complete`);
+        }}
 
       // Update the task locally after the request
       setTasks((prevTasks) =>
@@ -88,6 +99,51 @@ const TaskListPage = () => {
     router.push(`/focus?task=${taskId}`);
   };
 
+  const renderActions = (task: any) => (
+    <div className="flex space-x-2">
+      <button
+        onClick={() => openTaskModal(task.id)}
+        className="bg-green-500 text-white px-4 py-2 rounded"
+        type="button"  // Ensure it's explicitly a button
+        aria-label="Edit Task"  // Accessible label for screen readers
+      >
+        <PencilIcon className="h-5 w-5" />
+      </button>
+
+      <button
+        onClick={() => toggleTaskCompletion(task.id)}
+        className={`px-4 py-2 rounded ${task.completed ? "bg-red-500" : "bg-yellow-500"}`}
+        type="button"  // Explicit type
+        aria-label={task.completed ? "Unmark Task as Complete" : "Mark Task as Complete"} // Dynamic label based on task status
+      >
+        {task.completed ? (
+          <XCircleIcon className="h-5 w-5" />
+        ) : (
+          <CheckCircleIcon className="h-5 w-5" />
+        )}
+      </button>
+
+      <button
+        onClick={() => deleteTask(task.id)}
+        className="bg-red-500 text-white px-4 py-2 rounded"
+        type="button"  // Explicit type
+        aria-label="Delete Task"  // Accessible label for screen readers
+      >
+        <XCircleIcon className="h-5 w-5" />
+      </button>
+
+      <button
+        onClick={() => goToFocusMode(task.id)}
+        className="bg-purple-500 text-white px-4 py-2 rounded flex items-center space-x-2"
+        type="button"  // Explicit type
+        aria-label="Go to Focus Mode"  // Accessible label for screen readers
+      >
+        <EyeIcon className="h-5 w-5" />
+      </button>
+
+    </div>
+  );
+
   useEffect(() => {
     if (!authLoading && !isAuthenticated) {
       router.push("/login");
@@ -107,8 +163,11 @@ const TaskListPage = () => {
           });
 
           if (!response.ok) {
-            throw new Error("Failed to fetch tasks");
-          }
+            if (response.status === 401) {
+              redirectToLogin(); // Handle token expiry and redirect to login
+            } else {
+              throw new Error("Failed to fetch tasks");
+          }          }
 
           const data = await response.json();
           setTasks(data);  // Directly setting raw tasks without formatting
@@ -135,14 +194,20 @@ const TaskListPage = () => {
           <PlusCircleIcon className="h-5 w-5" />
           <span>New Task</span>
         </button>
+        <button
+          onClick={() => setColorSchemeEnabled(!colorSchemeEnabled)}
+          className="bg-gray-500 text-white px-4 py-2 rounded flex items-center space-x-2"
+        >
+          <span>{colorSchemeEnabled ? "Disable Colors" : "Enable Colors"}</span>
+        </button>
       </div>
 
+      {/* TaskTable now receives colorScheme and colorSchemeEnabled */}
       <TaskTable
         tasks={tasks}  // Pass raw tasks directly
-        onEdit={openTaskModal}
-        onComplete={toggleTaskCompletion} // Use toggleTaskCompletion function
-        onDelete={deleteTask}
-        onFocus={goToFocusMode}
+        renderActions={renderActions}  // Pass renderActions function
+        colorScheme={colorScheme}  // Pass the colorScheme prop
+        colorSchemeEnabled={colorSchemeEnabled}  // Pass the colorSchemeEnabled prop
       />
 
       <Modal isOpen={isTaskModalOpen} onClose={closeTaskModal} width="max-w-3xl">

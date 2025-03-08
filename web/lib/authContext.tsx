@@ -1,20 +1,21 @@
+// authContext.tsx
 "use client";
-
 import { createContext, useState, useEffect, useContext, ReactNode } from "react";
-import { getAuth, onAuthStateChanged, getIdToken } from "firebase/auth"; // Firebase Auth methods
-import { app } from "./firebase"; // Firebase app initialization file
-import { getUserData } from "./user"; // Import your function to get user data
+import { getAuth, onAuthStateChanged, getIdToken } from "firebase/auth"; 
+import { app } from "./firebase"; 
+import { getUserData } from "./user"; 
+import { useRouter } from "next/navigation";  // Import useRouter
 
 interface AuthContextType {
   isAuthenticated: boolean;
   userName: string | null;
   loading: boolean;
-  firebaseToken: string | null; // Add token in context
+  firebaseToken: string | null;
+  redirectToLogin: () => void; // Add redirect function here
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-// Initialize Firebase Auth
 const auth = getAuth(app);
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
@@ -22,50 +23,55 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [userName, setUserName] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [firebaseToken, setFirebaseToken] = useState<string | null>(null);
+  const router = useRouter(); // Initialize the router
+
+  const redirectToLogin = () => {
+    router.push("/login"); // Perform the redirection to login page
+  };
 
   useEffect(() => {
-    // Check localStorage for token on reload
     const storedToken = localStorage.getItem("firebaseToken");
     if (storedToken) {
       setFirebaseToken(storedToken);
     }
 
-    // Set up Firebase auth state listener
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       if (user) {
         setIsAuthenticated(true);
-        
-        // Fetch user data from backend once authenticated
-        const fetchedUserData = await getUserData(); // Assuming this function fetches data from your backend
+
+        const fetchedUserData = await getUserData();
         if (fetchedUserData) {
           setUserName(fetchedUserData.username);
         }
 
-        // Get Firebase token
         const token = await getIdToken(user);
         setFirebaseToken(token);
-        localStorage.setItem("firebaseToken", token); // Persist the token in localStorage
+        localStorage.setItem("firebaseToken", token);
       } else {
         setIsAuthenticated(false);
         setUserName(null);
         setFirebaseToken(null);
-        localStorage.removeItem("firebaseToken"); // Clear the token on logout
+        localStorage.removeItem("firebaseToken");
       }
-      setLoading(false); // Set loading to false after checking the auth state
+      setLoading(false);
     });
 
-    // Cleanup the subscription when the component unmounts
     return () => unsubscribe();
   }, []);
 
   return (
-    <AuthContext.Provider value={{ isAuthenticated, userName, loading, firebaseToken }}>
+    <AuthContext.Provider value={{ 
+      isAuthenticated, 
+      userName, 
+      loading, 
+      firebaseToken, 
+      redirectToLogin // Provide redirectToLogin function in context
+    }}>
       {children}
     </AuthContext.Provider>
   );
 };
 
-// Custom hook to access the authentication context
 export const useAuth = () => {
   const context = useContext(AuthContext);
   if (context === undefined) {
