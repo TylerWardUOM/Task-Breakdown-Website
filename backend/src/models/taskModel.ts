@@ -7,7 +7,7 @@ export const createTaskInDB = async (
     description: string | null,
     due_date: Date | null,
     importance_factor: number | null,
-    duration: string | null,
+    duration: number | null, // Duration in minutes
     repeat_interval: string | null,
     category_id: number | null,
     notes: string | null
@@ -27,16 +27,14 @@ export const createTaskInDB = async (
 // Get all tasks for a specific user from the database
 export const getTasksFromDB = async (user_id: number) => {
     const query = 'SELECT * FROM tasks WHERE user_id = $1 ORDER BY created_at DESC';
-    const values = [user_id];
-    return pool.query(query, values);
+    return pool.query(query, [user_id]);
 };
 
 // Get a single task by ID
 export const getTaskByIdFromDB = async (user_id: number, taskId: number) => {
     const query = 'SELECT * FROM tasks WHERE user_id = $1 AND id = $2';
-    const values = [user_id, taskId];
-    const result = await pool.query(query, values);
-    return result.rows[0]; // Return a single task
+    const result = await pool.query(query, [user_id, taskId]);
+    return result.rows[0];
 };
 
 // Update an existing task in the database
@@ -46,7 +44,7 @@ export const updateTaskInDB = async (
     description: string | null,
     due_date: Date | null,
     importance_factor: number | null,
-    duration: string | null,
+    duration: number | null, // Duration in minutes
     repeat_interval: string | null,
     category_id: number | null,
     notes: string | null,
@@ -73,18 +71,50 @@ export const updateTaskInDB = async (
     return pool.query(query, values);
 };
 
+
+export const updateTaskWithNullsDB = async (
+    taskId: number,
+    title: string | null,
+    description: string | null,
+    due_date: Date | null,
+    importance_factor: number | null,
+    duration: number | null, // Duration in minutes
+    repeat_interval: string | null,
+    category_id: number | null,
+    notes: string | null,
+    completed: boolean | null,
+    completed_at: Date | null
+) => {
+    const query = `
+        UPDATE tasks SET
+            title = $2,  -- Allow null to reset title
+            description = $3,  -- Allow null to reset description
+            due_date = $4,  -- Allow null to reset due date
+            importance_factor = $5,  -- Allow null to reset importance factor
+            duration = $6,  -- Allow null to reset duration
+            repeat_interval = $7,  -- Allow null to reset repeat interval
+            category_id = $8,  -- Allow null to reset category
+            notes = $9,  -- Allow null to reset notes
+            completed = $10,  -- Allow null to reset completed
+            completed_at = $11,  -- Allow null to reset completed_at
+            updated_at = NOW()  -- Timestamp of update
+        WHERE id = $1
+        RETURNING *;
+    `;
+    const values = [taskId, title, description, due_date, importance_factor, duration, repeat_interval, category_id, notes, completed, completed_at];
+    return pool.query(query, values);
+};
+
 // Delete a task from the database
 export const deleteTaskFromDB = async (taskId: number) => {
     const query = 'DELETE FROM tasks WHERE id = $1';
-    const values = [taskId];
-    return pool.query(query, values);
+    return pool.query(query, [taskId]);
 };
 
 // Add a note to a task
 export const addNoteToTaskInDB = async (taskId: number, note: string) => {
     const query = 'UPDATE tasks SET notes = CONCAT(notes, $2) WHERE id = $1 RETURNING *;';
-    const values = [taskId, '\n' + note]; // Appending the note with newline
-    return pool.query(query, values);
+    return pool.query(query, [taskId, '\n' + note]);
 };
 
 // Get tasks with filtering options
@@ -93,38 +123,31 @@ export const getFilteredTasksFromDB = async (user_id: number, category_id?: stri
     let values = [user_id];
     let conditions = [];
 
-    // Convert category_id to integer if provided
     if (category_id) {
         conditions.push('category_id = $' + (values.length + 1));
-        values.push(parseInt(category_id, 10)); // Convert to integer
+        values.push(parseInt(category_id, 10));
     }
 
-    // Handle due_date conversion
     if (due_date) {
         const dateObj = new Date(due_date);
         if (!isNaN(dateObj.getTime())) {
-            // Convert to ISO string for SQL compatibility
             conditions.push('due_date = $' + (values.length + 1));
-            values.push(parseInt(dateObj.toISOString())); // Use ISO string format for SQL date
+            values.push(parseInt(dateObj.toISOString()));
         } else {
             throw new Error("Invalid date format");
         }
     }
 
-    // Convert importance_factor to integer if provided
     if (importance_factor) {
         conditions.push('importance_factor = $' + (values.length + 1));
-        values.push(parseInt(importance_factor, 10)); // Convert to integer
+        values.push(parseInt(importance_factor, 10));
     }
 
-    // If there are conditions, append them to the query
     if (conditions.length > 0) {
         query += ' AND ' + conditions.join(' AND ');
     }
 
     query += ' ORDER BY created_at DESC';
-    
-    // Execute the query
     return pool.query(query, values);
 };
 
@@ -136,7 +159,7 @@ export const createRepeatedTaskInDB = async (
 ) => {
     const task = await getTaskByIdFromDB(user_id, taskId);
     if (!task) {
-        return null; // Task doesn't exist
+        return null;
     }
 
     const query = `
@@ -166,8 +189,7 @@ export const createRepeatedTaskInDB = async (
 export const getTasksWithPaginationFromDB = async (user_id: number, page: number, limit: number) => {
     const offset = (page - 1) * limit;
     const query = 'SELECT * FROM tasks WHERE user_id = $1 ORDER BY created_at DESC LIMIT $2 OFFSET $3';
-    const values = [user_id, limit, offset];
-    return pool.query(query, values);
+    return pool.query(query, [user_id, limit, offset]);
 };
 
 // Utility function to calculate the next due date for repeated tasks
@@ -176,11 +198,11 @@ export const calculateNextDueDate = (due_date: Date, repeat_interval: string) =>
     const nextDueDate = new Date(due_date);
 
     if (interval.includes('day')) {
-        nextDueDate.setDate(nextDueDate.getDate() + 1); // Add 1 day
+        nextDueDate.setDate(nextDueDate.getDate() + 1);
     } else if (interval.includes('week')) {
-        nextDueDate.setDate(nextDueDate.getDate() + 7); // Add 1 week
+        nextDueDate.setDate(nextDueDate.getDate() + 7);
     } else if (interval.includes('month')) {
-        nextDueDate.setMonth(nextDueDate.getMonth() + 1); // Add 1 month
+        nextDueDate.setMonth(nextDueDate.getMonth() + 1);
     }
 
     return nextDueDate;

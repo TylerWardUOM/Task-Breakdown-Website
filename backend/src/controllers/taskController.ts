@@ -1,7 +1,8 @@
 import { Request, Response } from 'express';
 import { 
     createTaskInDB, getTasksFromDB, updateTaskInDB, 
-    deleteTaskFromDB, addNoteToTaskInDB, getTaskByIdFromDB, getFilteredTasksFromDB, getTasksWithPaginationFromDB,calculateNextDueDate
+    deleteTaskFromDB, addNoteToTaskInDB, getTaskByIdFromDB, getFilteredTasksFromDB, getTasksWithPaginationFromDB,calculateNextDueDate,
+    updateTaskWithNullsDB
 } from '../models/taskModel';
 
 // Create a new task
@@ -91,6 +92,53 @@ export const updateTask = async (req: Request, res: Response): Promise<void> => 
 };
 
 
+// Update a task
+export const updateTaskWithNull = async (req: Request, res: Response): Promise<void> => {
+  try {
+      // Try to get taskId from URL params, then from the request body if not found
+      let taskId = req.params.taskId ? parseInt(req.params.taskId, 10) : NaN;
+      if (isNaN(taskId) && req.body.taskId) {
+          taskId = parseInt(req.body.taskId, 10);
+      }
+      if (isNaN(taskId)) {
+          res.status(400).json({ message: 'Invalid task ID' });
+          return;
+      }
+
+      const {
+          title,
+          description,
+          due_date,
+          importance_factor,
+          duration,
+          repeat_interval,
+          category_id,
+          notes,
+          completed,
+          completed_at
+      } = req.body;
+
+      const updatedTask = await updateTaskWithNullsDB(
+          taskId,
+          title,
+          description,
+          due_date,
+          importance_factor,
+          duration,
+          repeat_interval,
+          category_id,
+          notes,
+          completed,
+          completed_at
+      );
+
+      res.status(200).json(updatedTask.rows[0]);
+  } catch (err) {
+      console.error(err);
+      res.status(500).json({ message: 'Error updating task', error: err });
+  }
+};
+
 // Delete a task
 export const deleteTask = async (req: Request, res: Response): Promise<void> => {
     try {
@@ -172,6 +220,9 @@ export const completeTask = async (req: Request, res: Response): Promise<void> =
       res.status(500).json({ message: 'Error marking task as completed', error: err });
     }
   };
+  
+
+
   
 
 // Get filtered tasks

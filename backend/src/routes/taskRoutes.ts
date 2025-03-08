@@ -10,7 +10,8 @@ import {
   getFilteredTasks, 
   createRepeatedTask, 
   getTasksWithPagination,
-  uncompleteTask
+  uncompleteTask,
+  updateTaskWithNull
 } from '../controllers/taskController';  // Adjust path as necessary
 import { verifyToken } from '../middlewares/authMiddleware';
 
@@ -27,6 +28,8 @@ router.get('/get_by_taskId', getTaskById);
 
 // Route to update a task
 router.put('/update', updateTask);
+
+router.put('/updateNulls', updateTaskWithNull);
 
 // Route to delete a task
 router.delete('/delete', deleteTask);
