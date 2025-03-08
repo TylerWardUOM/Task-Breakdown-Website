@@ -38,8 +38,8 @@ const TaskListPage = () => {
       if (!task) throw new Error("Task not found");
 
       const url = task.completed
-        ? `http://localhost:5000/api/tasks/${taskId}/uncomplete`
-        : `http://localhost:5000/api/tasks/${taskId}/complete`;
+        ? `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/tasks/${taskId}/uncomplete`
+        : `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/tasks/${taskId}/complete`;
 
       const response = await fetch(url, {
         method: "PUT",
@@ -154,7 +154,7 @@ const TaskListPage = () => {
     if (firebaseToken) {
       const fetchTasks = async () => {
         try {
-          const response = await fetch("http://localhost:5000/api/tasks/get", {
+          const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/tasks/get`, {
             method: "GET",
             headers: {
               "Content-Type": "application/json",

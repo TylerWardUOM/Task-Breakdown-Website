@@ -79,7 +79,7 @@ const TaskModal: React.FC<{ onClose: () => void; onSave: (task: any) => void; ex
       const token = await getFirebaseToken();
       if (!token) throw new Error("User is not authenticated");
 
-      const endpoint = existingTask ? "http://localhost:5000/api/tasks/updateNulls" : "http://localhost:5000/api/tasks/create";
+      const endpoint = existingTask ? `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/tasks/updateNulls` : `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/tasks/create`;
       const method = existingTask ? "PUT" : "POST";
 
       const response = await fetch(endpoint, {

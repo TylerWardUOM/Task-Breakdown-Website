@@ -40,7 +40,7 @@ const RegisterPage = () => {
 
       if (token) {
         // Send the token, email, and username to the backend to register the user in the database
-        const response = await fetch("http://localhost:5000/api/auth/register", {
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/auth/register`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
