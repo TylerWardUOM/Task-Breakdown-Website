@@ -111,23 +111,7 @@ const TaskListPage = () => {
           }
 
           const data = await response.json();
-
-          const formattedTasks = data.map((task: any) => ({
-            id: task.id,
-            user_id: task.user_id ?? "Unknown",
-            category_id: task.category_id ?? "Uncategorized",
-            title: task.title || "Untitled Task",
-            description: task.description || "No description available",
-            due_date: task.due_date ? new Date(task.due_date).toLocaleDateString() : "No due date",
-            importance_factor: task.importance_factor || 0,
-            duration: task.duration ? formatInterval(task.duration) : "No duration set",
-            repeat_interval: task.repeat_interval ? formatInterval(task.repeat_interval) : "No repeat",
-            notes: task.notes || "",
-            completed: task.completed || false,
-            completed_at: task.completed_at ? new Date(task.completed_at).toLocaleString() : null,
-          }));
-
-          setTasks(formattedTasks);
+          setTasks(data);  // Directly setting raw tasks without formatting
         } catch (err) {
           console.error("Error fetching tasks:", err);
           setError(err instanceof Error ? err.message : "An error occurred");
@@ -154,9 +138,9 @@ const TaskListPage = () => {
       </div>
 
       <TaskTable
-        tasks={tasks}
+        tasks={tasks}  // Pass raw tasks directly
         onEdit={openTaskModal}
-        onComplete={toggleTaskCompletion} // Update to use toggleTaskCompletion
+        onComplete={toggleTaskCompletion} // Use toggleTaskCompletion function
         onDelete={deleteTask}
         onFocus={goToFocusMode}
       />
@@ -169,17 +153,3 @@ const TaskListPage = () => {
 };
 
 export default TaskListPage;
-
-/**
- * Helper function to format PostgreSQL INTERVAL data
- */
-const formatInterval = (interval: any): string => {
-  if (typeof interval === "string") {
-    return interval;
-  } else if (typeof interval === "object" && interval.minutes !== undefined) {
-    return `${interval.minutes}m ${interval.seconds || 0}s`;
-  } else if (typeof interval === "object" && interval.days !== undefined) {
-    return `${interval.days} days`;
-  }
-  return "Invalid interval";
-};

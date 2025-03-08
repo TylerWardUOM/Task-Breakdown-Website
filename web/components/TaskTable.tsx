@@ -3,12 +3,12 @@ import { PencilIcon, CheckCircleIcon, XCircleIcon, EyeIcon } from "@heroicons/re
 
 // Define the Task interface to match the backend data
 interface Task {
-  id: number; // ✅ Updated from taskId to match backend
+  id: number;
   title: string | null;
   description: string | null;
   due_date: string | null;
   importance_factor: number | null;
-  duration: string | { minutes: number; seconds: number } | null;
+  duration: number | null; // duration in minutes
   repeat_interval: string | null;
   category_id: number | null;
   notes: string | null;
@@ -25,76 +25,90 @@ interface TaskTableProps {
   renderActions?: (task: Task) => JSX.Element;
 }
 
+// Calculates the task priority based on importance, due date and duration.
+const calculatePriority = (task: Task): number => {
+  const currentDate = new Date();
+  const importance = task.importance_factor || 5; // Default importance if not set
+
+  // Due date logic
+  const dueDate = task.due_date ? new Date(task.due_date) : null;
+  let daysUntilDue = Number.MAX_VALUE; // Very high number if no due date
+  if (dueDate) {
+    const timeDifferenceInMs = dueDate.getTime() - currentDate.getTime();
+    daysUntilDue = Math.max(timeDifferenceInMs / (1000 * 3600 * 24), 0); // Ensure non-negative
+  }
+
+  // Task duration (assume minutes, default to 60 minutes)
+  const duration = task.duration ?? 60;
+
+  // Hardcoded weights (future: user-configurable)
+  const weightImportance = 4;
+  const weightDueDate = 4;
+  const weightDuration = 4;
+
+  // Calculate priority score
+  const priorityScore =
+    (weightImportance * (importance / Math.log2(duration + 1))) +
+    (weightDueDate * (1 / (daysUntilDue + 1))) +
+    (weightDuration * (1 / (duration + 1)));
+
+  // Normalize between 1 and 10
+  const minPriority = 1;
+  const maxPriority = 10;
+  const normalizedPriority = Math.min(Math.max(minPriority, priorityScore), maxPriority);
+
+  return normalizedPriority;
+};
+
+// Formats the duration (in minutes) into a human-readable string.
+const renderDuration = (duration: Task["duration"]) => {
+  if (duration === null) return "N/A";
+  const hours = Math.floor(duration / 60);
+  const minutes = duration % 60;
+  return hours > 0 ? `${hours}h ${minutes}m` : `${minutes}m`;
+};
+
+// Formats the due date for display.
+const renderDueDate = (due_date: string | null) => {
+  if (!due_date) return "N/A";
+  return new Date(due_date).toLocaleDateString();
+};
+
+// Formats a repeat interval value. Accepts either a string or an object.
+const formatRepeatInterval = (interval: any): string => {
+  if (typeof interval === "string") {
+    return interval;
+  } else if (typeof interval === "object" && interval.minutes !== undefined) {
+    return `${interval.minutes}m ${interval.seconds || 0}s`;
+  } else if (typeof interval === "object" && interval.days !== undefined) {
+    return `${interval.days} days`;
+  }
+  return "Invalid interval";
+};
+
+// Processes a raw task object by applying default values and formatting certain fields.
+const processTask = (task: Task) => {
+  return {
+    ...task,
+    title: task.title || "Untitled Task",
+    description: task.description || null,
+    category_id: task.category_id ?? "General",
+    due_date: task.due_date ?? null,
+    importance_factor: task.importance_factor ?? 0,
+    duration: task.duration ?? null,
+    repeat_interval: task.repeat_interval ? formatRepeatInterval(task.repeat_interval) : null,
+    notes: task.notes || "",
+    completed: task.completed ?? false,
+    completed_at: task.completed_at ? new Date(task.completed_at).toLocaleString() : null,
+  };
+};
+
 const TaskTable: React.FC<TaskTableProps> = ({ tasks, onEdit, onComplete, onDelete, onFocus, renderActions }) => {
-  // Helper function to calculate priority
-  const calculatePriority = (task: Task): number => {
-    const currentDate = new Date();
-    const importance = task.importance_factor || 5;
-
-    // Due date logic: the closer the task is to the current date, the higher the priority
-    const dueDate = task.due_date ? new Date(task.due_date) : null;
-    let dueDatePriority = 0;
-    if (dueDate) {
-      const timeDifferenceInMs = dueDate.getTime() - currentDate.getTime();
-      const timeDifferenceInDays = timeDifferenceInMs / (1000 * 3600 * 24); // Days difference
-      if (timeDifferenceInDays < 0) {
-        // Overdue task gets a higher priority
-        dueDatePriority = 10;
-      } else if (timeDifferenceInDays <= 1) {
-        // Tasks due in the next 24 hours
-        dueDatePriority = 9;
-      } else if (timeDifferenceInDays <= 7) {
-        // Tasks due in the next 7 days
-        dueDatePriority = 7;
-      } else {
-        dueDatePriority = 4; // Tasks due in more than a week
-      }
-    }
-
-    // Duration logic: longer tasks get a higher priority
-    let durationPriority = 0;
-    if (task.duration && typeof task.duration !== "string") {
-      const totalMinutes = task.duration.minutes + task.duration.seconds / 60;
-      if (totalMinutes <= 30) {
-        durationPriority = 4; // Short tasks
-      } else if (totalMinutes <= 60) {
-        durationPriority = 7; // Medium-length tasks
-      } else {
-        durationPriority = 9; // Long tasks
-      }
-    }
-
-    // Combining all factors to calculate the final priority
-    let priority = (importance + dueDatePriority + durationPriority) / 3;
-
-    // Ensure priority is between 1 and 10
-    if (priority > 10) priority = 10;
-    if (priority < 1) priority = 1;
-
-    return priority;
-  };
-
-  // Format the duration properly
-  const renderDuration = (duration: Task["duration"]) => {
-    if (!duration) return "No duration specified";
-    if (typeof duration === "string") return duration;
-    if (typeof duration === "object" && "minutes" in duration && "seconds" in duration) {
-      return `${duration.minutes}m ${duration.seconds}s`;
-    }
-    return "Invalid duration";
-  };
-
-  // Format due date properly
-  const renderDueDate = (due_date: string | null) => {
-    if (!due_date) return "No due date";
-    return new Date(due_date).toLocaleDateString();
-  };
-
-  // Sort tasks by priority and completed status (completed tasks have priority 0)
+  // Sort tasks by priority and completed status (completed tasks get priority 0)
   const sortedTasks = [...tasks].sort((a, b) => {
     const priorityA = a.completed ? 0 : calculatePriority(a);
     const priorityB = b.completed ? 0 : calculatePriority(b);
-    return priorityB - priorityA; // Sort in descending order (higher priority first)
+    return priorityB - priorityA;
   });
 
   return (
@@ -111,52 +125,56 @@ const TaskTable: React.FC<TaskTableProps> = ({ tasks, onEdit, onComplete, onDele
           </tr>
         </thead>
         <tbody>
-          {sortedTasks.map((task) => (
-            <tr key={task.id} className={task.completed ? "opacity-50" : ""}>
-              <td className="py-2 px-4">
-                <span className={task.completed ? "line-through text-gray-400" : ""}>
-                  {task.title || "No title"}
-                </span>
-              </td>
-              <td className="py-2 px-4">
-                <div className="flex items-center">
-                  {/* Render priority as stars */}
-                  {[...Array(Math.round(calculatePriority(task)))].map((_, index) => (
-                    <span key={index} className="text-yellow-500">★</span>
-                  ))}
-                </div>
-              </td>
-              <td className="py-2 px-4">{renderDueDate(task.due_date)}</td>
-              <td className="py-2 px-4">{task.category_id ? `Category ${task.category_id}` : "Uncategorized"}</td>
-              <td className="py-2 px-4">{renderDuration(task.duration)}</td>
-              <td className="py-2 px-4 flex space-x-2">
-                {renderActions ? renderActions(task) : (
-                  <>
-                    {onEdit && (
-                      <button onClick={() => onEdit(task.id)} className="bg-green-500 text-white px-4 py-2 rounded">
-                        <PencilIcon className="h-5 w-5" />
-                      </button>
-                    )}
-                    {onComplete && (
-                      <button onClick={() => onComplete(task.id)} className={`px-4 py-2 rounded ${task.completed ? "bg-red-500" : "bg-yellow-500"}`}>
-                        {task.completed ? <XCircleIcon className="h-5 w-5" /> : <CheckCircleIcon className="h-5 w-5" />}
-                      </button>
-                    )}
-                    {onDelete && (
-                      <button onClick={() => onDelete(task.id)} className="bg-red-500 text-white px-4 py-2 rounded">
-                        <XCircleIcon className="h-5 w-5" />
-                      </button>
-                    )}
-                    {onFocus && (
-                      <button onClick={() => onFocus(task.id)} className="bg-purple-500 text-white px-4 py-2 rounded flex items-center space-x-2">
-                        <EyeIcon className="h-5 w-5" />
-                      </button>
-                    )}
-                  </>
-                )}
-              </td>
-            </tr>
-          ))}
+          {sortedTasks.map((task) => {
+            // Process the task to apply default values and formatting.
+            const processedTask = processTask(task);
+            return (
+              <tr key={processedTask.id} className={processedTask.completed ? "opacity-50" : ""}>
+                <td className="py-2 px-4">
+                  <span className={processedTask.completed ? "line-through text-gray-400" : ""}>
+                    {processedTask.title}
+                  </span>
+                </td>
+                <td className="py-2 px-4">{calculatePriority(processedTask).toFixed(2)}</td>
+                <td className="py-2 px-4">{renderDueDate(processedTask.due_date)}</td>
+                <td className="py-2 px-4">{processedTask.category_id}</td>
+                <td className="py-2 px-4">{renderDuration(processedTask.duration)}</td>
+                <td className="py-2 px-4 flex space-x-2">
+                  {renderActions ? renderActions(processedTask) : (
+                    <>
+                      {onEdit && (
+                        <button onClick={() => onEdit(processedTask.id)} className="bg-green-500 text-white px-4 py-2 rounded">
+                          <PencilIcon className="h-5 w-5" />
+                        </button>
+                      )}
+                      {onComplete && (
+                        <button
+                          onClick={() => onComplete(processedTask.id)}
+                          className={`px-4 py-2 rounded ${processedTask.completed ? "bg-red-500" : "bg-yellow-500"}`}
+                        >
+                          {processedTask.completed ? (
+                            <XCircleIcon className="h-5 w-5" />
+                          ) : (
+                            <CheckCircleIcon className="h-5 w-5" />
+                          )}
+                        </button>
+                      )}
+                      {onDelete && (
+                        <button onClick={() => onDelete(processedTask.id)} className="bg-red-500 text-white px-4 py-2 rounded">
+                          <XCircleIcon className="h-5 w-5" />
+                        </button>
+                      )}
+                      {onFocus && (
+                        <button onClick={() => onFocus(processedTask.id)} className="bg-purple-500 text-white px-4 py-2 rounded flex items-center space-x-2">
+                          <EyeIcon className="h-5 w-5" />
+                        </button>
+                      )}
+                    </>
+                  )}
+                </td>
+              </tr>
+            );
+          })}
         </tbody>
       </table>
     </div>
