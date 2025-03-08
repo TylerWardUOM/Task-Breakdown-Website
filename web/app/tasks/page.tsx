@@ -21,13 +21,19 @@ const TaskListPage = () => {
     setIsTaskModalOpen(true);
   };
 
-  const markTaskAsComplete = async (taskId: number) => {
+  // Function to toggle the completion status of a task
+  const toggleTaskCompletion = async (taskId: number) => {
     try {
-      // Ensure that the firebaseToken is available before proceeding
       if (!firebaseToken) throw new Error("User is not authenticated");
 
-      // Make the PUT request to mark the task as complete
-      const response = await fetch(`http://localhost:5000/api/tasks/${taskId}/complete`, {
+      const task = tasks.find((task) => task.id === taskId);
+      if (!task) throw new Error("Task not found");
+
+      const url = task.completed
+        ? `http://localhost:5000/api/tasks/${taskId}/uncomplete`
+        : `http://localhost:5000/api/tasks/${taskId}/complete`;
+
+      const response = await fetch(url, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
@@ -36,47 +42,19 @@ const TaskListPage = () => {
       });
 
       if (!response.ok) {
-        throw new Error("Failed to mark task as complete");
+        throw new Error(`Failed to ${task.completed ? "unmark" : "mark"} task as complete`);
       }
 
       // Update the task locally after the request
       setTasks((prevTasks) =>
         prevTasks.map((task) =>
-          task.id === taskId ? { ...task, completed: true } : task
+          task.id === taskId
+            ? { ...task, completed: !task.completed, completed_at: task.completed ? null : new Date().toLocaleString() }
+            : task
         )
       );
     } catch (error) {
-      console.error("Error marking task as complete:", error);
-    }
-  };
-
-  // New function to unmark the task as complete
-  const unmarkTaskAsComplete = async (taskId: number) => {
-    try {
-      // Ensure that the firebaseToken is available before proceeding
-      if (!firebaseToken) throw new Error("User is not authenticated");
-
-      // Make the PUT request to unmark the task as complete
-      const response = await fetch(`http://localhost:5000/api/tasks/${taskId}/uncomplete`, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${firebaseToken}`,
-        },
-      });
-
-      if (!response.ok) {
-        throw new Error("Failed to unmark task as complete");
-      }
-
-      // Update the task locally after the request
-      setTasks((prevTasks) =>
-        prevTasks.map((task) =>
-          task.id === taskId ? { ...task, completed: false, completed_at: null } : task
-        )
-      );
-    } catch (error) {
-      console.error("Error unmarking task as complete:", error);
+      console.error("Error toggling task completion:", error);
     }
   };
 
@@ -95,10 +73,8 @@ const TaskListPage = () => {
 
   const handleSaveTask = (updatedTask: any) => {
     if (selectedTask) {
-      // If editing an existing task, update it in the list
       setTasks(tasks.map((task) => (task.id === updatedTask.id ? updatedTask : task)));
     } else {
-      // If it's a new task, add it to the list
       setTasks([...tasks, { ...updatedTask, id: tasks.length + 1 }]);
     }
     closeTaskModal();
@@ -119,7 +95,6 @@ const TaskListPage = () => {
   }, [authLoading, isAuthenticated, router]);
 
   useEffect(() => {
-    // Only fetch tasks when the firebaseToken is available
     if (firebaseToken) {
       const fetchTasks = async () => {
         try {
@@ -163,7 +138,7 @@ const TaskListPage = () => {
 
       fetchTasks();
     }
-  }, [firebaseToken]); // Re-run when firebaseToken changes
+  }, [firebaseToken]);
 
   if (loadingTasks) {
     return <p>Loading tasks...</p>;
@@ -181,8 +156,7 @@ const TaskListPage = () => {
       <TaskTable
         tasks={tasks}
         onEdit={openTaskModal}
-        onComplete={markTaskAsComplete}
-        onUncomplete={unmarkTaskAsComplete}  {/* New handler for unmarking completion */}
+        onComplete={toggleTaskCompletion} // Update to use toggleTaskCompletion
         onDelete={deleteTask}
         onFocus={goToFocusMode}
       />
