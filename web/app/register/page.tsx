@@ -2,22 +2,28 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { signUp, getFirebaseToken } from "../../lib/auth"; // Import your Firebase signUp function
+import { signUpEmailVerification } from "../../lib/auth"; // Import updated function
+import { FirebaseError } from "firebase/app"; // Import FirebaseError to handle specific errors
+import { useAuth } from '../../lib/authContext';
+
 
 const RegisterPage = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [username, setUsername] = useState(''); // New state for username
+  const [username, setUsername] = useState('');
   const [error, setError] = useState('');
-  const [isLoading, setIsLoading] = useState(false); // Track loading state
+  const [success, setSuccess] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
+  const { setIsSigningUp } = useAuth(); // Access the setIsSigningUp from context
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
-    setIsLoading(true); // Set loading to true when submitting
+    setSuccess('');
+    setIsLoading(true);
 
-    // Simple client-side validation for email, password, and username
+    // Simple client-side validation
     if (!email || !password || !username) {
       setError("Email, password, and username are required.");
       setIsLoading(false);
@@ -31,42 +37,46 @@ const RegisterPage = () => {
     }
 
     try {
-      // Call the Firebase signUp function
-      const user = await signUp(email, password);
-      console.log("User registered:", user); // Optionally log the user info
-
-      // Get the Firebase ID token
-      const token = await getFirebaseToken();
-
-      if (token) {
-        // Send the token, email, and username to the backend to register the user in the database
-        const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/auth/register`, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ token, username, email }), // Include username and email
-        });
-
-        const data = await response.json();
-
-        if (response.ok) {
-          console.log("User registered in the database:", data);
-          router.push('/login'); // Redirect to login page after successful registration
-        } else {
-          setError(data.error || 'Registration failed, please try again.');
-        }
-      }
+      // Sign up and send email verification
+      const response = await signUpEmailVerification(email, password, username, setIsSigningUp);
+      setSuccess(response.message);
+      
+      // Redirect to login page after a few seconds
+      setTimeout(() => {
+        router.push('/login');
+      }, 3000);
+      
     } catch (error: unknown) {
       console.error("Error during registration:", error);
-    
-      if (error instanceof Error) {
+
+      if (error instanceof FirebaseError) {
+        // Map Firebase error codes to user-friendly messages
+        switch (error.code) {
+          case "auth/email-already-in-use":
+            setError("This email is already in use. Please try logging in.");
+            break;
+          case "auth/invalid-email":
+            setError("Invalid email format. Please enter a valid email address.");
+            break;
+          case "auth/weak-password":
+            setError("Weak password. Please choose a stronger password.");
+            break;
+          case "auth/missing-password":
+            setError("Please enter a password.");
+            break;
+          case "auth/network-request-failed":
+            setError("Network error. Please check your internet connection.");
+            break;
+          default:
+            setError("Registration failed. Please try again.");
+        }
+      } else if (error instanceof Error) {
         setError(error.message || 'Registration failed, please try again.');
       } else {
-        setError('Registration failed, please try again.'); // Handle non-Error types
+        setError('Registration failed, please try again.');
       }
     } finally {
-      setIsLoading(false); // Reset loading state once the request is done
+      setIsLoading(false);
     }
   };
 
@@ -75,6 +85,8 @@ const RegisterPage = () => {
       <div className="bg-white p-8 rounded-lg shadow-lg w-96">
         <h2 className="text-2xl font-semibold text-center mb-6">Register</h2>
         {error && <p className="text-red-500 text-sm text-center mb-4">{error}</p>}
+        {success && <p className="text-green-500 text-sm text-center mb-4">{success}</p>}
+        
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <label htmlFor="email" className="block text-sm font-medium text-gray-700">Email</label>
@@ -118,7 +130,7 @@ const RegisterPage = () => {
           <button
             type="submit"
             className="w-full bg-blue-600 text-white p-2 rounded-md mt-4 hover:bg-blue-700 transition duration-300"
-            disabled={isLoading} // Disable the button when loading
+            disabled={isLoading}
           >
             {isLoading ? 'Registering...' : 'Register'}
           </button>

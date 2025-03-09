@@ -1,5 +1,4 @@
 import { initializeApp} from 'firebase/app';
-import { getDatabase } from 'firebase/database'; // Import Realtime Database
 
 const firebaseConfig = {
   apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
@@ -12,4 +11,3 @@ const firebaseConfig = {
 };
 
 export const app = initializeApp(firebaseConfig);
-export const db = getDatabase(app);
