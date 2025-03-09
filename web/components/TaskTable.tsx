@@ -22,6 +22,8 @@ interface TaskTableProps {
   renderActions?: (task: Task) => JSX.Element;
   colorScheme: ColorScheme;       // New prop for custom color schemes
   colorSchemeEnabled: boolean;    // New prop to toggle the color gradient
+  showCompletedTasks?: boolean; // New optional prop
+  emptyStateMessage?: React.ReactNode;
 }
 
 // Calculates the task priority based on importance, due date and duration.
@@ -35,6 +37,10 @@ const calculatePriority = (task: Task): number => {
   if (dueDate) {
     const timeDifferenceInMs = dueDate.getTime() - currentDate.getTime();
     daysUntilDue = Math.max(timeDifferenceInMs / (1000 * 3600 * 24), 0); // Ensure non-negative
+  }
+
+  if (task.completed){
+    return 0;
   }
 
   // If the task is overdue, return a priority of 11
@@ -123,46 +129,64 @@ const getSortedTasks = (tasks: Task[], sortBy: string) => {
 };
 
 
-// Modify filtering logic based on the selected filter prop
-const getFilteredTasks = (tasks: Task[], filter: string | null,  minPriority?: number, maxPriority?: number) => {
+// Modify filtering logic to consider completed tasks visibility
+const getFilteredTasks = (
+  tasks: Task[],
+  filter: string | null,
+  showCompletedTasks: boolean,
+  minPriority?: number,
+  maxPriority?: number
+) => {
+  let filteredTasks = tasks;
+
+  if (!showCompletedTasks) {
+    // Filter out completed tasks unless explicitly allowed
+    filteredTasks = filteredTasks.filter((task) => !task.completed);
+  }
 
   if (filter === "priorityRange" && minPriority !== undefined && maxPriority !== undefined) {
-    // Only filter by priority if both minPriority and maxPriority are provided
-    return tasks.filter((task) => {
+    filteredTasks = filteredTasks.filter((task) => {
       const taskPriority = calculatePriority(task);
       return taskPriority >= minPriority && taskPriority <= maxPriority;
     });
   }
+
   if (filter === "thisWeek") {
     const currentDate = new Date();
-    const weekStart = new Date(currentDate.setDate(currentDate.getDate() - currentDate.getDay())); // Start of this week
-    const weekEnd = new Date(currentDate.setDate(currentDate.getDate() + 6 - currentDate.getDay())); // End of this week
+    const weekStart = new Date(currentDate.setDate(currentDate.getDate() - currentDate.getDay()));
+    const weekEnd = new Date(currentDate.setDate(currentDate.getDate() + 6 - currentDate.getDay()));
 
-    return tasks.filter((task) => {
+    filteredTasks = filteredTasks.filter((task) => {
       if (!task.due_date) return false;
       const taskDueDate = new Date(task.due_date);
       return taskDueDate >= weekStart && taskDueDate <= weekEnd;
     });
   }
 
-  if (filter === "highPriority") {
-    return tasks.filter((task) => calculatePriority(task) > 7);
+  if (filter === "Priority>7") {
+    filteredTasks = filteredTasks.filter((task) => calculatePriority(task) > 7);
   }
 
   if (filter === "overDue") {
     const currentDate = new Date();
-    return tasks.filter((task) => {
+    filteredTasks = filteredTasks.filter((task) => {
       if (task.due_date) {
         const dueDate = new Date(task.due_date);
-        // Check if task is overdue
         return dueDate < currentDate && !task.completed;
       }
-      return false; // If no due date, it's not considered overdue
+      return false;
     });
   }
-  return tasks; // No filter, return all tasks
-};
 
+  if (filter === "highPriority") {
+    // Sort tasks by priority in descending order and get the top 5
+    filteredTasks = [...filteredTasks]
+      .sort((a, b) => calculatePriority(b) - calculatePriority(a))
+      .slice(0, 5);
+  }
+
+  return filteredTasks;
+};
 
 const TaskTable: React.FC<TaskTableProps> = ({ 
     tasks, 
@@ -172,19 +196,26 @@ const TaskTable: React.FC<TaskTableProps> = ({
     sortBy,
     renderActions,
     colorScheme,
-    colorSchemeEnabled 
+    colorSchemeEnabled,
+    showCompletedTasks = false,
+    emptyStateMessage
   }) => {
-  if (tasks.length === 0) {
+
+  // Apply filtering, including completed tasks visibility
+  const filteredTasks = getFilteredTasks(tasks, filter, showCompletedTasks, minPriority, maxPriority);
+  if (filteredTasks.length === 0) {
     return (
-      <div className="text-center p-4">
-        <p>No tasks available</p>
+      <div className="text-center p-6 bg-gray-100 rounded-lg shadow-md">
+        {emptyStateMessage || (
+          <>
+            <p className="text-lg font-semibold text-gray-700">No tasks at the moment!</p>
+            <p className="text-gray-500">Start by adding some tasks to stay organized.</p>
+          </>
+        )}
       </div>
     );
   }
-
-  // Apply filtering
-  const filteredTasks = getFilteredTasks(tasks, filter, minPriority, maxPriority);
-
+  
   // Apply sorting
   const sortedTasks = getSortedTasks(filteredTasks, sortBy);
 

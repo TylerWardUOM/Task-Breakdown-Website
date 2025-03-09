@@ -11,12 +11,13 @@ import { useRouter } from "next/navigation"; // Import useRouter for redirection
 import TaskTable from "../../components/TaskTable";
 import useFetchTasks from "../../hooks/useFetchTasks";
 import Link from 'next/link';
+import { Task } from "../../types/Task";
 
 
 
 export default function Dashboard() {
   const { isAuthenticated, loading, userName, firebaseToken } = useAuth(); // Get authentication status from context
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isModalOpen, setIsTaskModalOpen] = useState(false);
   const [isToastVisible, setIsToastVisible] = useState(false);
   const [colorSchemeEnabled] = useState(true);
   const [TablecolorScheme] = useState({
@@ -26,8 +27,22 @@ export default function Dashboard() {
     highPriority: "bg-red-200",   // High priority color
   });
   const router = useRouter();
+  
+  const { tasks, /*error, loadingTasks,*/ setTasks } = useFetchTasks(firebaseToken);
 
-  const { tasks, /*error, loadingTasks, setTasks*/ } = useFetchTasks(firebaseToken);
+  const openNewTaskModal = () => {
+    setIsTaskModalOpen(true);
+  };
+  
+  const closeTaskModal = () => {
+    setIsTaskModalOpen(false);
+  };
+  
+  const handleSaveTask = (newTask: Task) => {
+    setTasks([...tasks, { ...newTask, id: tasks.length + 1 }]);
+    closeTaskModal();
+  };
+  
 
 
   useEffect(() => {
@@ -49,7 +64,7 @@ export default function Dashboard() {
       {/* Focus Mode & Add Task Buttons */}
       <div className="mt-6 flex space-x-4">
         <button className="bg-blue-600 text-white px-4 py-2 rounded-lg shadow hover:bg-blue-700">🎯 Start Focus Mode</button>
-        <button className="bg-green-500 text-white px-4 py-2 rounded-lg shadow hover:bg-green-600 flex items-center" onClick={() => setIsModalOpen(true)}>
+        <button className="bg-green-500 text-white px-4 py-2 rounded-lg shadow hover:bg-green-600 flex items-center" onClick={openNewTaskModal}>
           <FiPlusCircle className="mr-2" /> Add New Task
         </button>
       </div>
@@ -87,8 +102,8 @@ export default function Dashboard() {
       </div>
 
       {/* Task Modal */}
-      <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} width="max-w-[20%]">
-        <TaskModal onClose={() => setIsModalOpen(false)} onSave={() => {}} />
+      <Modal isOpen={isModalOpen} onClose={() => setIsTaskModalOpen(false)} width="max-w-[20%]">
+        <TaskModal onClose={() => setIsTaskModalOpen(false)} onSave={handleSaveTask} />
       </Modal>
 
       {/* Toast Notification */}
