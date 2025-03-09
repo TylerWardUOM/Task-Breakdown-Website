@@ -1,48 +1,53 @@
 "use client";
 
 import { useState } from "react";
-import { signIn, getFirebaseToken } from "../../lib/auth";
+import { signInEmailVerification, getFirebaseToken } from "../../lib/auth";
 import { useRouter } from "next/navigation";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
   const router = useRouter();
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault(); // Prevent form reload
+    setLoading(true);
+    setError(null); // Reset errors on new login attempt
 
     try {
-      await signIn(email, password);  // Sign in the user via Firebase
-      const token = await getFirebaseToken(); // Get Firebase token
+      await signInEmailVerification(email, password); // Sign in with email verification check
+      const token = await getFirebaseToken();
 
-      if (token) {
-        // Send the token to the backend API for verification and login
-        const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/auth/login`, {
-          method: "POST",
-          headers: { 
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ token }),
-        });
+      if (!token) {
+        throw new Error("Failed to get authentication token.");
+      }
 
-        const data = await response.json();
+      // Send the token to the backend API for verification and login
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/auth/login`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ token }),
+      });
 
-        if (response.ok) {
-          router.push("/dashboard"); // Redirect to dashboard on success
-        } else {
-          setError(data.error || "Login failed"); // Handle error if login fails
-        }
+      const data = await response.json();
+
+      if (response.ok) {
+        router.push("/dashboard"); // Redirect to dashboard on success
+      } else {
+        setError(data.error || "Login failed");
       }
     } catch (err: unknown) {
       if (err instanceof Error) {
-        setError(err.message); // Set error if login fails
+        setError(err.message); // Display error message
       } else {
-        setError("An unknown error occurred"); // Handle non-Error types
+        setError("An unknown error occurred.");
       }
+    } finally {
+      setLoading(false);
     }
-  }
+  };
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-100">
@@ -78,9 +83,10 @@ export default function LoginPage() {
 
           <button
             type="submit"
-            className="w-full bg-blue-600 text-white p-2 rounded-md mt-4 hover:bg-blue-700 transition duration-300"
+            className="w-full bg-blue-600 text-white p-2 rounded-md mt-4 hover:bg-blue-700 transition duration-300 disabled:bg-gray-400"
+            disabled={loading}
           >
-            Login
+            {loading ? "Logging in..." : "Login"}
           </button>
         </form>
 
@@ -96,4 +102,3 @@ export default function LoginPage() {
     </div>
   );
 }
-
