@@ -10,44 +10,113 @@ A neurodivergent-friendly task management app for better productivity, schedulin
 - **Sync & Notifications:** Uses Firebase Auth & FCM/APNs for real-time updates.
 
 ## 📂 Folder Structure
+<!-- FOLDER_STRUCTURE_START -->
 ```bash
-neurodivergent-task-manager/
-│── backend/                 # Node.js + Express + PostgreSQL Backend
-│   ├── src/
-│   │   ├── controllers/     # Handles API logic
-│   │   ├── models/          # Database models/schema
-│   │   ├── routes/          # API endpoints
-│   │   ├── middleware/      # Authentication, logging, etc.
-│   │   ├── config/          # Database & server configurations
-│   │   ├── index.js         # Main server file
-│   ├── package.json         # Backend dependencies
-│   ├── .env.example         # Example environment variables
-│── web/                     # Next.js Web App
-│   ├── src/
-│   │   ├── components/      # Reusable UI components
-│   │   ├── pages/           # Next.js pages
-│   │   ├── hooks/           # React Query & custom hooks
-│   │   ├── styles/          # Tailwind CSS & global styles
-│   ├── package.json         # Web dependencies
-│   ├── .env.example         # Example environment variables
-│── mobile/                  # React Native Mobile App
-│   ├── src/
-│   │   ├── screens/         # App screens
-│   │   ├── components/      # Reusable UI components
-│   │   ├── navigation/      # React Navigation setup
-│   │   ├── storage/         # SQLite offline storage
-│   ├── package.json         # Mobile dependencies
-│── docs/                    # Documentation & resources
-│   ├── architecture.md      # System architecture overview
-│   ├── api-endpoints.md     # API Documentation
-│   ├── ui-wireframes/       # UI wireframes/screenshots
-│── .github/                 # GitHub-related files
-│   ├── ISSUE_TEMPLATE.md    # GitHub issue template
-│   ├── PULL_REQUEST_TEMPLATE.md  # PR template
-│── .gitignore               # Files to ignore in Git
-│── README.md                # Main project documentation
-│── LICENSE                  # Project license
+│── .git
+├── .gitignore
+│── backend
+│   ├── .gitignore
+│   │── .vscode
+│   │   ├── settings.json
+│   ├── create_tables.sql
+│   ├── defaultCatagories.sql
+│   │── node_modules
+│   ├── package-lock.json
+│   ├── package.json
+│   ├── serviceAccountKey.json
+│   │── src
+│   │   │── config
+│   │   │   ├── db.ts
+│   │   │   ├── firebase.ts
+│   │   │── controllers
+│   │   │   ├── authController.ts
+│   │   │   ├── categoryController.ts
+│   │   │   ├── taskController.ts
+│   │   │   ├── userController.ts
+│   │   ├── cronJob.ts
+│   │   │── middlewares
+│   │   │   ├── authMiddleware.ts
+│   │   │── models
+│   │   │   ├── categoryModel.ts
+│   │   │   ├── taskModel.ts
+│   │   │   ├── userModel.ts
+│   │   │── routes
+│   │   │   ├── authRoutes.ts
+│   │   │   ├── categoryRoutes.ts
+│   │   │   ├── taskRoutes.ts
+│   │   │   ├── userRoutes.ts
+│   │   ├── server.ts
+│   ├── tsconfig.json
+├── package-lock.json
+├── package.json
+├── README.md
+│── web
+│   ├── .gitignore
+│   │── .next
+│   │── app
+│   │   │── dashboard
+│   │   │   ├── page.tsx
+│   │   ├── favicon.ico
+│   │   ├── globals.css
+│   │   ├── layout.tsx
+│   │   │── login
+│   │   │   ├── page.tsx
+│   │   ├── page.tsx
+│   │   │── register
+│   │   │   ├── page.tsx
+│   │   │── tasks
+│   │   │   ├── page.tsx
+│   │── clear
+│   │── components
+│   │   ├── TaskCompletedTimeframe.tsx
+│   │   ├── TaskTable.tsx
+│   │   │── ui
+│   │   │   ├── BasicSlider.tsx
+│   │   │   ├── Button.tsx
+│   │   │   ├── Button2.tsx
+│   │   │   ├── Card.tsx
+│   │   │   ├── ColourChangingSlider.tsx
+│   │   │   ├── ImportanceSelector.tsx
+│   │   │   ├── Modal.tsx
+│   │   │   ├── Navbar.tsx
+│   │   │   ├── RepeatTask.tsx
+│   │   │   ├── Sidebar.tsx
+│   │   │   ├── TaskModal.tsx
+│   │   │   ├── Toast.tsx
+│   ├── eslint.config.mjs
+│   │── hooks
+│   │   ├── useFetchCompletedTasksTimeframe.ts
+│   │   ├── useFetchTasks.ts
+│   │── lib
+│   │   ├── api.ts
+│   │   ├── auth.ts
+│   │   ├── authContext.tsx
+│   │   ├── firebase.ts
+│   │   ├── user.ts
+│   ├── next.config.ts
+│   │── node_modules
+│   ├── package-lock.json
+│   ├── package.json
+│   ├── postcss.config.js
+│   ├── postcss.config.mjs
+│   │── public
+│   │   ├── file.svg
+│   │   ├── globe.svg
+│   │   ├── next.svg
+│   │   ├── vercel.svg
+│   │   ├── window.svg
+│   ├── README.md
+│   │── src
+│   │── styles
+│   ├── tailwind.config.js
+│   ├── tsconfig.json
+│   │── types
+│   │   ├── Task.d.ts
+│   │   ├── userSettings.d.ts
+├── web_file_structure.txt
+
 ```
+<!-- FOLDER_STRUCTURE_END -->
 ## 🛠️ Tech Stack
 - **Frontend:** Next.js (Web), React Native (Mobile)
 - **Backend:** Node.js + Express
