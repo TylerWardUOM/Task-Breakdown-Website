@@ -74,7 +74,7 @@ const TaskModal: React.FC<{ onClose: () => void; onSave: (task: Task) => void; e
       importance_factor: importanceValue,
       duration: totalDuration || null,
       repeat_interval: repeatTask !== "None" ? formatRepeatInterval(repeatTask) : null,
-      category_id: category !== "1" ? parseInt(category) : null,
+      category_id: category !== null ? parseInt(category): null,
     };
 
     try {
