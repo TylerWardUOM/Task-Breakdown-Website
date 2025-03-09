@@ -189,8 +189,8 @@ const TaskTable: React.FC<TaskTableProps> = ({
   const sortedTasks = getSortedTasks(filteredTasks, sortBy);
 
   return (
-    <div className="overflow-x-auto bg-white shadow-md rounded-lg mt-4">
-      <table className="min-w-full">
+    <div className="overflow-x-auto bg-white shadow-md rounded-lg mt-4 w-full">
+      <table className="min-w-full table-auto">
         <thead className="bg-gray-100">
           <tr>
             <th className="py-2 px-4 text-left">Task Title</th>
@@ -198,8 +198,9 @@ const TaskTable: React.FC<TaskTableProps> = ({
             <th className="py-2 px-4 text-left">Due Date</th>
             <th className="py-2 px-4 text-left">Category</th>
             <th className="py-2 px-4 text-left">Duration</th>
-            <th className="py-2 px-4 text-left">Actions</th>
-          </tr>
+            {/* Conditionally render Actions column */}
+            {renderActions && <th className="py-2 px-4 text-left">Actions</th>}          
+            </tr>
         </thead>
         <tbody>
           {sortedTasks.map((task) => {
@@ -216,9 +217,12 @@ const TaskTable: React.FC<TaskTableProps> = ({
                 <td className="py-2 px-4">{renderDueDate(task.due_date)}</td>
                 <td className="py-2 px-4">{task.category_id}</td>
                 <td className="py-2 px-4">{renderDuration(task.duration)}</td>
-                <td className="py-2 px-4 flex space-x-2">
-                  {renderActions ? renderActions(task) : null}
-                </td>
+                {/* Conditionally render Actions column */}
+                {renderActions && (
+                  <td className="py-2 px-4 flex space-x-2 w-auto">
+                    {renderActions(task)}
+                  </td>
+                )}
               </tr>
             );
           })}
