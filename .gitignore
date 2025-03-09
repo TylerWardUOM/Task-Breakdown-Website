@@ -2,3 +2,4 @@ data/task_manager.db
 /__pycache__
 backend/.env
 web/.env.local
+backend/temp.sql
