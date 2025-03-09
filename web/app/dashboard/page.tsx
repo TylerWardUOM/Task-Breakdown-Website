@@ -8,12 +8,27 @@ import TaskCompletedTimeframe from "../../components/TaskCompletedTimeframe";
 import Toast from "../../components/ui/Toast";
 import { useAuth } from "../../lib/authContext"; // Import the useAuth hook
 import { useRouter } from "next/navigation"; // Import useRouter for redirection
+import TaskTable from "../../components/TaskTable";
+import useFetchTasks from "../../hooks/useFetchTasks";
+import Link from 'next/link';
+
+
 
 export default function Dashboard() {
   const { isAuthenticated, loading, userName, firebaseToken } = useAuth(); // Get authentication status from context
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isToastVisible, setIsToastVisible] = useState(false);
+  const [colorSchemeEnabled] = useState(true);
+  const [TablecolorScheme] = useState({
+    overdue: "bg-red-600",        // Overdue tasks color
+    lowPriority: "bg-green-200",  // Low priority color
+    mediumPriority: "bg-yellow-200", // Medium priority color
+    highPriority: "bg-red-200",   // High priority color
+  });
   const router = useRouter();
+
+  const { tasks, loadingTasks, setTasks } = useFetchTasks(firebaseToken);
+
 
   useEffect(() => {
     if (!loading && !isAuthenticated) {
@@ -51,8 +66,24 @@ export default function Dashboard() {
       </div>
 
       {/* Tasks Overview */}
-      <div className="mt-6">
-        <h2 className="text-xl font-semibold">🔥 High Priority Tasks</h2>
+      <div className="mt-6 w-full flex justify-center">
+        <div className="max-w-[80%] min-w-[80%]">
+          <h2 className="text-xl font-semibold mb-4">🔥 High Priority Tasks</h2>
+          <TaskTable
+            tasks={tasks}
+            filter={"highPriority"}
+            sortBy={"Priority"}
+            colorScheme={TablecolorScheme}
+            colorSchemeEnabled={colorSchemeEnabled}
+          />
+          <div className="flex justify-center mt-4">
+            <Link href="/tasks">
+              <button className="bg-blue-600 text-white px-6 py-3 rounded-lg shadow hover:bg-blue-700">
+                All Tasks
+              </button>
+            </Link>
+          </div>
+        </div>
       </div>
 
       {/* Task Modal */}
