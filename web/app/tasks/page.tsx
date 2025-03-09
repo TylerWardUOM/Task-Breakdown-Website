@@ -37,6 +37,8 @@ const TaskListPage = () => {
   //const [error, setError] = useState<string | null>(null);
   const [filter, setFilter] = useState<string | null>(null); // Filter by due date or priority
   const [sortBy, setSortBy] = useState<string>("priority"); // Default sorting by priority
+  const [minPriority, setMinPriority] = useState(1); // Minimum priority
+  const [maxPriority, setMaxPriority] = useState(11); // Maximum priority
   const { isAuthenticated, loading: authLoading, firebaseToken,redirectToLogin} = useAuth();
   const [isTaskModalOpen, setIsTaskModalOpen] = useState(false);
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
@@ -58,6 +60,14 @@ const TaskListPage = () => {
   // Handler to change filter (e.g., by "due this week" or "priority > 7")
   const handleFilterChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
     setFilter(event.target.value);
+  };
+
+  const handleMinPriorityChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setMinPriority(Number(e.target.value));
+  };
+
+  const handleMaxPriorityChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setMaxPriority(Number(e.target.value));
   };
 
   // Handler to change sorting criteria (e.g., by "priority" or "due date")
@@ -277,6 +287,8 @@ const TaskListPage = () => {
           <option value="">All</option>
           <option value="thisWeek">Due This Week</option>
           <option value="highPriority">Priority &gt; 7</option>
+          <option value="priorityRange">Priority Range</option>
+          <option value="overDue"> OverDue</option>
         </select>
 
         {/* Sort Dropdown */}
@@ -286,10 +298,36 @@ const TaskListPage = () => {
           <option value="dueDate">Due Date</option>
         </select>
       </div>
+      {filter === "priorityRange" && (
+        <div>
+          <label>
+            Min Priority: {minPriority}
+            <input
+              type="range"
+              min="1"
+              max="10"
+              value={minPriority}
+              onChange={handleMinPriorityChange}
+            />
+          </label>
+          <label>
+            Max Priority: {maxPriority}
+            <input
+              type="range"
+              min="1"
+              max="10"
+              value={maxPriority}
+              onChange={handleMaxPriorityChange}
+            />
+          </label>
+        </div>
+      )}
       {/* TaskTable now receives colorScheme and colorSchemeEnabled */}
       <TaskTable
         tasks={tasks}  // Pass raw tasks directly
         filter={filter}
+        minPriority={minPriority}
+        maxPriority={maxPriority}
         sortBy={sortBy}
         renderActions={renderActions}  // Pass renderActions function
         colorScheme={colorScheme}  // Pass the colorScheme prop

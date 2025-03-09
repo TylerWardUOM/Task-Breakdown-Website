@@ -34,6 +34,8 @@ interface ColorScheme {
 interface TaskTableProps {
   tasks: Task[];
   filter: string | null; // The current filter to apply (e.g., due this week, priority > 7)
+  minPriority?: number; // Optional minPriority
+  maxPriority?: number; // Optional maxPriority
   sortBy: string; // Sort by priority, due date, etc.
   onEdit?: (taskId: number) => void;
   onComplete?: (taskId: number) => void;
@@ -145,7 +147,15 @@ const getSortedTasks = (tasks: Task[], sortBy: string) => {
 
 
 // Modify filtering logic based on the selected filter prop
-const getFilteredTasks = (tasks: Task[], filter: string | null) => {
+const getFilteredTasks = (tasks: Task[], filter: string | null,  minPriority?: number, maxPriority?: number) => {
+
+  if (filter === "priorityRange" && minPriority !== undefined && maxPriority !== undefined) {
+    // Only filter by priority if both minPriority and maxPriority are provided
+    return tasks.filter((task) => {
+      const taskPriority = calculatePriority(task);
+      return taskPriority >= minPriority && taskPriority <= maxPriority;
+    });
+  }
   if (filter === "thisWeek") {
     const currentDate = new Date();
     const weekStart = new Date(currentDate.setDate(currentDate.getDate() - currentDate.getDay())); // Start of this week
@@ -162,6 +172,17 @@ const getFilteredTasks = (tasks: Task[], filter: string | null) => {
     return tasks.filter((task) => calculatePriority(task) > 7);
   }
 
+  if (filter === "overDue") {
+    const currentDate = new Date();
+    return tasks.filter((task) => {
+      if (task.due_date) {
+        const dueDate = new Date(task.due_date);
+        // Check if task is overdue
+        return dueDate < currentDate && !task.completed;
+      }
+      return false; // If no due date, it's not considered overdue
+    });
+  }
   return tasks; // No filter, return all tasks
 };
 
@@ -169,6 +190,8 @@ const getFilteredTasks = (tasks: Task[], filter: string | null) => {
 const TaskTable: React.FC<TaskTableProps> = ({ 
     tasks, 
     filter,
+    minPriority,
+    maxPriority,
     sortBy,
     renderActions,
     colorScheme,
@@ -183,7 +206,7 @@ const TaskTable: React.FC<TaskTableProps> = ({
   }
 
   // Apply filtering
-  const filteredTasks = getFilteredTasks(tasks, filter);
+  const filteredTasks = getFilteredTasks(tasks, filter, minPriority, maxPriority);
 
   // Apply sorting
   const sortedTasks = getSortedTasks(filteredTasks, sortBy);
