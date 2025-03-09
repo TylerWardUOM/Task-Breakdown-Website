@@ -19,6 +19,7 @@ const TaskListPage = () => {
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
   const [isDeleting, setIsDeleting] = useState<boolean>(false);
   const [isToggling, setIsToggling] = useState(false);
+  const [showCompleted, setShowCompleted] = useState(false);
 
 
 
@@ -237,7 +238,7 @@ const TaskListPage = () => {
         <select id="filterBy" onChange={handleFilterChange} value={filter || ""} className="p-2 border rounded">
           <option value="">All</option>
           <option value="thisWeek">Due This Week</option>
-          <option value="highPriority">Priority &gt; 7</option>
+          <option value="Priority>7">Priority &gt; 7</option>
           <option value="priorityRange">Priority Range</option>
           <option value="overDue"> OverDue</option>
         </select>
@@ -247,6 +248,14 @@ const TaskListPage = () => {
           <option value="priority">Priority</option>
           <option value="dueDate">Due Date</option>
         </select>
+
+        <label htmlFor="Show-Completed" className="ml-4 mr-2"> Show Completed Tasks:</label>
+        <input
+          id="Show-Completed"
+          type="checkbox"
+          checked={showCompleted}
+          onChange={() => setShowCompleted(!showCompleted)}
+        />
       </div>
       {filter === "priorityRange" && (
         <div>
@@ -281,6 +290,7 @@ const TaskListPage = () => {
         renderActions={renderActions}
         colorScheme={colorScheme}
         colorSchemeEnabled={colorSchemeEnabled}
+        showCompletedTasks={showCompleted}
       />
 
       <Modal isOpen={isTaskModalOpen} onClose={closeTaskModal} width="max-w-3xl">
