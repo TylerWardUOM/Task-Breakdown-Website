@@ -9,3 +9,4 @@ backend/temp.sql
 /.ignorelist
 /generateFolderStructure.js
 /node_modules
+/backend/temp.sql

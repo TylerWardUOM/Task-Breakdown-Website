@@ -88,6 +88,10 @@ export default function LoginPage() {
           Don&apos;t have an account?{' '}
           <a href="/register" className="text-blue-600 hover:underline">Register</a>
         </p>
+        <p className="text-sm text-center mt-4">
+          Forgot Password?{' '}
+          <a href="/resetPassword" className="text-blue-600 hover:underline">Reset Password</a>
+        </p>
       </div>
     </div>
   );
