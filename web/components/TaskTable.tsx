@@ -33,6 +33,8 @@ interface ColorScheme {
 
 interface TaskTableProps {
   tasks: Task[];
+  filter: string | null; // The current filter to apply (e.g., due this week, priority > 7)
+  sortBy: string; // Sort by priority, due date, etc.
   onEdit?: (taskId: number) => void;
   onComplete?: (taskId: number) => void;
   onDelete?: (taskId: number) => void;
@@ -54,6 +56,11 @@ const calculatePriority = (task: Task): number => {
   if (dueDate) {
     const timeDifferenceInMs = dueDate.getTime() - currentDate.getTime();
     daysUntilDue = Math.max(timeDifferenceInMs / (1000 * 3600 * 24), 0); // Ensure non-negative
+  }
+
+  // If the task is overdue, return a priority of 11
+  if (dueDate && dueDate < currentDate) {
+    return 11; // Overdue tasks have the highest priority
   }
 
   // Task duration (assume minutes, default to 60 minutes)
@@ -97,7 +104,7 @@ const getPriorityColor = (priority: number, colorScheme: ColorScheme, colorSchem
   if (!colorSchemeEnabled) return ""; // If gradient is not enabled, return no color
 
   // Overdue tasks should have a distinct color (red)
-  if (priority === 0) return colorScheme.overdue; // Red for overdue tasks
+  if (priority === 11) return colorScheme.overdue; // Red for overdue tasks
 
   // Gradient logic for priority levels
   if (priority <= 3) {
@@ -109,7 +116,64 @@ const getPriorityColor = (priority: number, colorScheme: ColorScheme, colorSchem
   }
 };
 
-const TaskTable: React.FC<TaskTableProps> = ({ tasks, renderActions, colorScheme, colorSchemeEnabled }) => {
+// Modify sorting logic based on the selected sortBy prop
+const getSortedTasks = (tasks: Task[], sortBy: string) => {
+  return tasks.sort((a, b) => {
+    if (sortBy === "priority") {
+      // Sort by priority
+      return calculatePriority(b) - calculatePriority(a);
+    }
+
+    if (sortBy === "dueDate") {
+      const dueDateA = a.due_date ? new Date(a.due_date) : new Date(8640000000000000);
+      const dueDateB = b.due_date ? new Date(b.due_date) : new Date(8640000000000000);
+
+      // First, sort by due date
+      const dueDateComparison = dueDateA.getTime() - dueDateB.getTime();
+      
+      // If due dates are the same, sort by priority (higher priority first)
+      if (dueDateComparison === 0) {
+        return calculatePriority(b) - calculatePriority(a);
+      }
+
+      return dueDateComparison;
+    }
+
+    return 0;
+  });
+};
+
+
+// Modify filtering logic based on the selected filter prop
+const getFilteredTasks = (tasks: Task[], filter: string | null) => {
+  if (filter === "thisWeek") {
+    const currentDate = new Date();
+    const weekStart = new Date(currentDate.setDate(currentDate.getDate() - currentDate.getDay())); // Start of this week
+    const weekEnd = new Date(currentDate.setDate(currentDate.getDate() + 6 - currentDate.getDay())); // End of this week
+
+    return tasks.filter((task) => {
+      if (!task.due_date) return false;
+      const taskDueDate = new Date(task.due_date);
+      return taskDueDate >= weekStart && taskDueDate <= weekEnd;
+    });
+  }
+
+  if (filter === "highPriority") {
+    return tasks.filter((task) => calculatePriority(task) > 7);
+  }
+
+  return tasks; // No filter, return all tasks
+};
+
+
+const TaskTable: React.FC<TaskTableProps> = ({ 
+    tasks, 
+    filter,
+    sortBy,
+    renderActions,
+    colorScheme,
+    colorSchemeEnabled 
+  }) => {
   if (tasks.length === 0) {
     return (
       <div className="text-center p-4">
@@ -117,20 +181,12 @@ const TaskTable: React.FC<TaskTableProps> = ({ tasks, renderActions, colorScheme
       </div>
     );
   }
-  // Sort tasks by due date (overdue tasks first) and then by priority
-  const sortedTasks = [...tasks].sort((a, b) => {
-    const priorityA = a.completed ? 0 : calculatePriority(a);
-    const priorityB = b.completed ? 0 : calculatePriority(b);
 
-    // Overdue tasks should be prioritized first (due date logic)
-    const overdueA = a.due_date && new Date(a.due_date) < new Date();
-    const overdueB = b.due_date && new Date(b.due_date) < new Date();
+  // Apply filtering
+  const filteredTasks = getFilteredTasks(tasks, filter);
 
-    if (overdueA && !overdueB) return -1;
-    if (!overdueA && overdueB) return 1;
-
-    return priorityB - priorityA; // Then by priority
-  });
+  // Apply sorting
+  const sortedTasks = getSortedTasks(filteredTasks, sortBy);
 
   return (
     <div className="overflow-x-auto bg-white shadow-md rounded-lg mt-4">
