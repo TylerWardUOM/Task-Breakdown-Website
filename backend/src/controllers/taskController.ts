@@ -2,7 +2,16 @@ import { Request, Response } from 'express';
 import { 
     createTaskInDB, getTasksFromDB, updateTaskInDB, 
     deleteTaskFromDB, addNoteToTaskInDB, getTaskByIdFromDB, getFilteredTasksFromDB, getTasksWithPaginationFromDB,calculateNextDueDate,
-    updateTaskWithNullsDB
+    updateTaskWithNullsDB,
+    getDeletedTasksFromDB,
+    undeleteTaskFromDB,
+    getTasksCompletedThisWeek,
+    getCompletedTasksCount,
+    getTasksCompletedLast30Days,
+    getTasksCompletedLast365Days,
+    getTasksCompletedThisMonth,
+    getTasksCompletedThisYear,
+    uncompleteTaskFromDB
 } from '../models/taskModel';
 
 // Create a new task
@@ -139,22 +148,6 @@ export const updateTaskWithNull = async (req: Request, res: Response): Promise<v
   }
 };
 
-// Delete a task
-export const deleteTask = async (req: Request, res: Response): Promise<void> => {
-    try {
-        const taskId = parseInt(req.params.taskId, 10);  // Convert to number
-        if (isNaN(taskId)) {
-            res.status(400).json({ message: 'Invalid task ID' });
-            return;
-        }
-
-        await deleteTaskFromDB(taskId);
-        res.status(200).json({ message: 'Task deleted successfully' });
-    } catch (err) {
-        console.error(err);
-        res.status(500).json({ message: 'Error deleting task', error: err });
-    }
-};
 
 // Add a note to a task
 export const addNoteToTask = async (req: Request, res: Response): Promise<void> => {
@@ -295,7 +288,7 @@ export const uncompleteTask = async (req: Request, res: Response): Promise<void>
             return;
         }
 
-        const updatedTask = await updateTaskInDB(taskId, null, null, null, null, null, null, null, null, false, null);
+        const updatedTask = await uncompleteTaskFromDB(taskId);
         res.status(200).json(updatedTask.rows[0]);
     } catch (err) {
         console.error(err);
@@ -303,4 +296,121 @@ export const uncompleteTask = async (req: Request, res: Response): Promise<void>
     }
 };
 
-  
+// ✅ Get count of all completed tasks (including deleted)
+export const getCompletedTasks = async (req: Request, res: Response): Promise<void> => {
+  try {
+      const user_id = req.user?.id;
+      if (!user_id) {
+          res.status(401).json({ message: 'Unauthorized' });
+          return;
+      }
+      const count = await getCompletedTasksCount(user_id);
+      res.status(200).json({ completedTasks: count });
+  } catch (err) {
+      console.error(err);
+      res.status(500).json({ message: 'Error fetching completed tasks', error: err });
+  }
+};
+
+// ✅ Get count of completed tasks in different timeframes
+export const getCompletedTasksByTimeframe = async (req: Request, res: Response): Promise<void> => {
+  try {
+      const user_id = req.user?.id;
+      if (!user_id) {
+          res.status(401).json({ message: 'Unauthorized' });
+          return;
+      }
+
+      const timeframe = req.params.timeframe;
+      let count: number;
+
+      switch (timeframe) {
+          case 'week':
+              count = await getTasksCompletedThisWeek(user_id);
+              break;
+          case 'month':
+              count = await getTasksCompletedThisMonth(user_id);
+              break;
+          case 'last30days':
+              count = await getTasksCompletedLast30Days(user_id);
+              break;
+          case 'year':
+              count = await getTasksCompletedThisYear(user_id);
+              break;
+          case 'last365days':
+              count = await getTasksCompletedLast365Days(user_id);
+              break;
+          default:
+              res.status(400).json({ message: 'Invalid timeframe' });
+              return;
+      }
+
+      res.status(200).json({ completedTasks: count });
+  } catch (err) {
+      console.error(err);
+      res.status(500).json({ message: 'Error fetching completed tasks by timeframe', error: err });
+  }
+};
+
+// ✅ Soft delete a task
+export const deleteTask = async (req: Request, res: Response): Promise<void> => {
+  try {
+      const user_id = req.user?.id;
+      if (!user_id) {
+          res.status(401).json({ message: 'Unauthorized' });
+          return;
+      }
+
+      const taskId = parseInt(req.params.taskId, 10);
+      if (isNaN(taskId)) {
+          res.status(400).json({ message: 'Invalid task ID' });
+          return;
+      }
+
+      const deletedTask = await deleteTaskFromDB(taskId);
+      res.status(200).json(deletedTask.rows[0]);
+  } catch (err) {
+      console.error(err);
+      res.status(500).json({ message: 'Error deleting task', error: err });
+  }
+};
+
+// ✅ Restore a deleted task
+export const undeleteTask = async (req: Request, res: Response): Promise<void> => {
+  try {
+      const user_id = req.user?.id;
+      if (!user_id) {
+          res.status(401).json({ message: 'Unauthorized' });
+          return;
+      }
+
+      const taskId = parseInt(req.params.taskId, 10);
+      if (isNaN(taskId)) {
+          res.status(400).json({ message: 'Invalid task ID' });
+          return;
+      }
+
+      const restoredTask = await undeleteTaskFromDB(taskId);
+      res.status(200).json(restoredTask.rows[0]);
+  } catch (err) {
+      console.error(err);
+      res.status(500).json({ message: 'Error restoring task', error: err });
+  }
+};
+
+// ✅ Get all soft-deleted tasks for a user
+export const getDeletedTasks = async (req: Request, res: Response): Promise<void> => {
+  try {
+      const user_id = req.user?.id;
+      if (!user_id) {
+          res.status(401).json({ message: 'Unauthorized' });
+          return;
+      }
+
+      const deletedTasks = await getDeletedTasksFromDB(user_id);
+      res.status(200).json(deletedTasks.rows);
+  } catch (err) {
+      console.error(err);
+      res.status(500).json({ message: 'Error fetching deleted tasks', error: err });
+  }
+};

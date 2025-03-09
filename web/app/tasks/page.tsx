@@ -115,9 +115,41 @@ const TaskListPage = () => {
     closeTaskModal();
   };
 
-  const deleteTask = (taskId: number) => {
-    setTasks(tasks.filter((task) => task.id !== taskId));
-  };
+  const deleteTask = async (taskId: number) => {
+    try {
+        if (!firebaseToken) throw new Error("User is not authenticated");
+  
+        const task = tasks.find((task) => task.id === taskId);
+        if (!task) throw new Error("Task not found");
+  
+        // Define the API endpoint for the soft delete
+        const url = `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/tasks/delete/${taskId}`;
+
+        // Send the PUT request to the server
+        const response = await fetch(url, {
+            method: "PUT",
+            headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${firebaseToken}`,
+            },
+        });
+
+        // Handle response
+        if (!response.ok) {
+            if (response.status === 401) {
+                redirectToLogin(); // Handle token expiry and redirect to login
+            } else {
+                throw new Error("Failed to delete task");
+            }
+        }
+
+        // If the task was successfully deleted, update the UI by removing it from the list
+        setTasks((prevTasks) => prevTasks.filter((task) => task.id !== taskId));
+    } catch (err) {
+        console.error("Error deleting task:", err);
+        // You can add additional error handling here, like showing an alert or notification
+    }
+};
 
   const goToFocusMode = (taskId: number) => {
     router.push(`/focus?task=${taskId}`);

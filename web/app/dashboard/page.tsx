@@ -4,12 +4,13 @@ import { FiPlusCircle } from "react-icons/fi";
 import Card from "../../components/ui/Card";
 import Modal from "../../components/ui/Modal";
 import TaskModal from "../../components/ui/TaskModal";
+import TaskCompletedTimeframe from "../../components/TaskCompletedTimeframe";
 import Toast from "../../components/ui/Toast";
 import { useAuth } from "../../lib/authContext"; // Import the useAuth hook
 import { useRouter } from "next/navigation"; // Import useRouter for redirection
 
 export default function Dashboard() {
-  const { isAuthenticated, loading, userName } = useAuth(); // Get authentication status from context
+  const { isAuthenticated, loading, userName, firebaseToken } = useAuth(); // Get authentication status from context
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isToastVisible, setIsToastVisible] = useState(false);
   const router = useRouter();
@@ -40,14 +41,12 @@ export default function Dashboard() {
 
       {/* Cards Section */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mt-6">
-        <Card title="Tasks Completed">
-          <p>10 this week</p>
-        </Card>
+        <TaskCompletedTimeframe timeframe="week" title="Tasks Completed This Week" firebaseToken={firebaseToken} />
         <Card title="Upcoming Events">
-          <p>Meeting at 3PM</p>
+          <p className="text-center"> Meeting at 3PM</p>
         </Card>
         <Card title="Focus Mode Stats">
-          <p>5 hours focused today</p>
+          <p className="text-center">5 hours focused today</p>
         </Card>
       </div>
 
