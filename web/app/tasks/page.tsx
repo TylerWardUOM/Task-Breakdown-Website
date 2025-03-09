@@ -35,6 +35,8 @@ const TaskListPage = () => {
   const [tasks, setTasks] = useState<Task[]>([]);
   const [loadingTasks, setLoadingTasks] = useState(true);
   //const [error, setError] = useState<string | null>(null);
+  const [filter, setFilter] = useState<string | null>(null); // Filter by due date or priority
+  const [sortBy, setSortBy] = useState<string>("priority"); // Default sorting by priority
   const { isAuthenticated, loading: authLoading, firebaseToken,redirectToLogin} = useAuth();
   const [isTaskModalOpen, setIsTaskModalOpen] = useState(false);
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
@@ -51,6 +53,16 @@ const TaskListPage = () => {
   const openNewTaskModal = () => {
     setSelectedTask(null);
     setIsTaskModalOpen(true);
+  };
+
+  // Handler to change filter (e.g., by "due this week" or "priority > 7")
+  const handleFilterChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
+    setFilter(event.target.value);
+  };
+
+  // Handler to change sorting criteria (e.g., by "priority" or "due date")
+  const handleSortChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
+    setSortBy(event.target.value);
   };
 
   // Function to toggle the completion status of a task
@@ -258,10 +270,27 @@ const TaskListPage = () => {
           <span>{colorSchemeEnabled ? "Disable Colors" : "Enable Colors"}</span>
         </button>
       </div>
+      <div className="mt-4">
+        {/* Filter Dropdown */}
+        <label htmlFor="filterBy" className="mr-2">Filter Tasks:</label>
+        <select id="filterBy" onChange={handleFilterChange} value={filter || ""} className="p-2 border rounded">
+          <option value="">All</option>
+          <option value="thisWeek">Due This Week</option>
+          <option value="highPriority">Priority &gt; 7</option>
+        </select>
 
+        {/* Sort Dropdown */}
+        <label htmlFor="sortBy" className="ml-4 mr-2">Sort By:</label>
+        <select id="sortBy" onChange={handleSortChange} value={sortBy} className="p-2 border rounded">
+          <option value="priority">Priority</option>
+          <option value="dueDate">Due Date</option>
+        </select>
+      </div>
       {/* TaskTable now receives colorScheme and colorSchemeEnabled */}
       <TaskTable
         tasks={tasks}  // Pass raw tasks directly
+        filter={filter}
+        sortBy={sortBy}
         renderActions={renderActions}  // Pass renderActions function
         colorScheme={colorScheme}  // Pass the colorScheme prop
         colorSchemeEnabled={colorSchemeEnabled}  // Pass the colorSchemeEnabled prop
