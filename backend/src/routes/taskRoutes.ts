@@ -11,7 +11,11 @@ import {
   createRepeatedTask, 
   getTasksWithPagination,
   uncompleteTask,
-  updateTaskWithNull
+  updateTaskWithNull,
+  getCompletedTasks,
+  getCompletedTasksByTimeframe,
+  getDeletedTasks,
+  undeleteTask
 } from '../controllers/taskController';  // Adjust path as necessary
 import { verifyToken } from '../middlewares/authMiddleware';
 
@@ -31,8 +35,20 @@ router.put('/update', updateTask);
 
 router.put('/updateNulls', updateTaskWithNull);
 
-// Route to delete a task
-router.delete('/delete', deleteTask);
+// Get count of completed tasks
+router.get('/completed', getCompletedTasks);
+
+// Get count of completed tasks within a timeframe (week, month, last30days, year, last365days)
+router.get('/completed/:timeframe', getCompletedTasksByTimeframe);
+
+// Soft delete a task
+router.put('/delete/:taskId', deleteTask);
+
+// Restore a deleted task
+router.put('/undelete/:taskId', undeleteTask);
+
+// Get all deleted tasks for a user
+router.get('/deleted', getDeletedTasks);
 
 // Route to add a note to a task
 router.post('/:taskId/addnotes', addNoteToTask);
