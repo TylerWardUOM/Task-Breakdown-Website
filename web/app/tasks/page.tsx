@@ -17,6 +17,10 @@ const TaskListPage = () => {
   const [maxPriority, setMaxPriority] = useState(11); // Maximum priority
   const [isTaskModalOpen, setIsTaskModalOpen] = useState(false);
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
+  const [isDeleting, setIsDeleting] = useState<boolean>(false);
+  const [isToggling, setIsToggling] = useState(false);
+
+
 
   const router = useRouter();
 
@@ -55,14 +59,16 @@ const TaskListPage = () => {
   const toggleTaskCompletion = async (taskId: number) => {
     try {
       if (!firebaseToken) throw new Error("User is not authenticated");
-
+  
       const task = tasks.find((task) => task.id === taskId);
       if (!task) throw new Error("Task not found");
-
+  
+      setIsToggling(true); // Set isToggling to true when the action starts
+  
       const url = task.completed
         ? `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/tasks/${taskId}/uncomplete`
         : `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/tasks/${taskId}/complete`;
-
+  
       const response = await fetch(url, {
         method: "PUT",
         headers: {
@@ -70,7 +76,7 @@ const TaskListPage = () => {
           Authorization: `Bearer ${firebaseToken}`,
         },
       });
-
+  
       if (!response.ok) {
         if (response.status === 401) {
           redirectToLogin(); // Handle token expiry and redirect to login
@@ -78,7 +84,7 @@ const TaskListPage = () => {
           throw new Error(`Failed to ${task.completed ? "unmark" : "mark"} task as complete`);
         }
       }
-
+  
       // Update the task locally after the request
       setTasks((prevTasks) =>
         prevTasks.map((task) =>
@@ -89,9 +95,11 @@ const TaskListPage = () => {
       );
     } catch (error) {
       console.error("Error toggling task completion:", error);
+    } finally {
+      setIsToggling(false); // Reset isToggling when the action is finished
     }
   };
-
+  
   const openTaskModal = (taskId: number) => {
     const taskToEdit = tasks.find((task) => task.id === taskId);
     if (taskToEdit) {
@@ -116,6 +124,7 @@ const TaskListPage = () => {
 
   const deleteTask = async (taskId: number) => {
     try {
+      setIsDeleting(true); // Start loading
       if (!firebaseToken) throw new Error("User is not authenticated");
 
       const task = tasks.find((task) => task.id === taskId);
@@ -142,6 +151,8 @@ const TaskListPage = () => {
       setTasks((prevTasks) => prevTasks.filter((task) => task.id !== taskId));
     } catch (err) {
       console.error("Error deleting task:", err);
+    }finally {
+      setIsDeleting(false); // Reset the loading state after the operation completes
     }
   };
 
@@ -162,9 +173,10 @@ const TaskListPage = () => {
 
       <button
         onClick={() => toggleTaskCompletion(task.id)}
-        className={`px-4 py-2 rounded ${task.completed ? "bg-red-500" : "bg-yellow-500"}`}
+        className={`px-4 py-2 rounded ${task.completed ? "bg-red-500" : "bg-yellow-500"} ${isToggling ? "opacity-50 cursor-not-allowed" : ""}`}
         type="button"
         aria-label={task.completed ? "Unmark Task as Complete" : "Mark Task as Complete"}
+        disabled={isToggling} // Disable button during toggling
       >
         {task.completed ? (
           <XCircleIcon className="h-5 w-5" />
@@ -173,13 +185,16 @@ const TaskListPage = () => {
         )}
       </button>
 
+
       <button
         onClick={() => deleteTask(task.id)}
-        className="bg-red-500 text-white px-4 py-2 rounded"
+        className={`bg-red-500 text-white px-4 py-2 rounded ${isDeleting ? "opacity-50 cursor-not-allowed" : ""}`}
         type="button"
         aria-label="Delete Task"
+        // `disabled` is optional, if you want to completely prevent interaction
+        disabled={isDeleting}
       >
-        <XCircleIcon className="h-5 w-5" />
+          <XCircleIcon className="h-5 w-5" />
       </button>
 
       <button
