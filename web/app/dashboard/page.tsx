@@ -27,7 +27,7 @@ export default function Dashboard() {
   });
   const router = useRouter();
 
-  const { tasks, loadingTasks, setTasks } = useFetchTasks(firebaseToken);
+  const { tasks, /*error, loadingTasks, setTasks*/ } = useFetchTasks(firebaseToken);
 
 
   useEffect(() => {

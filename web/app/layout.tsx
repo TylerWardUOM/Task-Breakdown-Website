@@ -28,7 +28,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                 isSidebarOpen ? "transform-none" : "-translate-x-full"
               } sm:block`} // Hides sidebar on mobile
             >
-              <Sidebar isOpen={isSidebarOpen} />
+              <Sidebar isOpen={isSidebarOpen} closeSidebar={toggleSidebar} />
             </aside>
 
             {/* Main Content: Takes up remaining space, not affected by sidebar */}
