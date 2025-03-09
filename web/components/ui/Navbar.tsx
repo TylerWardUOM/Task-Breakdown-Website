@@ -1,10 +1,9 @@
 "use client";
-//import { useContext } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "../../lib/authContext"; // Import the useAuth hook
 import { logout } from "../../lib/auth"; // Import the useAuth hook
 
-const Navbar = () => {
+const Navbar = ({ onToggleSidebar }: { onToggleSidebar: () => void }) => {
   const { isAuthenticated, userName, loading } = useAuth(); // Access auth state from context
   const router = useRouter();
 
@@ -16,13 +15,28 @@ const Navbar = () => {
 
   return (
     <nav className="flex justify-between items-center h-16 w-full bg-gray-800 text-white px-6">
+      {/* Burger Button on the left */}
+      <button
+        onClick={onToggleSidebar}
+        className="flex flex-col justify-center items-center space-y-1"  // Stack the 3 lines with space between them
+        title="Toggle Sidebar"
+      >
+        <span className="block w-6 h-0.5 bg-white"></span>
+        <span className="block w-6 h-0.5 bg-white"></span>
+        <span className="block w-6 h-0.5 bg-white"></span>
+      </button>
+
       {/* Logo */}
       <span className="text-xl font-bold cursor-pointer">MyApp</span>
 
       {/* Navigation Links */}
-      <div className="space-x-4">
-        <a href="/features" className="hover:underline">Features</a>
-        <a href="/pricing" className="hover:underline">Pricing</a>
+      <div className="space-x-4 hidden sm:block">
+        <a href="/features" className="hover:underline">
+          Features
+        </a>
+        <a href="/pricing" className="hover:underline">
+          Pricing
+        </a>
       </div>
 
       {/* Login/Logout and User Info */}

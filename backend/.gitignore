@@ -1,2 +1,4 @@
 /node_modules
 /serviceAccountKey.json
+/create_tables.sql
+/defaultCatagories.sql

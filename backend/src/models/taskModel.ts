@@ -26,7 +26,13 @@ export const createTaskInDB = async (
 
 // Get all tasks for a specific user from the database
 export const getTasksFromDB = async (user_id: number) => {
-    const query = 'SELECT * FROM tasks WHERE user_id = $1 ORDER BY created_at DESC';
+    const query = 'SELECT * FROM tasks WHERE user_id = $1 AND is_deleted = FALSE ORDER BY created_at DESC';
+    return pool.query(query, [user_id]);
+};
+
+// Get all deleted tasks for a specific user
+export const getDeletedTasksFromDB = async (user_id: number) => {
+    const query = 'SELECT * FROM tasks WHERE user_id = $1 AND is_deleted = TRUE ORDER BY created_at DESC';
     return pool.query(query, [user_id]);
 };
 
@@ -135,9 +141,15 @@ export const updateTaskWithNullsDB = async (
 };
 
 
-// Delete a task from the database
+// Soft delete a task (set is_deleted = TRUE)
 export const deleteTaskFromDB = async (taskId: number) => {
-    const query = 'DELETE FROM tasks WHERE id = $1';
+    const query = 'UPDATE tasks SET is_deleted = TRUE WHERE id = $1 RETURNING *';
+    return pool.query(query, [taskId]);
+};
+
+// Restore a deleted task (set is_deleted = FALSE)
+export const undeleteTaskFromDB = async (taskId: number) => {
+    const query = 'UPDATE tasks SET is_deleted = FALSE WHERE id = $1 RETURNING *';
     return pool.query(query, [taskId]);
 };
 
@@ -147,9 +159,15 @@ export const addNoteToTaskInDB = async (taskId: number, note: string) => {
     return pool.query(query, [taskId, '\n' + note]);
 };
 
+// Uncomplete a task (set completed = FALSE and completed_at = NULL)
+export const uncompleteTaskFromDB = async (taskId:number) => {
+    const query = 'UPDATE tasks SET completed = FALSE, completed_at = NULL WHERE id = $1 RETURNING *';
+    return pool.query(query, [taskId]);
+};
+
 // Get tasks with filtering options
 export const getFilteredTasksFromDB = async (user_id: number, category_id?: string, due_date?: string, importance_factor?: string) => {
-    let query = 'SELECT * FROM tasks WHERE user_id = $1';
+    let query = 'SELECT * FROM tasks WHERE user_id = $1 AND is_deleted = FALSE';
     let values = [user_id];
     let conditions = [];
 
@@ -226,7 +244,7 @@ export const createRepeatedTaskInDB = async (
 // Get tasks with pagination
 export const getTasksWithPaginationFromDB = async (user_id: number, page: number, limit: number) => {
     const offset = (page - 1) * limit;
-    const query = 'SELECT * FROM tasks WHERE user_id = $1 ORDER BY created_at DESC LIMIT $2 OFFSET $3';
+    const query = 'SELECT * FROM tasks WHERE user_id = $1 AND is_deleted = FALSE ORDER BY created_at DESC LIMIT $2 OFFSET $3';
     return pool.query(query, [user_id, limit, offset]);
 };
 
@@ -278,3 +296,27 @@ export const findTasksToRepeat = async (): Promise<any[]> => {
     const result = await pool.query(query, [currentDate]);
     return result.rows;
 };
+
+// Get count of completed tasks (including deleted ones)
+export const getCompletedTasksCount = async (user_id: number) => {
+    const query = 'SELECT COUNT(*) FROM tasks WHERE user_id = $1 AND completed_at IS NOT NULL';
+    const result = await pool.query(query, [user_id]);
+    return result.rows[0].count;
+};
+
+// Get count of tasks completed in different timeframes (including deleted ones)
+export const getTasksCompletedInTimeframe = async (user_id: number, interval: string) => {
+    const query = `
+        SELECT COUNT(*) FROM tasks 
+        WHERE user_id = $1 
+        AND completed_at BETWEEN NOW() - INTERVAL '${interval}' AND NOW()
+    `;
+    const result = await pool.query(query, [user_id]);
+    return result.rows[0].count;
+};
+
+export const getTasksCompletedThisWeek = (user_id:number) => getTasksCompletedInTimeframe(user_id, '1 WEEK');
+export const getTasksCompletedThisMonth = (user_id:number) => getTasksCompletedInTimeframe(user_id, '1 MONTH');
+export const getTasksCompletedLast30Days = (user_id:number) => getTasksCompletedInTimeframe(user_id, '30 DAYS');
+export const getTasksCompletedThisYear = (user_id:number) => getTasksCompletedInTimeframe(user_id, '1 YEAR');
+export const getTasksCompletedLast365Days = (user_id:number) => getTasksCompletedInTimeframe(user_id, '365 DAYS');

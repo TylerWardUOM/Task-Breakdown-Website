@@ -4,15 +4,31 @@ import { FiPlusCircle } from "react-icons/fi";
 import Card from "../../components/ui/Card";
 import Modal from "../../components/ui/Modal";
 import TaskModal from "../../components/ui/TaskModal";
+import TaskCompletedTimeframe from "../../components/TaskCompletedTimeframe";
 import Toast from "../../components/ui/Toast";
 import { useAuth } from "../../lib/authContext"; // Import the useAuth hook
 import { useRouter } from "next/navigation"; // Import useRouter for redirection
+import TaskTable from "../../components/TaskTable";
+import useFetchTasks from "../../hooks/useFetchTasks";
+import Link from 'next/link';
+
+
 
 export default function Dashboard() {
-  const { isAuthenticated, loading, userName } = useAuth(); // Get authentication status from context
+  const { isAuthenticated, loading, userName, firebaseToken } = useAuth(); // Get authentication status from context
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isToastVisible, setIsToastVisible] = useState(false);
+  const [colorSchemeEnabled] = useState(true);
+  const [TablecolorScheme] = useState({
+    overdue: "bg-red-600",        // Overdue tasks color
+    lowPriority: "bg-green-200",  // Low priority color
+    mediumPriority: "bg-yellow-200", // Medium priority color
+    highPriority: "bg-red-200",   // High priority color
+  });
   const router = useRouter();
+
+  const { tasks, /*error, loadingTasks, setTasks*/ } = useFetchTasks(firebaseToken);
+
 
   useEffect(() => {
     if (!loading && !isAuthenticated) {
@@ -40,20 +56,34 @@ export default function Dashboard() {
 
       {/* Cards Section */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mt-6">
-        <Card title="Tasks Completed">
-          <p>10 this week</p>
-        </Card>
+        <TaskCompletedTimeframe timeframe="week" title="Tasks Completed This Week" firebaseToken={firebaseToken} />
         <Card title="Upcoming Events">
-          <p>Meeting at 3PM</p>
+          <p className="text-center"> Meeting at 3PM</p>
         </Card>
         <Card title="Focus Mode Stats">
-          <p>5 hours focused today</p>
+          <p className="text-center">5 hours focused today</p>
         </Card>
       </div>
 
       {/* Tasks Overview */}
-      <div className="mt-6">
-        <h2 className="text-xl font-semibold">🔥 High Priority Tasks</h2>
+      <div className="mt-6 w-full flex justify-center">
+        <div className="max-w-[80%] min-w-[80%]">
+          <h2 className="text-xl font-semibold mb-4">🔥 High Priority Tasks</h2>
+          <TaskTable
+            tasks={tasks}
+            filter={"highPriority"}
+            sortBy={"Priority"}
+            colorScheme={TablecolorScheme}
+            colorSchemeEnabled={colorSchemeEnabled}
+          />
+          <div className="flex justify-center mt-4">
+            <Link href="/tasks">
+              <button className="bg-blue-600 text-white px-6 py-3 rounded-lg shadow hover:bg-blue-700">
+                All Tasks
+              </button>
+            </Link>
+          </div>
+        </div>
       </div>
 
       {/* Task Modal */}
