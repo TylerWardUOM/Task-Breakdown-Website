@@ -14,14 +14,29 @@ export const createCategoryInDB = async (user_id: number | null, name: string): 
 
 // Get all categories (including user-created and default categories)
 export const getCategoriesFromDB = async (user_id: number | null): Promise<QueryResult> => {
-  const result = await pool.query(
-    `SELECT * FROM categories 
-     WHERE user_id = $1 OR is_default = TRUE  -- Include default categories for all users
-     ORDER BY is_default DESC, name`,
-    [user_id]
-  );
-  return result;
+  try {
+    if (user_id === null) {
+      throw new Error("User ID is required to fetch categories.");
+    }
+
+    const result = await pool.query(
+      `SELECT * FROM categories 
+       WHERE user_id = $1 OR is_default = TRUE
+       ORDER BY is_default DESC, name`,
+      [user_id]
+    );
+
+    if (result.rowCount === 0) {
+      console.warn(`No categories found for user ID: ${user_id}`);
+    }
+
+    return result;
+  } catch (error) {
+    console.error("Error fetching categories:", error);
+    throw new Error("Failed to fetch categories. Please try again later.");
+  }
 };
+
 
 // Get a category by ID (handles both user-created and default categories)
 export const getCategoryById = async (user_id: number | null, category_id: number): Promise<QueryResult> => {

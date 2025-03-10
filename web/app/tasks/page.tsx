@@ -8,6 +8,7 @@ import { PlusCircleIcon, PencilIcon, CheckCircleIcon, XCircleIcon, EyeIcon } fro
 import { useAuth } from "../../lib/authContext";
 import useFetchTasks from "../../hooks/useFetchTasks"; // Import the hook
 import { Task } from "../../types/Task";
+import useFetchCategories from "../../hooks/useFetchCategories";
 
 const TaskListPage = () => {
   const { isAuthenticated, loading: authLoading, firebaseToken, redirectToLogin } = useAuth();
@@ -35,6 +36,8 @@ const TaskListPage = () => {
 
   // Using the hook to fetch tasks
   const { tasks, loadingTasks, setTasks } = useFetchTasks(firebaseToken);
+  const { categories, /*loadingCategories, setCategories*/ } = useFetchCategories(firebaseToken);
+
 
   const openNewTaskModal = () => {
     setSelectedTask(null);
@@ -283,6 +286,7 @@ const TaskListPage = () => {
       )}
       <TaskTable
         tasks={tasks}
+        categories={categories}
         filter={filter}
         minPriority={minPriority}
         maxPriority={maxPriority}
@@ -294,7 +298,7 @@ const TaskListPage = () => {
       />
 
       <Modal isOpen={isTaskModalOpen} onClose={closeTaskModal} width="max-w-3xl">
-        <TaskModal existingTask={selectedTask} onSave={handleSaveTask} onClose={closeTaskModal} />
+        <TaskModal categories={categories} existingTask={selectedTask} onSave={handleSaveTask} onClose={closeTaskModal} />
       </Modal>
     </div>
   );

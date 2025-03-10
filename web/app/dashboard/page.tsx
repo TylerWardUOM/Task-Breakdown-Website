@@ -12,6 +12,7 @@ import TaskTable from "../../components/TaskTable";
 import useFetchTasks from "../../hooks/useFetchTasks";
 import Link from 'next/link';
 import { Task } from "../../types/Task";
+import useFetchCategories from "../../hooks/useFetchCategories";
 
 
 
@@ -29,6 +30,7 @@ export default function Dashboard() {
   const router = useRouter();
   
   const { tasks, /*error, loadingTasks,*/ setTasks } = useFetchTasks(firebaseToken);
+  const { categories, /*loadingCategories, setCategories*/ } = useFetchCategories(firebaseToken);
 
   const openNewTaskModal = () => {
     setIsTaskModalOpen(true);
@@ -86,6 +88,7 @@ export default function Dashboard() {
           <h2 className="text-xl font-semibold mb-4">🔥 High Priority Tasks</h2>
           <TaskTable
             tasks={tasks}
+            categories={categories}
             filter={"highPriority"}
             sortBy={"Priority"}
             colorScheme={TablecolorScheme}
@@ -103,7 +106,7 @@ export default function Dashboard() {
 
       {/* Task Modal */}
       <Modal isOpen={isModalOpen} onClose={() => setIsTaskModalOpen(false)} width="max-w-[20%]">
-        <TaskModal onClose={() => setIsTaskModalOpen(false)} onSave={handleSaveTask} />
+        <TaskModal onClose={() => setIsTaskModalOpen(false)} onSave={handleSaveTask} categories={categories}/>
       </Modal>
 
       {/* Toast Notification */}

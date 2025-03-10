@@ -49,3 +49,27 @@ export const fetchTasks = async (firebaseToken: string) => {
   
     return completedCount;
   };
+
+  export const fetchCategories = async (firebaseToken: string) => {
+    if (!firebaseToken) {
+      throw new Error("Authentication is required");
+    }
+  
+    const response = await fetch(
+      `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/category/list`, // Adjust endpoint as needed
+      {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${firebaseToken}`,
+        },
+      }
+    );
+  
+    if (!response.ok) {
+      throw new Error("Failed to fetch categories");
+    }
+  
+    return response.json(); // Returns the categories
+  };
+  
