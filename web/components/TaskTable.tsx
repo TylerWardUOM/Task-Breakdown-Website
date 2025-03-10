@@ -1,5 +1,6 @@
 import React from "react";
 import { Task } from "../types/Task";
+import { Category } from "../types/Category";
 
 interface ColorScheme {
   overdue: string;        // Color for overdue tasks
@@ -10,6 +11,7 @@ interface ColorScheme {
 
 interface TaskTableProps {
   tasks: Task[];
+  categories: Category[]; // Added categories prop
   filter: string | null; // The current filter to apply (e.g., due this week, priority > 7)
   minPriority?: number; // Optional minPriority
   maxPriority?: number; // Optional maxPriority
@@ -188,8 +190,15 @@ const getFilteredTasks = (
   return filteredTasks;
 };
 
+// Function to get category name from category ID
+const getCategoryName = (categoryId: number | null, categories: Category[]) => {
+  const category = categories.find(cat => cat.id === categoryId);
+  return category ? category.name : "Uncategorized";
+};
+
 const TaskTable: React.FC<TaskTableProps> = ({ 
-    tasks, 
+    tasks,
+    categories, 
     filter,
     minPriority,
     maxPriority,
@@ -200,6 +209,7 @@ const TaskTable: React.FC<TaskTableProps> = ({
     showCompletedTasks = false,
     emptyStateMessage
   }) => {
+
 
   // Apply filtering, including completed tasks visibility
   const filteredTasks = getFilteredTasks(tasks, filter, showCompletedTasks, minPriority, maxPriority);
@@ -246,7 +256,7 @@ const TaskTable: React.FC<TaskTableProps> = ({
                 </td>
                 <td className="py-2 px-4">{priority.toFixed(2)}</td>
                 <td className="py-2 px-4">{renderDueDate(task.due_date)}</td>
-                <td className="py-2 px-4">{task.category_id}</td>
+                <td className="py-2 px-4">{getCategoryName(task.category_id,categories)}</td>
                 <td className="py-2 px-4">{renderDuration(task.duration)}</td>
                 {/* Conditionally render Actions column */}
                 {renderActions && (
