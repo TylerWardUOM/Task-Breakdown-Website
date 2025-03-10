@@ -1,11 +1,13 @@
 // cronJob.ts
 import cron from 'node-cron';
 import { findTasksToRepeat, createRepeatedTaskInDB, calculateNextDueDate } from './models/taskModel'; // Import functions from taskModel
+import { deleteUnverifiedUsersFromDB } from './models/userModel';
 
 // Cron job that runs once a day at midnight
 export const scheduleCronJobs = () => {
     cron.schedule('0 0 * * *', async () => {
         await runRepeatTasks();
+        await deleteUnverifiedUsersFromDB();
     });
 };
 

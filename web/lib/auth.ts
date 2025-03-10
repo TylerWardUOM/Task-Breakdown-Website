@@ -101,21 +101,90 @@ export const signUpEmailVerification = async (
   }
 };
 
-
-
-export const signInEmailVerification = async (email: string, password: string) => {
+export const resendVerificationEmail = async (email: string,password: string) => {
   try {
+    const user = await signInWithEmailAndPassword(auth, email, password);
+    await sendEmailVerification(user.user); // Send verification email again
+    return { success: true, message: "Verification Email Sent Succesfully" };
+  } catch (err) {
+    console.error("Error sending verification email:", err);
+    throw new Error("Failed to send verification email. Please try again later.");
+  }
+};
+
+export const signInEmailVerification = async (
+  email: string,
+  password: string,
+  setIsSigningUp: React.Dispatch<React.SetStateAction<boolean>>
+) => {
+  setIsSigningUp(true); // Mark user as in the process of signing in
+
+  try {
+    // Firebase Sign In
     const userCredential = await signInWithEmailAndPassword(auth, email, password);
     const user = userCredential.user;
 
-    // Step 1: Check if the email is verified
+    // Step 1: Check if email is verified
     if (!user.emailVerified) {
-      throw new Error("Please verify your email before logging in.");
+      return { emailVerified: false }; // Return a flag indicating email is not verified
     }
 
-    return user; // Proceed with login after verification
-  } catch (error: unknown) {
-    console.error("Error signing in:", error);
-    throw new Error("Error signing in");
+    // Step 2: Get Firebase Token
+    const token = await user.getIdToken();
+    if (!token) {
+      throw new Error("Failed to retrieve authentication token.");
+    }
+
+    // Step 3: Send token to backend for verification
+    const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/auth/login`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ token }),
+    });
+
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(data.error || "Login failed.");
+    }
+    markUserAsVerified(token,email);
+    setIsSigningUp(false); // Reset flag after success
+    return { emailVerified: true, user: data.user }; // Return success and user data
+
+  } catch (error) {
+    console.error("Error Logging in:", error);
+    setIsSigningUp(false);
+
+    if (error instanceof FirebaseError) {
+      throw error;
+    }
+
+    throw new Error("An unknown error occurred during Login.");
+  }
+};
+
+const markUserAsVerified = async (token: string, email: string) => {
+  try {
+    // Send a request to the backend to mark the user as verified
+    const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/user/markVerified`, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(data.error || "Failed to mark user as verified.");
+    }
+    if (data.message != "User is already verified."){
+      console.log(`User ${email} marked as verified successfully`);
+    }
+  } catch (error) {
+    console.error("Error marking user as verified:", error);
+    throw new Error("Failed to mark user as verified.");
   }
 };

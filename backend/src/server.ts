@@ -9,6 +9,7 @@ import taskRoutes from "./routes/taskRoutes";
 import userRoutes from "./routes/userRoutes";
 import categoryRoutes from "./routes/categoryRoutes";
 import {scheduleCronJobs,runRepeatTasks} from "./cronJob";  // Import the cron job schedule function
+import { deleteUnverifiedUsersFromDB } from "./models/userModel";
 
 
 dotenv.config();
@@ -41,6 +42,7 @@ app.get("/", (req, res) => {
 app.get('/run-cron-job', async (req, res) => {
   try {
       await runRepeatTasks();  // Manually trigger the cron job
+      await deleteUnverifiedUsersFromDB();
       res.send('Cron job triggered successfully.');
   } catch (error) {
       console.error(error);
