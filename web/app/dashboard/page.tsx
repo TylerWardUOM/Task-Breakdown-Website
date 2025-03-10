@@ -12,7 +12,7 @@ import useFetchTasks from "../../hooks/useFetchTasks";
 import Link from 'next/link';
 import { Task } from "../../types/Task";
 import useFetchCategories from "../../hooks/useFetchCategories";
-
+import { Filter } from "../../types/Filter";
 
 
 export default function Dashboard() {
@@ -43,7 +43,12 @@ export default function Dashboard() {
     closeTaskModal();
   };
   
-
+  const filter: Filter = {
+    filter: "highPriority",
+    minPriority: 1,
+    maxPriority: 11,
+    selectedCategories: [],
+  }
 
 
   return (
@@ -77,7 +82,7 @@ export default function Dashboard() {
           <TaskTable
             tasks={tasks}
             categories={categories}
-            filter={"highPriority"}
+            selectedFilter={filter}
             sortBy={"Priority"}
             colorScheme={TablecolorScheme}
             colorSchemeEnabled={colorSchemeEnabled}

@@ -1,6 +1,7 @@
 import React from "react";
 import { Task } from "../types/Task";
 import { Category } from "../types/Category";
+import { Filter } from "../types/Filter";
 
 interface ColorScheme {
   overdue: string;        // Color for overdue tasks
@@ -12,9 +13,12 @@ interface ColorScheme {
 interface TaskTableProps {
   tasks: Task[];
   categories: Category[]; // Added categories prop
-  filter: string | null; // The current filter to apply (e.g., due this week, priority > 7)
-  minPriority?: number; // Optional minPriority
-  maxPriority?: number; // Optional maxPriority
+  selectedFilter: {       // Updated filter type
+    filter: string | null;
+    minPriority: number;
+    maxPriority: number;
+    selectedCategories: number[]; // category ids
+  };
   sortBy: string; // Sort by priority, due date, etc.
   onEdit?: (taskId: number) => void;
   onComplete?: (taskId: number) => void;
@@ -134,10 +138,8 @@ const getSortedTasks = (tasks: Task[], sortBy: string) => {
 // Modify filtering logic to consider completed tasks visibility
 const getFilteredTasks = (
   tasks: Task[],
-  filter: string | null,
-  showCompletedTasks: boolean,
-  minPriority?: number,
-  maxPriority?: number
+  selectedFilter: Filter,
+  showCompletedTasks: boolean
 ) => {
   let filteredTasks = tasks;
 
@@ -145,6 +147,8 @@ const getFilteredTasks = (
     // Filter out completed tasks unless explicitly allowed
     filteredTasks = filteredTasks.filter((task) => !task.completed);
   }
+
+  const { filter, minPriority, maxPriority, selectedCategories } = selectedFilter;
 
   if (filter === "priorityRange" && minPriority !== undefined && maxPriority !== undefined) {
     filteredTasks = filteredTasks.filter((task) => {
@@ -187,8 +191,15 @@ const getFilteredTasks = (
       .slice(0, 5);
   }
 
+  if (selectedCategories.length > 0) {
+    filteredTasks = filteredTasks.filter((task) =>
+      selectedCategories.includes(task.category_id ?? -1)  // Handle undefined category_id by checking for -1
+    );
+  }
+
   return filteredTasks;
 };
+
 
 // Function to get category name from category ID
 const getCategoryName = (categoryId: number | null, categories: Category[]) => {
@@ -199,9 +210,7 @@ const getCategoryName = (categoryId: number | null, categories: Category[]) => {
 const TaskTable: React.FC<TaskTableProps> = ({ 
     tasks,
     categories, 
-    filter,
-    minPriority,
-    maxPriority,
+    selectedFilter,
     sortBy,
     renderActions,
     colorScheme,
@@ -212,7 +221,7 @@ const TaskTable: React.FC<TaskTableProps> = ({
 
 
   // Apply filtering, including completed tasks visibility
-  const filteredTasks = getFilteredTasks(tasks, filter, showCompletedTasks, minPriority, maxPriority);
+  const filteredTasks = getFilteredTasks(tasks, selectedFilter, showCompletedTasks);
   if (filteredTasks.length === 0) {
     return (
       <div className="text-center p-6 bg-gray-100 rounded-lg shadow-md">
