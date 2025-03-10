@@ -105,7 +105,7 @@ export default function Dashboard() {
       </div>
 
       {/* Task Modal */}
-      <Modal isOpen={isModalOpen} onClose={() => setIsTaskModalOpen(false)} width="max-w-[20%]">
+      <Modal isOpen={isModalOpen} onClose={() => setIsTaskModalOpen(false)} width="max-w-3xl">
         <TaskModal onClose={() => setIsTaskModalOpen(false)} onSave={handleSaveTask} categories={categories}/>
       </Modal>
 
