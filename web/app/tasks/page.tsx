@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect } from "react";
+import { useState} from "react";
 import { useRouter } from "next/navigation";
 import TaskTable from "../../components/TaskTable";
 import Modal from "../../components/ui/Modal";
@@ -11,7 +11,7 @@ import { Task } from "../../types/Task";
 import useFetchCategories from "../../hooks/useFetchCategories";
 
 const TaskListPage = () => {
-  const { isAuthenticated, loading: authLoading, firebaseToken, redirectToLogin } = useAuth();
+  const {firebaseToken, redirectToLogin } = useAuth();
   const [filter, setFilter] = useState<string | null>(null); // Filter by due date or priority
   const [sortBy, setSortBy] = useState<string>("priority"); // Default sorting by priority
   const [minPriority, setMinPriority] = useState(1); // Minimum priority
@@ -212,11 +212,6 @@ const TaskListPage = () => {
     </div>
   );
 
-  useEffect(() => {
-    if (!authLoading && !isAuthenticated) {
-      router.push("/login");
-    }
-  }, [authLoading, isAuthenticated, router]);
 
   if (loadingTasks) {
     return <p>Loading tasks...</p>;

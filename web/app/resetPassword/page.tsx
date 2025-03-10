@@ -26,10 +26,10 @@ export default function ResetPasswordPage() {
       setResetEmailSent(true); // Set success flag
       setError(null); // Clear any previous errors
 
-      // After 3 seconds, redirect to login page
+      // After 5 seconds, redirect to login page
       setTimeout(() => {
         router.push("/login");
-      }, 3000);
+      }, 5000);
     } catch (error) {
       setLoading(false);
       if (error instanceof Error) {

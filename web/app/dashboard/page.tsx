@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect } from "react";
+import { useState} from "react";
 import { FiPlusCircle } from "react-icons/fi";
 import Card from "../../components/ui/Card";
 import Modal from "../../components/ui/Modal";
@@ -7,7 +7,6 @@ import TaskModal from "../../components/ui/TaskModal";
 import TaskCompletedTimeframe from "../../components/TaskCompletedTimeframe";
 import Toast from "../../components/ui/Toast";
 import { useAuth } from "../../lib/authContext"; // Import the useAuth hook
-import { useRouter } from "next/navigation"; // Import useRouter for redirection
 import TaskTable from "../../components/TaskTable";
 import useFetchTasks from "../../hooks/useFetchTasks";
 import Link from 'next/link';
@@ -17,7 +16,7 @@ import useFetchCategories from "../../hooks/useFetchCategories";
 
 
 export default function Dashboard() {
-  const { isAuthenticated, loading, userName, firebaseToken } = useAuth(); // Get authentication status from context
+  const {userName, firebaseToken } = useAuth(); // Get authentication status from context
   const [isModalOpen, setIsTaskModalOpen] = useState(false);
   const [isToastVisible, setIsToastVisible] = useState(false);
   const [colorSchemeEnabled] = useState(true);
@@ -27,7 +26,6 @@ export default function Dashboard() {
     mediumPriority: "bg-yellow-200", // Medium priority color
     highPriority: "bg-red-200",   // High priority color
   });
-  const router = useRouter();
   
   const { tasks, /*error, loadingTasks,*/ setTasks } = useFetchTasks(firebaseToken);
   const { categories, /*loadingCategories, setCategories*/ } = useFetchCategories(firebaseToken);
@@ -47,16 +45,6 @@ export default function Dashboard() {
   
 
 
-  useEffect(() => {
-    if (!loading && !isAuthenticated) {
-      // Redirect to login page if user is not authenticated
-      router.push("/login");
-    }
-  }, [loading, isAuthenticated, router]);
-
-  if (loading) {
-    return <p>Loading...</p>; // Display loading state while checking auth
-  }
 
   return (
     <div className="flex-1 p-6 overflow-y-auto">

@@ -16,6 +16,10 @@ export default function LoginPage() {
   const { setIsSigningUp } = useAuth();
   const router = useRouter();
 
+  const handleRegisterRedirect = () => {
+    router.push('/register');
+  };
+  
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
@@ -122,11 +126,15 @@ export default function LoginPage() {
           </button>
         </form>
 
-        <p className="text-sm text-center mt-4">
+          <p className="text-sm text-center mt-4">
           Don&apos;t have an account?{' '}
-          <a href="/register" className="text-blue-600 hover:underline">Register</a>
+          <button
+            onClick={handleRegisterRedirect}
+            className="text-blue-600 hover:underline"
+          >
+            Register
+          </button>
         </p>
-
         {!emailVerified && (
           <div className="text-center mt-4">
             <p className="text-sm">Didn&apos;t receive the verification email?</p>

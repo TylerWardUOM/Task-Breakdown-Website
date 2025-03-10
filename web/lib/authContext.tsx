@@ -3,7 +3,7 @@ import { createContext, useState, useEffect, useContext, ReactNode } from "react
 import { getAuth, onAuthStateChanged, onIdTokenChanged, getIdToken, signOut } from "firebase/auth";
 import { app } from "./firebase";
 import { getUserData } from "./user";
-import { useRouter } from "next/navigation"; 
+import { usePathname, useRouter } from "next/navigation"; 
 
 interface AuthContextType {
   isAuthenticated: boolean;
@@ -25,7 +25,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [firebaseToken, setFirebaseToken] = useState<string | null>(null);
   const [isSigningUp, setIsSigningUp] = useState(false); // Track signup state
   const router = useRouter();
-
+  const pathname = usePathname(); // Get the current pathname
+  
   const redirectToLogin = () => {
     router.push("/login");
   };
@@ -41,10 +42,15 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   useEffect(() => {
     const unsubscribeAuth = onAuthStateChanged(auth, async (user) => {
+      const isPublic = pathname === "/login" || pathname === "/register" || pathname === "/";
+
       if (user) {
-        // Ensure we only fetch user data after the user is authenticated
+        // User is authenticated, but don't redirect on login or register pages
+        if (isPublic) {
+          return; // Don't redirect
+        }
         setIsAuthenticated(true);
-  
+
         try {
           if (!isSigningUp) { // Only get user data if not signing up
             const fetchedUserData = await getUserData();
@@ -54,16 +60,17 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           }
         } catch (error) {
           console.error("Error fetching user data:", error);
-          // You can handle error here if needed, for example, setUserName to null or show error to the user
           setUserName(null); // Reset username if data fetch fails
         }
-  
+
         const token = await getIdToken(user);
         setFirebaseToken(token);
         localStorage.setItem("firebaseToken", token);
       } else {
-        // User is signed out
-        logout();
+        // User is signed out, only redirect if not on login or register
+        if (!isPublic) {
+          logout();
+        }
       }
       setLoading(false);
     });
@@ -81,7 +88,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       unsubscribeAuth();
       unsubscribeToken();
     };
-  }, [isSigningUp]);
+  }, [isSigningUp, pathname]); // Re-run useEffect on route change
 
   return (
     <AuthContext.Provider value={{ 

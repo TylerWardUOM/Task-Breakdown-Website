@@ -6,7 +6,6 @@ import { signUpEmailVerification } from "../../lib/auth"; // Import updated func
 import { FirebaseError } from "firebase/app"; // Import FirebaseError to handle specific errors
 import { useAuth } from '../../lib/authContext';
 
-
 const RegisterPage = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -14,6 +13,7 @@ const RegisterPage = () => {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [isRegistered, setIsRegistered] = useState(false); // Track if registration is successful
   const router = useRouter();
   const { setIsSigningUp } = useAuth(); // Access the setIsSigningUp from context
 
@@ -40,11 +40,10 @@ const RegisterPage = () => {
       // Sign up and send email verification
       const response = await signUpEmailVerification(email, password, username, setIsSigningUp);
       setSuccess(response.message);
-      
-      // Redirect to login page after a few seconds
+      setIsRegistered(true); // Set registration success flag
       setTimeout(() => {
         router.push('/login');
-      }, 3000);
+      }, 8000);
       
     } catch (error: unknown) {
       console.error("Error during registration:", error);
@@ -83,63 +82,77 @@ const RegisterPage = () => {
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-100">
       <div className="bg-white p-8 rounded-lg shadow-lg w-96">
-        <h2 className="text-2xl font-semibold text-center mb-6">Register</h2>
-        {error && <p className="text-red-500 text-sm text-center mb-4">{error}</p>}
-        {success && <p className="text-green-500 text-sm text-center mb-4">{success}</p>}
-        
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <label htmlFor="email" className="block text-sm font-medium text-gray-700">Email</label>
-            <input
-              type="email"
-              id="email"
-              name="email"
-              className="mt-1 p-2 w-full border border-gray-300 rounded-md"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-            />
+        {!isRegistered ? (
+          // Registration form
+          <>
+            <h2 className="text-2xl font-semibold text-center mb-6">Register</h2>
+            {error && <p className="text-red-500 text-sm text-center mb-4">{error}</p>}
+            {success && <p className="text-green-500 text-sm text-center mb-4">{success}</p>}
+            
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <div>
+                <label htmlFor="email" className="block text-sm font-medium text-gray-700">Email</label>
+                <input
+                  type="email"
+                  id="email"
+                  name="email"
+                  className="mt-1 p-2 w-full border border-gray-300 rounded-md"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  required
+                />
+              </div>
+
+              <div>
+                <label htmlFor="username" className="block text-sm font-medium text-gray-700">Username</label>
+                <input
+                  type="text"
+                  id="username"
+                  name="username"
+                  className="mt-1 p-2 w-full border border-gray-300 rounded-md"
+                  value={username}
+                  onChange={(e) => setUsername(e.target.value)}
+                  required
+                />
+              </div>
+
+              <div>
+                <label htmlFor="password" className="block text-sm font-medium text-gray-700">Password</label>
+                <input
+                  type="password"
+                  id="password"
+                  name="password"
+                  className="mt-1 p-2 w-full border border-gray-300 rounded-md"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
+                />
+              </div>
+
+              <button
+                type="submit"
+                className="w-full bg-blue-600 text-white p-2 rounded-md mt-4 hover:bg-blue-700 transition duration-300"
+                disabled={isLoading}
+              >
+                {isLoading ? 'Registering...' : 'Register'}
+              </button>
+            </form>
+
+            <p className="text-sm text-center mt-4">
+              Already have an account?{' '}
+              <a href="/login" className="text-blue-600 hover:underline">Login</a>
+            </p>
+          </>
+        ) : (
+          // Success message card
+          <div className="text-center">
+            <h2 className="text-2xl font-semibold text-green-600 mb-4">Registration Successful!</h2>
+            <p className="text-gray-700 mb-4">Please verify your email address. You will be redirected to the login page shortly.</p>
+            <p className="text-sm text-blue-600 hover:underline cursor-pointer" onClick={() => router.push('/login')}>
+              Click here to login now.
+            </p>
           </div>
-
-          <div>
-            <label htmlFor="username" className="block text-sm font-medium text-gray-700">Username</label>
-            <input
-              type="text"
-              id="username"
-              name="username"
-              className="mt-1 p-2 w-full border border-gray-300 rounded-md"
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
-              required
-            />
-          </div>
-
-          <div>
-            <label htmlFor="password" className="block text-sm font-medium text-gray-700">Password</label>
-            <input
-              type="password"
-              id="password"
-              name="password"
-              className="mt-1 p-2 w-full border border-gray-300 rounded-md"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-            />
-          </div>
-
-          <button
-            type="submit"
-            className="w-full bg-blue-600 text-white p-2 rounded-md mt-4 hover:bg-blue-700 transition duration-300"
-            disabled={isLoading}
-          >
-            {isLoading ? 'Registering...' : 'Register'}
-          </button>
-        </form>
-
-        <p className="text-sm text-center mt-4">
-          Already have an account?{' '}
-          <a href="/login" className="text-blue-600 hover:underline">Login</a>
-        </p>
+        )}
       </div>
     </div>
   );
