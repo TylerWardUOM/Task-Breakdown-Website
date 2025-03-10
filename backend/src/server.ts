@@ -30,7 +30,7 @@ app.use(helmet());
 app.use("/api/auth", authRoutes);
 app.use("/api/tasks", taskRoutes);
 app.use("/api/user",userRoutes,);
-app.use("api/category",categoryRoutes)
+app.use("/api/category",categoryRoutes)
 // @ts-ignore
 app.get("/", (req, res) => {
   res.send("🚀 Server is running!");
