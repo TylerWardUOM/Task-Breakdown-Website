@@ -2,7 +2,7 @@
 import "./globals.css";
 import Navbar from "../components/ui/Navbar";
 import Sidebar from "../components/ui/Sidebar";
-import { AuthProvider } from "../lib/authContext"; // Import your AuthProvider
+import { AuthProvider } from "../contexts/authContext"; // Import your AuthProvider
 import { useState } from "react"; // Import useState for managing sidebar state
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

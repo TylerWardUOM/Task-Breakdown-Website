@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { signUpEmailVerification } from "../../lib/auth"; // Import updated function
 import { FirebaseError } from "firebase/app"; // Import FirebaseError to handle specific errors
-import { useAuth } from '../../lib/authContext';
+import { useAuth } from '../../contexts/authContext';
 
 const RegisterPage = () => {
   const [email, setEmail] = useState('');

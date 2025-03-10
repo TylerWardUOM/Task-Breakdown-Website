@@ -6,7 +6,7 @@ import Modal from "../../components/ui/Modal";
 import TaskModal from "../../components/ui/TaskModal";
 import TaskCompletedTimeframe from "../../components/TaskCompletedTimeframe";
 import Toast from "../../components/ui/Toast";
-import { useAuth } from "../../lib/authContext"; // Import the useAuth hook
+import { useAuth } from "../../contexts/authContext"; // Import the useAuth hook
 import TaskTable from "../../components/TaskTable";
 import useFetchTasks from "../../hooks/useFetchTasks";
 import Link from 'next/link';
@@ -19,12 +19,12 @@ export default function Dashboard() {
   const {userName, firebaseToken } = useAuth(); // Get authentication status from context
   const [isModalOpen, setIsTaskModalOpen] = useState(false);
   const [isToastVisible, setIsToastVisible] = useState(false);
-  const [colorSchemeEnabled] = useState(true);
-  const [TablecolorScheme] = useState({
-    overdue: "bg-red-600",        // Overdue tasks color
-    lowPriority: "bg-green-200",  // Low priority color
-    mediumPriority: "bg-yellow-200", // Medium priority color
-    highPriority: "bg-red-200",   // High priority color
+  const [colourSchemeEnabled] = useState(true);
+  const [TablecolourScheme] = useState({
+    overdue: "bg-red-600",        // Overdue tasks colour
+    lowPriority: "bg-green-200",  // Low priority colour
+    mediumPriority: "bg-yellow-200", // Medium priority colour
+    highPriority: "bg-red-200",   // High priority colour
   });
   
   const { tasks, /*error, loadingTasks,*/ setTasks } = useFetchTasks(firebaseToken);
@@ -84,8 +84,8 @@ export default function Dashboard() {
             categories={categories}
             selectedFilter={filter}
             sortBy={"Priority"}
-            colorScheme={TablecolorScheme}
-            colorSchemeEnabled={colorSchemeEnabled}
+            colourScheme={TablecolourScheme}
+            colourSchemeEnabled={colourSchemeEnabled}
           />
           <div className="flex justify-center mt-4">
             <Link href="/tasks">

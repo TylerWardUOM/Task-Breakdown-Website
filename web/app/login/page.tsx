@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { resendVerificationEmail, signInEmailVerification } from "../../lib/auth";
 import { useRouter } from "next/navigation";
-import { useAuth } from "../../lib/authContext";
+import { useAuth } from "../../contexts/authContext";
 import { FirebaseError } from "firebase/app";
 
 export default function LoginPage() {
@@ -19,7 +19,7 @@ export default function LoginPage() {
   const handleRegisterRedirect = () => {
     router.push('/register');
   };
-  
+
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);

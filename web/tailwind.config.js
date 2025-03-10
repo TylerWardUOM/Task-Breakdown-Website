@@ -4,6 +4,12 @@ module.exports = {
     "./components/**/*.{js,ts,jsx,tsx}",
     "./pages/**/*.{js,ts,jsx,tsx}",
   ],
+  safelist: [
+    // Safelist any background color with arbitrary values for colors
+    {
+      pattern: /bg-(red|yellow|green|blue|indigo|purple|pink|gray|cool-gray|true-gray|warm-gray|blue-gray|emerald|teal|cyan|sky|rose)-([1-9][0-9]{2})/,
+    },
+  ],
   theme: {
     extend: {},
   },

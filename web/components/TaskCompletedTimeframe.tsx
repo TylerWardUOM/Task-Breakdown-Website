@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import Card from './ui/Card';
 import useFetchCompletedTasksTimeframe from '../hooks/useFetchCompletedTasksTimeframe';
-import { useAuth } from '../lib/authContext';
+import { useAuth } from '../contexts/authContext';
 
 interface TaskStatProps {
   timeframe: string; // The timeframe (week, month, etc.)

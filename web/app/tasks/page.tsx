@@ -5,16 +5,18 @@ import TaskTable from "../../components/TaskTable";
 import Modal from "../../components/ui/Modal";
 import TaskModal from "../../components/ui/TaskModal";
 import { PlusCircleIcon, PencilIcon, CheckCircleIcon, XCircleIcon, EyeIcon } from "@heroicons/react/solid";
-import { useAuth } from "../../lib/authContext";
+import { useAuth } from "../../contexts/authContext";
 import useFetchTasks from "../../hooks/useFetchTasks"; // Import the hook
 import { Task } from "../../types/Task";
 import useFetchCategories from "../../hooks/useFetchCategories";
 import FilterMenu from "../../components/ui/FilterMenu";
 import { Filter } from "../../types/Filter";
+import { useUserSettings } from "../../contexts/UserSettingsContext";
 
 
 const TaskListPage = () => {
   const {firebaseToken, redirectToLogin } = useAuth();
+  const {settings} = useUserSettings();
   const [sortBy, setSortBy] = useState<string>("priority"); // Default sorting by priority
   const [isTaskModalOpen, setIsTaskModalOpen] = useState(false);
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
@@ -31,13 +33,8 @@ const TaskListPage = () => {
 
   const router = useRouter();
 
-  const [colorSchemeEnabled, setColorSchemeEnabled] = useState(true);
-  const [colorScheme] = useState({
-    overdue: "bg-red-600",        // Overdue tasks color
-    lowPriority: "bg-green-200",  // Low priority color
-    mediumPriority: "bg-yellow-200", // Medium priority color
-    highPriority: "bg-red-200",   // High priority color
-  });
+  const [colourSchemeEnabled, setcolourSchemeEnabled] = useState(true);
+  const [colourScheme] = useState(settings.colourScheme);
 
   // Using the hook to fetch tasks
   const { tasks, loadingTasks, setTasks } = useFetchTasks(firebaseToken);
@@ -257,13 +254,13 @@ const TaskListPage = () => {
           />
         </div>
 
-        {/* Right section for Enable/Disable Colors button */}
+        {/* Right section for Enable/Disable colours button */}
         <div className="flex items-center">
           <button
-            onClick={() => setColorSchemeEnabled(!colorSchemeEnabled)}
+            onClick={() => setcolourSchemeEnabled(!colourSchemeEnabled)}
             className="bg-gray-500 text-white px-4 py-2 rounded flex items-center space-x-2"
           >
-            <span>{colorSchemeEnabled ? "Disable Colors" : "Enable Colors"}</span>
+            <span>{colourSchemeEnabled ? "Disable colours" : "Enable colours"}</span>
           </button>
         </div>
       </div>
@@ -273,8 +270,8 @@ const TaskListPage = () => {
         selectedFilter={selectedFilter}
         sortBy={sortBy}
         renderActions={renderActions}
-        colorScheme={colorScheme}
-        colorSchemeEnabled={colorSchemeEnabled}
+        colourScheme={colourScheme}
+        colourSchemeEnabled={colourSchemeEnabled}
         showCompletedTasks={showCompleted}
       />
 
