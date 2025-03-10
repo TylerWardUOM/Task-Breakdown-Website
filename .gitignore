@@ -3,3 +3,10 @@ data/task_manager.db
 backend/.env
 web/.env.local
 backend/temp.sql
+
+/package.json
+/package-lock.json
+/.ignorelist
+/generateFolderStructure.js
+/node_modules
+/backend/temp.sql

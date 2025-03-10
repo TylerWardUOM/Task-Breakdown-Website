@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect } from "react";
+import { useState} from "react";
 import { useRouter } from "next/navigation";
 import TaskTable from "../../components/TaskTable";
 import Modal from "../../components/ui/Modal";
@@ -8,19 +8,25 @@ import { PlusCircleIcon, PencilIcon, CheckCircleIcon, XCircleIcon, EyeIcon } fro
 import { useAuth } from "../../lib/authContext";
 import useFetchTasks from "../../hooks/useFetchTasks"; // Import the hook
 import { Task } from "../../types/Task";
+import useFetchCategories from "../../hooks/useFetchCategories";
+import FilterMenu from "../../components/ui/FilterMenu";
+import { Filter } from "../../types/Filter";
+
 
 const TaskListPage = () => {
-  const { isAuthenticated, loading: authLoading, firebaseToken, redirectToLogin } = useAuth();
-  const [filter, setFilter] = useState<string | null>(null); // Filter by due date or priority
+  const {firebaseToken, redirectToLogin } = useAuth();
   const [sortBy, setSortBy] = useState<string>("priority"); // Default sorting by priority
-  const [minPriority, setMinPriority] = useState(1); // Minimum priority
-  const [maxPriority, setMaxPriority] = useState(11); // Maximum priority
   const [isTaskModalOpen, setIsTaskModalOpen] = useState(false);
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
   const [isDeleting, setIsDeleting] = useState<boolean>(false);
   const [isToggling, setIsToggling] = useState(false);
   const [showCompleted, setShowCompleted] = useState(false);
-
+  const [selectedFilter, setSelectedFilter] = useState<Filter>({
+    filter: null,
+    minPriority: 1,
+    maxPriority: 10,
+    selectedCategories: [],
+  });
 
 
   const router = useRouter();
@@ -35,22 +41,21 @@ const TaskListPage = () => {
 
   // Using the hook to fetch tasks
   const { tasks, loadingTasks, setTasks } = useFetchTasks(firebaseToken);
+  const { categories, /*loadingCategories, setCategories*/ } = useFetchCategories(firebaseToken);
+
+  const handleFilterChange = (filters: {
+    filter: string | null;
+    minPriority: number;
+    maxPriority: number;
+    selectedCategories: number[];
+  }) => {
+    setSelectedFilter(filters);
+  };
+
 
   const openNewTaskModal = () => {
     setSelectedTask(null);
     setIsTaskModalOpen(true);
-  };
-
-  const handleFilterChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
-    setFilter(event.target.value);
-  };
-
-  const handleMinPriorityChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setMinPriority(Number(e.target.value));
-  };
-
-  const handleMaxPriorityChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setMaxPriority(Number(e.target.value));
   };
 
   const handleSortChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
@@ -209,83 +214,63 @@ const TaskListPage = () => {
     </div>
   );
 
-  useEffect(() => {
-    if (!authLoading && !isAuthenticated) {
-      router.push("/login");
-    }
-  }, [authLoading, isAuthenticated, router]);
 
   if (loadingTasks) {
     return <p>Loading tasks...</p>;
   }
 
   return (
-    <div className="container mx-auto p-6">
+        <div className="container mx-auto p-6">
       <div className="mt-6 inline-flex justify-between items-center">
         <button onClick={openNewTaskModal} className="bg-blue-500 text-white px-4 py-2 rounded flex items-center space-x-2">
           <PlusCircleIcon className="h-5 w-5" />
           <span>New Task</span>
         </button>
-        <button
-          onClick={() => setColorSchemeEnabled(!colorSchemeEnabled)}
-          className="bg-gray-500 text-white px-4 py-2 rounded flex items-center space-x-2"
-        >
-          <span>{colorSchemeEnabled ? "Disable Colors" : "Enable Colors"}</span>
-        </button>
       </div>
-      <div className="mt-4">
-        <label htmlFor="filterBy" className="mr-2">Filter Tasks:</label>
-        <select id="filterBy" onChange={handleFilterChange} value={filter || ""} className="p-2 border rounded">
-          <option value="">All</option>
-          <option value="thisWeek">Due This Week</option>
-          <option value="Priority>7">Priority &gt; 7</option>
-          <option value="priorityRange">Priority Range</option>
-          <option value="overDue"> OverDue</option>
-        </select>
+      
+      <div className="mt-4 flex justify-between items-center w-full">
+        {/* Left section for Sort By and Show Completed */}
+        <div className="flex items-center space-x-4">
+          {/* Filter Menu (Now an icon button) */}
+          <FilterMenu categories={categories} onFilterChange={handleFilterChange} />
 
-        <label htmlFor="sortBy" className="ml-4 mr-2">Sort By:</label>
-        <select id="sortBy" onChange={handleSortChange} value={sortBy} className="p-2 border rounded">
-          <option value="priority">Priority</option>
-          <option value="dueDate">Due Date</option>
-        </select>
+          {/* Sort By Dropdown */}
+          <label htmlFor="sortBy" className="whitespace-nowrap">Sort By:</label>
+          <select
+            id="sortBy"
+            onChange={handleSortChange}
+            value={sortBy}
+            className="p-2 border rounded"
+          >
+            <option value="priority">Priority</option>
+            <option value="dueDate">Due Date</option>
+          </select>
 
-        <label htmlFor="Show-Completed" className="ml-4 mr-2"> Show Completed Tasks:</label>
-        <input
-          id="Show-Completed"
-          type="checkbox"
-          checked={showCompleted}
-          onChange={() => setShowCompleted(!showCompleted)}
-        />
-      </div>
-      {filter === "priorityRange" && (
-        <div>
-          <label>
-            Min Priority: {minPriority}
-            <input
-              type="range"
-              min="1"
-              max="10"
-              value={minPriority}
-              onChange={handleMinPriorityChange}
-            />
-          </label>
-          <label>
-            Max Priority: {maxPriority}
-            <input
-              type="range"
-              min="1"
-              max="10"
-              value={maxPriority}
-              onChange={handleMaxPriorityChange}
-            />
-          </label>
+          {/* Show Completed Tasks Checkbox */}
+          <label htmlFor="showCompleted" className="whitespace-nowrap">Show Completed:</label>
+          <input
+            id="showCompleted"
+            type="checkbox"
+            checked={showCompleted}
+            onChange={() => setShowCompleted(!showCompleted)}
+            className="w-4 h-4"
+          />
         </div>
-      )}
+
+        {/* Right section for Enable/Disable Colors button */}
+        <div className="flex items-center">
+          <button
+            onClick={() => setColorSchemeEnabled(!colorSchemeEnabled)}
+            className="bg-gray-500 text-white px-4 py-2 rounded flex items-center space-x-2"
+          >
+            <span>{colorSchemeEnabled ? "Disable Colors" : "Enable Colors"}</span>
+          </button>
+        </div>
+      </div>
       <TaskTable
         tasks={tasks}
-        filter={filter}
-        minPriority={minPriority}
-        maxPriority={maxPriority}
+        categories={categories}
+        selectedFilter={selectedFilter}
         sortBy={sortBy}
         renderActions={renderActions}
         colorScheme={colorScheme}
@@ -294,7 +279,7 @@ const TaskListPage = () => {
       />
 
       <Modal isOpen={isTaskModalOpen} onClose={closeTaskModal} width="max-w-3xl">
-        <TaskModal existingTask={selectedTask} onSave={handleSaveTask} onClose={closeTaskModal} />
+        <TaskModal categories={categories} existingTask={selectedTask} onSave={handleSaveTask} onClose={closeTaskModal} />
       </Modal>
     </div>
   );

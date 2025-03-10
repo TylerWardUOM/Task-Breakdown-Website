@@ -1,6 +1,6 @@
-import admin from 'firebase-admin';
 import { Request, Response, NextFunction } from 'express';
 import { getUserByUID } from '../models/userModel';  // Import the DB query function
+import admin from '../config/firebase';
 
 // Extend Express Request type to include user
 declare global {

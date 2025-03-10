@@ -1,21 +1,21 @@
-// authContext.tsx
 "use client";
 import { createContext, useState, useEffect, useContext, ReactNode } from "react";
-import { getAuth, onAuthStateChanged, getIdToken } from "firebase/auth"; 
-import { app } from "./firebase"; 
-import { getUserData } from "./user"; 
-import { useRouter } from "next/navigation";  // Import useRouter
+import { getAuth, onAuthStateChanged, onIdTokenChanged, getIdToken, signOut } from "firebase/auth";
+import { app } from "./firebase";
+import { getUserData } from "./user";
+import { usePathname, useRouter } from "next/navigation"; 
 
 interface AuthContextType {
   isAuthenticated: boolean;
   userName: string | null;
   loading: boolean;
   firebaseToken: string | null;
-  redirectToLogin: () => void; // Add redirect function here
+  logout: () => void;
+  redirectToLogin: () => void;
+  setIsSigningUp: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
-
 const auth = getAuth(app);
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
@@ -23,41 +23,72 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [userName, setUserName] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [firebaseToken, setFirebaseToken] = useState<string | null>(null);
-  const router = useRouter(); // Initialize the router
-
+  const [isSigningUp, setIsSigningUp] = useState(false); // Track signup state
+  const router = useRouter();
+  const pathname = usePathname(); // Get the current pathname
+  
   const redirectToLogin = () => {
-    router.push("/login"); // Perform the redirection to login page
+    router.push("/login");
+  };
+
+  const logout = async () => {
+    await signOut(auth);
+    setIsAuthenticated(false);
+    setUserName(null);
+    setFirebaseToken(null);
+    localStorage.removeItem("firebaseToken");
+    redirectToLogin();
   };
 
   useEffect(() => {
-    const storedToken = localStorage.getItem("firebaseToken");
-    if (storedToken) {
-      setFirebaseToken(storedToken);
-    }
+    const unsubscribeAuth = onAuthStateChanged(auth, async (user) => {
+      const isPublic = pathname === "/login" || pathname === "/register" || pathname === "/";
 
-    const unsubscribe = onAuthStateChanged(auth, async (user) => {
       if (user) {
+        // User is authenticated, but don't redirect on login or register pages
+        if (isPublic) {
+          return; // Don't redirect
+        }
         setIsAuthenticated(true);
 
-        const fetchedUserData = await getUserData();
-        if (fetchedUserData) {
-          setUserName(fetchedUserData.username);
+        try {
+          if (!isSigningUp) { // Only get user data if not signing up
+            const fetchedUserData = await getUserData();
+            if (fetchedUserData) {
+              setUserName(fetchedUserData.username);
+            }
+          }
+        } catch (error) {
+          console.error("Error fetching user data:", error);
+          setUserName(null); // Reset username if data fetch fails
         }
 
         const token = await getIdToken(user);
         setFirebaseToken(token);
         localStorage.setItem("firebaseToken", token);
       } else {
-        setIsAuthenticated(false);
-        setUserName(null);
-        setFirebaseToken(null);
-        localStorage.removeItem("firebaseToken");
+        // User is signed out, only redirect if not on login or register
+        if (!isPublic) {
+          logout();
+        }
       }
       setLoading(false);
     });
 
-    return () => unsubscribe();
-  }, []);
+    // Monitor token changes and refresh it when needed
+    const unsubscribeToken = onIdTokenChanged(auth, async (user) => {
+      if (user) {
+        const token = await getIdToken(user, true); // Force refresh token
+        setFirebaseToken(token);
+        localStorage.setItem("firebaseToken", token);
+      }
+    });
+
+    return () => {
+      unsubscribeAuth();
+      unsubscribeToken();
+    };
+  }, [isSigningUp, pathname]); // Re-run useEffect on route change
 
   return (
     <AuthContext.Provider value={{ 
@@ -65,7 +96,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       userName, 
       loading, 
       firebaseToken, 
-      redirectToLogin // Provide redirectToLogin function in context
+      logout, 
+      redirectToLogin,
+      setIsSigningUp
     }}>
       {children}
     </AuthContext.Provider>
