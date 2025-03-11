@@ -13,19 +13,17 @@ import Link from 'next/link';
 import { Task } from "../../types/Task";
 import useFetchCategories from "../../hooks/useFetchCategories";
 import { Filter } from "../../types/Filter";
+import { useUserSettings } from "../../contexts/UserSettingsContext";
 
 
 export default function Dashboard() {
   const {userName, firebaseToken } = useAuth(); // Get authentication status from context
+  const {settings} = useUserSettings();
   const [isModalOpen, setIsTaskModalOpen] = useState(false);
   const [isToastVisible, setIsToastVisible] = useState(false);
   const [colourSchemeEnabled] = useState(true);
-  const [TablecolourScheme] = useState({
-    overdue: "bg-red-600",        // Overdue tasks colour
-    lowPriority: "bg-green-200",  // Low priority colour
-    mediumPriority: "bg-yellow-200", // Medium priority colour
-    highPriority: "bg-red-200",   // High priority colour
-  });
+  
+  const TablecolourScheme = settings.colour_scheme
   
   const { tasks, /*error, loadingTasks,*/ setTasks } = useFetchTasks(firebaseToken);
   const { categories, /*loadingCategories, setCategories*/ } = useFetchCategories(firebaseToken);
