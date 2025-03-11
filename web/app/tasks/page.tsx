@@ -5,17 +5,16 @@ import TaskTable from "../../components/TaskTable";
 import Modal from "../../components/ui/Modal";
 import TaskModal from "../../components/ui/TaskModal";
 import { PlusCircleIcon, PencilIcon, CheckCircleIcon, XCircleIcon, EyeIcon } from "@heroicons/react/solid";
-import { useAuth } from "../../contexts/authContext";
 import useFetchTasks from "../../hooks/useFetchTasks"; // Import the hook
 import { Task } from "../../types/Task";
 import useFetchCategories from "../../hooks/useFetchCategories";
 import FilterMenu from "../../components/ui/FilterMenu";
 import { Filter } from "../../types/Filter";
 import { useUserSettings } from "../../contexts/UserSettingsContext";
+import { deleteTaskRequest, toggleTaskCompletionRequest } from "../../lib/api";
 
 
 const TaskListPage = () => {
-  const {firebaseToken, redirectToLogin } = useAuth();
   const {settings} = useUserSettings();
   const [sortBy, setSortBy] = useState<string>("priority"); // Default sorting by priority
   const [isTaskModalOpen, setIsTaskModalOpen] = useState(false);
@@ -37,8 +36,8 @@ const TaskListPage = () => {
   const colourScheme = settings.colour_scheme;
 
   // Using the hook to fetch tasks
-  const { tasks, loadingTasks, setTasks } = useFetchTasks(firebaseToken);
-  const { categories, /*loadingCategories, setCategories*/ } = useFetchCategories(firebaseToken);
+  const { tasks, loadingTasks, setTasks } = useFetchTasks();
+  const { categories, /*loadingCategories, setCategories*/ } = useFetchCategories();
 
   const handleFilterChange = (filters: {
     filter: string | null;
@@ -61,47 +60,29 @@ const TaskListPage = () => {
 
   const toggleTaskCompletion = async (taskId: number) => {
     try {
-      if (!firebaseToken) throw new Error("User is not authenticated");
-  
       const task = tasks.find((task) => task.id === taskId);
       if (!task) throw new Error("Task not found");
   
-      setIsToggling(true); // Set isToggling to true when the action starts
+      setIsToggling(true); // Start loading state
   
-      const url = task.completed
-        ? `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/tasks/${taskId}/uncomplete`
-        : `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/tasks/${taskId}/complete`;
+      // Call API function
+      await toggleTaskCompletionRequest(taskId, task.completed);
   
-      const response = await fetch(url, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${firebaseToken}`,
-        },
-      });
-  
-      if (!response.ok) {
-        if (response.status === 401) {
-          redirectToLogin(); // Handle token expiry and redirect to login
-        } else {
-          throw new Error(`Failed to ${task.completed ? "unmark" : "mark"} task as complete`);
-        }
-      }
-  
-      // Update the task locally after the request
+      // Update local state after successful API call
       setTasks((prevTasks) =>
-        prevTasks.map((task) =>
-          task.id === taskId
-            ? { ...task, completed: !task.completed, completed_at: task.completed ? null : new Date().toLocaleString() }
-            : task
+        prevTasks.map((t) =>
+          t.id === taskId
+            ? { ...t, completed: !t.completed, completed_at: t.completed ? null : new Date().toLocaleString() }
+            : t
         )
       );
     } catch (error) {
       console.error("Error toggling task completion:", error);
     } finally {
-      setIsToggling(false); // Reset isToggling when the action is finished
+      setIsToggling(false); // Reset loading state
     }
   };
+  
   
   const openTaskModal = (taskId: number) => {
     const taskToEdit = tasks.find((task) => task.id === taskId);
@@ -125,39 +106,26 @@ const TaskListPage = () => {
     closeTaskModal();
   };
 
-  const deleteTask = async (taskId: number) => {
-    try {
-      setIsDeleting(true); // Start loading
-      if (!firebaseToken) throw new Error("User is not authenticated");
 
-      const task = tasks.find((task) => task.id === taskId);
-      if (!task) throw new Error("Task not found");
+const deleteTask = async (taskId: number) => {
+  try {
+    setIsDeleting(true); // Start loading
 
-      const url = `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/tasks/delete/${taskId}`;
+    const task = tasks.find((task) => task.id === taskId);
+    if (!task) throw new Error("Task not found");
 
-      const response = await fetch(url, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${firebaseToken}`,
-        },
-      });
+    // Call API function
+    await deleteTaskRequest(taskId);
 
-      if (!response.ok) {
-        if (response.status === 401) {
-          redirectToLogin(); // Handle token expiry and redirect to login
-        } else {
-          throw new Error("Failed to delete task");
-        }
-      }
+    // Update local state after successful API call
+    setTasks((prevTasks) => prevTasks.filter((task) => task.id !== taskId));
+  } catch (error) {
+    console.error("Error deleting task:", error);
+  } finally {
+    setIsDeleting(false); // Reset loading state
+  }
+};
 
-      setTasks((prevTasks) => prevTasks.filter((task) => task.id !== taskId));
-    } catch (err) {
-      console.error("Error deleting task:", err);
-    }finally {
-      setIsDeleting(false); // Reset the loading state after the operation completes
-    }
-  };
 
   const goToFocusMode = (taskId: number) => {
     router.push(`/focus?task=${taskId}`);

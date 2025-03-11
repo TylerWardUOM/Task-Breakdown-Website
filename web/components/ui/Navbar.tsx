@@ -1,7 +1,7 @@
 "use client";
 import { useRouter } from "next/navigation";
 import { useAuth } from "../../contexts/authContext"; // Import the useAuth hook
-import { logout } from "../../lib/auth"; // Import the useAuth hook
+import {logoutCookies } from "../../lib/auth"; // Import the useAuth hook
 
 const Navbar = ({ onToggleSidebar }: { onToggleSidebar: () => void }) => {
   const { isAuthenticated, userName, loading } = useAuth(); // Access auth state from context
@@ -9,7 +9,7 @@ const Navbar = ({ onToggleSidebar }: { onToggleSidebar: () => void }) => {
 
   const handleLogout = async () => {
     // Assuming you have a logout function in your AuthContext or lib/auth
-    await logout(); // Call logout from AuthContext
+    await logoutCookies(); // Call logout from AuthContext
     router.push("/"); // Redirect to home or login page
   };
 

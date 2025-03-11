@@ -42,14 +42,6 @@ export const sendPasswordReset = async (email: string) => {
   }
 };
 
-// Function to get the current user's Firebase token
-export const getFirebaseToken = async () => {
-  const user = auth.currentUser;
-  if (user) return await user.getIdToken();
-  return null;
-};
-
-
 export const signUpEmailVerification = async (
   email: string,
   password: string,
@@ -186,5 +178,73 @@ const markUserAsVerified = async (token: string, email: string) => {
   } catch (error) {
     console.error("Error marking user as verified:", error);
     throw new Error("Failed to mark user as verified.");
+  }
+};
+
+
+export const logoutCookies = async () => {
+  await fetch("/api/auth/logout", {
+    method: "POST",
+    credentials: "include",
+  });
+};
+
+export const signUpEmailVerificationCookies = async (
+  email: string,
+  password: string,
+  username: string,
+  setIsSigningUp: React.Dispatch<React.SetStateAction<boolean>>
+) => {
+  try {
+    setIsSigningUp(true);
+
+    const response = await fetch("/api/auth/register", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      credentials: "include",
+      body: JSON.stringify({ email, password, username }),
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.error || "Registration failed.");
+    }
+
+    setIsSigningUp(false);
+    return { success: true, message: "Please verify your email before logging in." };
+  } catch (error) {
+    setIsSigningUp(false);
+    console.error("Sign-up error:", error);
+    throw new Error("Sign-up failed.");
+  }
+};
+
+export const signInEmailVerificationCookies = async (
+  email: string,
+  password: string,
+  setIsSigningUp: React.Dispatch<React.SetStateAction<boolean>>
+) => {
+  setIsSigningUp(true);
+
+  try {
+    const response = await fetch("/api/auth/login", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      credentials: "include",
+      body: JSON.stringify({ email, password }),
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(data.error || "Login failed.");
+    }
+
+    setIsSigningUp(false);
+    return { emailVerified: true, user: data.user };
+  } catch (error) {
+    setIsSigningUp(false);
+    console.error("Login error:", error);
+    throw new Error("Login failed.");
   }
 };

@@ -4,14 +4,12 @@ import useFetchCompletedTasksTimeframe from "../hooks/useFetchCompletedTasksTime
 interface TaskStatProps {
   timeframe: string; // Timeframe (week, month, etc.)
   title: string; // Card title
-  firebaseToken: string | null; // Firebase token
 }
 
-const TaskCompletedTimeframe: React.FC<TaskStatProps> = ({ timeframe, title, firebaseToken }) => {
+const TaskCompletedTimeframe: React.FC<TaskStatProps> = ({ timeframe, title}) => {
   // Fetch completed tasks using the custom hook
   const { completedTasks, loadingCompletedTasks, error } = useFetchCompletedTasksTimeframe({
     timeframe,
-    firebaseToken,
   });
 
   return (

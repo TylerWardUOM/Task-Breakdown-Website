@@ -1,17 +1,21 @@
 "use client";
 import { ReactNode, useEffect, useState } from "react";
 import { UserSettingsProvider, useUserSettings } from "../../contexts/UserSettingsContext";
-
+import { useAuth } from "../../contexts/authContext";
 const SettingsLayoutContent = ({ children }: { children: ReactNode }) => {
   const { settings } = useUserSettings();
   const [isThemeLoaded, setIsThemeLoaded] = useState(false);
-
+  const {isAuthenticated, redirectToLogin} = useAuth();
   useEffect(() => {
     if (settings?.theme) {
       document.documentElement.classList.toggle("dark", settings.theme === "dark");
       setIsThemeLoaded(true);
     }
   }, [settings?.theme]);
+
+  if (!isAuthenticated){
+    redirectToLogin();
+  }
 
   if (!isThemeLoaded) return null; // Prevent render until theme is applied
 

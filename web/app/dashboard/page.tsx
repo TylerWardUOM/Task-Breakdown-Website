@@ -17,7 +17,7 @@ import { useUserSettings } from "../../contexts/UserSettingsContext";
 
 
 export default function Dashboard() {
-  const {userName, firebaseToken } = useAuth(); // Get authentication status from context
+  const {userName} = useAuth(); // Get authentication status from context
   const {settings} = useUserSettings();
   const [isModalOpen, setIsTaskModalOpen] = useState(false);
   const [isToastVisible, setIsToastVisible] = useState(false);
@@ -25,8 +25,8 @@ export default function Dashboard() {
   
   const TablecolourScheme = settings.colour_scheme
   
-  const { tasks, /*error, loadingTasks,*/ setTasks } = useFetchTasks(firebaseToken);
-  const { categories, /*loadingCategories, setCategories*/ } = useFetchCategories(firebaseToken);
+  const { tasks, /*error, loadingTasks,*/ setTasks } = useFetchTasks();
+  const { categories, /*loadingCategories, setCategories*/ } = useFetchCategories();
 
   const openNewTaskModal = () => {
     setIsTaskModalOpen(true);
@@ -68,7 +68,7 @@ export default function Dashboard() {
 
       {/* Cards Section */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mt-6">
-        <TaskCompletedTimeframe timeframe="week" title="Tasks Completed This Week" firebaseToken={firebaseToken} />
+        <TaskCompletedTimeframe timeframe="week" title="Tasks Completed This Week"/>
         <Card title="Upcoming Events">
           <p className="text-center">Meeting at 3PM</p>
         </Card>

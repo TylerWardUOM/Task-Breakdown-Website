@@ -1,111 +1,159 @@
 import { UserSettings } from "../types/userSettings";
+import { Task } from "../types/Task";
 
-export const fetchTasks = async (firebaseToken: string) => {
-    if (!firebaseToken) {
-      throw new Error("Authentication is required");
-    }
-  
-    const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/tasks/get`, {
-      method: "GET",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${firebaseToken}`,
-      },
-    });
-  
-    if (!response.ok) {
-      throw new Error("Failed to fetch tasks");
-    }
-  
-    return response.json(); // Returns the tasks
-  };
-  
-  export const fetchCompletedTasksTimeframe = async (firebaseToken: string, timeframe: string): Promise<number> => {
-    if (!firebaseToken) {
-      throw new Error("No Firebase token found. Please log in.");
-    }
-  
-    const url = `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/tasks/completed/${timeframe}`;
-  
-    const response = await fetch(url, {
-      method: "GET",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${firebaseToken}`,
-      },
-    });
-  
-    if (!response.ok) {
-      if (response.status === 401) {
-        throw new Error("Unauthorized. Please login again.");
-      }
-      throw new Error("Failed to fetch completed tasks");
-    }
-  
-    const data = await response.json();
-    const completedCount = Number(data.completedTasks);
-  
-    if (isNaN(completedCount)) {
-      throw new Error("Invalid data received for completed tasks");
-    }
-  
-    return completedCount;
-  };
+export const fetchTasks = async () => {
+  const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/tasks/get`, {
+    method: "GET",
+    headers: { "Content-Type": "application/json" },
+    credentials: "include", // 🔥 Ensures cookies (session) are sent
+  });
 
-  export const fetchCategories = async (firebaseToken: string) => {
-    if (!firebaseToken) {
-      throw new Error("Authentication is required");
-    }
-  
-    const response = await fetch(
-      `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/category/list`, // Adjust endpoint as needed
-      {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${firebaseToken}`,
-        },
-      }
-    );
-  
-    if (!response.ok) {
-      throw new Error("Failed to fetch categories");
-    }
-  
-    return response.json(); // Returns the categories
-  };
-  
+  if (!response.ok) {
+    throw new Error("Failed to fetch tasks");
+  }
 
-  export const saveUserSettings = async (firebaseToken: string, settings: UserSettings) => {
-    if (!firebaseToken) throw new Error("Authentication is required");
-  
-    const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/user/settings/update`, {
-      method: "PUT",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${firebaseToken}`,
-      },
-      body: JSON.stringify(settings),
-    });
-  
-    if (!response.ok) throw new Error("Failed to save user settings");
-  
-    return response.json(); // Returns updated settings
-  };
-  
-  export const fetchUserSettings = async (firebaseToken: string) => {
-    if (!firebaseToken) throw new Error("Authentication is required");
-  
-    const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/user/settings/get`, {
+  return response.json();
+};
+
+export const fetchCompletedTasksTimeframe = async (timeframe: string): Promise<number> => {
+  const url = `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/tasks/completed/${timeframe}`;
+
+  const response = await fetch(url, {
+    method: "GET",
+    headers: { "Content-Type": "application/json" },
+    credentials: "include", // 🔥 Uses cookies instead of manually passing a token
+  });
+
+  if (!response.ok) {
+    if (response.status === 401) {
+      throw new Error("Unauthorized. Please login again.");
+    }
+    throw new Error("Failed to fetch completed tasks");
+  }
+
+  const data = await response.json();
+  const completedCount = Number(data.completedTasks);
+
+  if (isNaN(completedCount)) {
+    throw new Error("Invalid data received for completed tasks");
+  }
+
+  return completedCount;
+};
+
+export const fetchCategories = async () => {
+  const response = await fetch(
+    `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/category/list`, // Adjust endpoint as needed
+    {
       method: "GET",
+      headers: { "Content-Type": "application/json" },
+      credentials: "include", // 🔥 Uses the session cookie
+    }
+  );
+
+  if (!response.ok) {
+    throw new Error("Failed to fetch categories");
+  }
+
+  return response.json();
+};
+
+export const saveUserSettings = async (settings: UserSettings) => {
+  const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/user/settings/update`, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    credentials: "include", // 🔥 Uses session cookie instead of token
+    body: JSON.stringify(settings),
+  });
+
+  if (!response.ok) {
+    throw new Error("Failed to save user settings");
+  }
+
+  return response.json();
+};
+
+export const fetchUserSettings = async () => {
+  const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/user/settings/get`, {
+    method: "GET",
+    headers: { "Content-Type": "application/json" },
+    credentials: "include", // 🔥 Uses cookies instead of passing a token manually
+  });
+
+  if (!response.ok) {
+    throw new Error("Failed to fetch user settings");
+  }
+
+  return response.json();
+};
+
+
+export const toggleTaskCompletionRequest = async (taskId: number, isCompleted: boolean) => {
+  const url = isCompleted
+    ? `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/tasks/${taskId}/uncomplete`
+    : `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/tasks/${taskId}/complete`;
+
+  const response = await fetch(url, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    credentials: "include", // 🔥 Uses cookies instead of manually passing a token
+  });
+
+  if (!response.ok) {
+    if (response.status === 401) {
+      throw new Error("Unauthorized. Please login again.");
+    }
+    throw new Error(`Failed to ${isCompleted ? "unmark" : "mark"} task as complete`);
+  }
+
+  return response.json(); // Return the updated task data (if needed)
+};
+
+
+export const deleteTaskRequest = async (taskId: number) => {
+  const url = `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/tasks/delete/${taskId}`;
+
+  const response = await fetch(url, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    credentials: "include", // 🔥 Uses cookies for authentication
+  });
+
+  if (!response.ok) {
+    if (response.status === 401) {
+      throw new Error("Unauthorized. Please login again.");
+    }
+    throw new Error("Failed to delete task");
+  }
+
+  return response.json(); // Return response (if needed)
+};
+
+
+
+export const saveTask = async (taskData: Partial<Task>, existingTask?: Task) => {
+  try {
+    const endpoint = existingTask
+      ? `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/tasks/updateNulls`
+      : `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/tasks/create`;
+    const method = existingTask ? "PUT" : "POST";
+
+    const response = await fetch(endpoint, {
+      method,
       headers: {
         "Content-Type": "application/json",
-        Authorization: `Bearer ${firebaseToken}`,
       },
+      credentials: "include", // 🔥 Uses cookies for authentication
+      body: JSON.stringify(taskData),
     });
-  
-    if (!response.ok) throw new Error("Failed to fetch user settings");
-  
-    return response.json(); // Returns user settings
-  };
-  
+
+    if (!response.ok) {
+      throw new Error(existingTask ? "Failed to update task" : "Failed to create task");
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error("Error saving task:", error);
+    throw error;
+  }
+};

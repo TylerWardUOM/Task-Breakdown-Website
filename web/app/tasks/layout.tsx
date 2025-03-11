@@ -1,17 +1,23 @@
 "use client";
-import { ReactNode, useEffect } from "react";
+import { ReactNode, useEffect, useState } from "react";
 import { UserSettingsProvider, useUserSettings } from "../../contexts/UserSettingsContext";
-
+import { useAuth } from "../../contexts/authContext";
 const SettingsLayoutContent = ({ children }: { children: ReactNode }) => {
   const { settings } = useUserSettings();
-
+  const [isThemeLoaded, setIsThemeLoaded] = useState(false);
+  const {isAuthenticated, redirectToLogin} = useAuth();
   useEffect(() => {
-    if (settings?.theme === "dark") {
-      document.documentElement.classList.add("dark");
-    } else {
-      document.documentElement.classList.remove("dark");
+    if (settings?.theme) {
+      document.documentElement.classList.toggle("dark", settings.theme === "dark");
+      setIsThemeLoaded(true);
     }
   }, [settings?.theme]);
+
+  if (!isAuthenticated){
+    redirectToLogin();
+  }
+
+  if (!isThemeLoaded) return null; // Prevent render until theme is applied
 
   return (
     <div className="settings-layout flex-1 w-full h-full p-6 bg-gray-100 text-black dark:bg-gray-900 dark:text-white">

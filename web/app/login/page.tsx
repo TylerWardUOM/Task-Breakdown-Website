@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { resendVerificationEmail, signInEmailVerification } from "../../lib/auth";
+import { resendVerificationEmail, signInEmailVerificationCookies } from "../../lib/auth";
 import { useRouter } from "next/navigation";
 import { useAuth } from "../../contexts/authContext";
 import { FirebaseError } from "firebase/app";
@@ -26,7 +26,7 @@ export default function LoginPage() {
     setError(''); // Reset errors
 
     try {
-      const result = await signInEmailVerification(email, password, setIsSigningUp);
+      const result = await signInEmailVerificationCookies(email, password, setIsSigningUp);
       if (result.emailVerified === false) {
         // If email is not verified, show error and the resend option
         setError("Please verify your email before logging in.");
