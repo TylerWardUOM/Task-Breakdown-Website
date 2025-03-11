@@ -217,68 +217,81 @@ const TaskListPage = () => {
   }
 
   return (
-        <div className="container mx-auto p-6">
-      <div className="mt-6 inline-flex justify-between items-center">
-        <button onClick={openNewTaskModal} className="bg-blue-500 text-white px-4 py-2 rounded flex items-center space-x-2">
-          <PlusCircleIcon className="h-5 w-5" />
-          <span>New Task</span>
-        </button>
-      </div>
-      
-      <div className="mt-4 flex justify-between items-center w-full">
-        {/* Left section for Sort By and Show Completed */}
-        <div className="flex items-center space-x-4">
-          {/* Filter Menu (Now an icon button) */}
-          <FilterMenu categories={categories} onFilterChange={handleFilterChange} />
+<div className="container mx-auto p-6">
+  <div className="mt-6 inline-flex justify-between items-center">
+    <button
+      onClick={openNewTaskModal}
+      className="px-4 py-2 rounded flex items-center space-x-2 text-white bg-blue-500 hover:bg-blue-600 dark:bg-blue-700 dark:hover:bg-blue-800"
+    >
+      <PlusCircleIcon className="h-5 w-5" />
+      <span>New Task</span>
+    </button>
+  </div>
 
-          {/* Sort By Dropdown */}
-          <label htmlFor="sortBy" className="whitespace-nowrap">Sort By:</label>
-          <select
-            id="sortBy"
-            onChange={handleSortChange}
-            value={sortBy}
-            className="p-2 border rounded"
-          >
-            <option value="priority">Priority</option>
-            <option value="dueDate">Due Date</option>
-          </select>
+  <div className="mt-4 flex justify-between items-center w-full">
+    {/* Left section for Sort By and Show Completed */}
+    <div className="flex items-center space-x-4">
+      {/* Filter Menu with Dark Mode Support */}
+      <FilterMenu categories={categories} onFilterChange={handleFilterChange} />
 
-          {/* Show Completed Tasks Checkbox */}
-          <label htmlFor="showCompleted" className="whitespace-nowrap">Show Completed:</label>
-          <input
-            id="showCompleted"
-            type="checkbox"
-            checked={showCompleted}
-            onChange={() => setShowCompleted(!showCompleted)}
-            className="w-4 h-4"
-          />
-        </div>
+      {/* Sort By Dropdown */}
+      <label htmlFor="sortBy" className="whitespace-nowrap text-gray-900 dark:text-gray-300">
+        Sort By:
+      </label>
+      <select
+        id="sortBy"
+        onChange={handleSortChange}
+        value={sortBy}
+        className="p-2 border rounded bg-white text-gray-900 border-gray-300 dark:bg-gray-800 dark:text-gray-300 dark:border-gray-600"
+      >
+        <option value="priority">Priority</option>
+        <option value="dueDate">Due Date</option>
+      </select>
 
-        {/* Right section for Enable/Disable colours button */}
-        <div className="flex items-center">
-          <button
-            onClick={() => setcolourSchemeEnabled(!colourSchemeEnabled)}
-            className="bg-gray-500 text-white px-4 py-2 rounded flex items-center space-x-2"
-          >
-            <span>{colourSchemeEnabled ? "Disable colours" : "Enable colours"}</span>
-          </button>
-        </div>
-      </div>
-      <TaskTable
-        tasks={tasks}
-        categories={categories}
-        selectedFilter={selectedFilter}
-        sortBy={sortBy}
-        renderActions={renderActions}
-        colourScheme={colourScheme}
-        colourSchemeEnabled={colourSchemeEnabled}
-        showCompletedTasks={showCompleted}
+      {/* Show Completed Tasks Checkbox */}
+      <label htmlFor="showCompleted" className="whitespace-nowrap text-gray-900 dark:text-gray-300">
+        Show Completed:
+      </label>
+      <input
+        id="showCompleted"
+        type="checkbox"
+        checked={showCompleted}
+        onChange={() => setShowCompleted(!showCompleted)}
+        className="w-4 h-4 accent-blue-500 dark:accent-blue-400"
       />
-
-      <Modal isOpen={isTaskModalOpen} onClose={closeTaskModal} width="max-w-3xl">
-        <TaskModal categories={categories} existingTask={selectedTask} onSave={handleSaveTask} onClose={closeTaskModal} />
-      </Modal>
     </div>
+
+    {/* Right section for Enable/Disable colours button */}
+    <div className="flex items-center">
+      <button
+        onClick={() => setcolourSchemeEnabled(!colourSchemeEnabled)}
+        className="px-4 py-2 rounded flex items-center space-x-2 bg-gray-500 hover:bg-gray-600 text-white dark:bg-gray-700 dark:hover:bg-gray-800"
+      >
+        <span>{colourSchemeEnabled ? "Disable colours" : "Enable colours"}</span>
+      </button>
+    </div>
+  </div>
+
+  <TaskTable
+    tasks={tasks}
+    categories={categories}
+    selectedFilter={selectedFilter}
+    sortBy={sortBy}
+    renderActions={renderActions}
+    colourScheme={colourScheme}
+    colourSchemeEnabled={colourSchemeEnabled}
+    showCompletedTasks={showCompleted}
+  />
+
+  <Modal isOpen={isTaskModalOpen} onClose={closeTaskModal} width="max-w-3xl">
+    <TaskModal
+      categories={categories}
+      existingTask={selectedTask}
+      onSave={handleSaveTask}
+      onClose={closeTaskModal}
+    />
+  </Modal>
+</div>
   );
 };
 

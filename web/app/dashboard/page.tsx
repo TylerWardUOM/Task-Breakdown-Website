@@ -53,13 +53,17 @@ export default function Dashboard() {
 
   return (
     <div className="flex-1 p-6 overflow-y-auto">
-      <h1 className="text-2xl font-semibold">Good morning, {userName}!</h1>
-      <p className="text-gray-500 italic mt-2">&quot;Inspirational Quote of the Day&quot;</p>
-
+     <h1 className="text-2xl font-semibold">Good morning, {userName}!</h1>
+      <p className="text-gray-500 italic mt-2 dark:text-gray-400">&quot;Inspirational Quote of the Day&quot;</p>
       {/* Focus Mode & Add Task Buttons */}
       <div className="mt-6 flex space-x-4">
-        <button className="bg-blue-600 text-white px-4 py-2 rounded-lg shadow hover:bg-blue-700">🎯 Start Focus Mode</button>
-        <button className="bg-green-500 text-white px-4 py-2 rounded-lg shadow hover:bg-green-600 flex items-center" onClick={openNewTaskModal}>
+        <button className="bg-blue-600 text-white px-4 py-2 rounded-lg shadow hover:bg-blue-700">
+          🎯 Start Focus Mode
+        </button>
+        <button 
+          className="bg-green-500 text-white px-4 py-2 rounded-lg shadow hover:bg-green-600 flex items-center" 
+          onClick={openNewTaskModal}
+        >
           <FiPlusCircle className="mr-2" /> Add New Task
         </button>
       </div>
@@ -68,7 +72,7 @@ export default function Dashboard() {
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mt-6">
         <TaskCompletedTimeframe timeframe="week" title="Tasks Completed This Week" firebaseToken={firebaseToken} />
         <Card title="Upcoming Events">
-          <p className="text-center"> Meeting at 3PM</p>
+          <p className="text-center">Meeting at 3PM</p>
         </Card>
         <Card title="Focus Mode Stats">
           <p className="text-center">5 hours focused today</p>

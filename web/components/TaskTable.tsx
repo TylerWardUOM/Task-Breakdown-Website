@@ -86,7 +86,7 @@ const renderDueDate = (due_date: string | null) => {
 
 // Determines the background colour for a row based on priority and colour scheme.
 const getPrioritycolour = (priority: number, colourScheme: ColourScheme, colourSchemeEnabled: boolean): string => {
-  if (!colourSchemeEnabled) return ""; // If gradient is not enabled, return no colour
+  if (!colourSchemeEnabled) return "dark:bg-gray-800 dark:text-white"; // If gradient is not enabled, return no colour
 
   // Overdue tasks should have a distinct colour (red)
   if (priority === 11) return colourScheme.overdue; // Red for overdue tasks
@@ -218,7 +218,7 @@ const TaskTable: React.FC<TaskTableProps> = ({
   const filteredTasks = getFilteredTasks(tasks, selectedFilter, showCompletedTasks);
   if (filteredTasks.length === 0) {
     return (
-      <div className="text-center p-6 bg-gray-100 rounded-lg shadow-md">
+      <div className="text-center p-6 bg-gray-100 rounded-lg shadow-md dark:bg-gray-700">
         {emptyStateMessage || (
           <>
             <p className="text-lg font-semibold text-gray-700">No tasks at the moment!</p>
@@ -236,7 +236,7 @@ const TaskTable: React.FC<TaskTableProps> = ({
     <div className="overflow-x-auto bg-white shadow-md rounded-lg mt-4 w-full">
       <table className="min-w-full table-auto">
         <thead className="bg-gray-100">
-          <tr>
+          <tr className="bg-gray-200 dark:bg-gray-700">
             <th className="py-2 px-4 text-left">Task Title</th>
             <th className="py-2 px-4 text-left">Priority</th>
             <th className="py-2 px-4 text-left">Due Date</th>
@@ -246,12 +246,12 @@ const TaskTable: React.FC<TaskTableProps> = ({
             {renderActions && <th className="py-2 px-4 text-left">Actions</th>}          
             </tr>
         </thead>
-        <tbody>
+        <tbody className="text-black dark:text-black">
           {sortedTasks.map((task) => {
             const priority = calculatePriority(task);
             const prioritycolour = getPrioritycolour(priority, colourScheme, colourSchemeEnabled);
             return (
-              <tr key={task.id} className={prioritycolour}>
+              <tr key={task.id} className={`${prioritycolour}`}>
                 <td className="py-2 px-4">
                   <span className={task.completed ? "line-through text-gray-400" : ""}>
                     {task.title || "Untitled Task"}

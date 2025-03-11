@@ -14,4 +14,5 @@ module.exports = {
     extend: {},
   },
   plugins: [],
+  darkMode: "class", // Ensures that dark mode is based on a class, not system preference
 };

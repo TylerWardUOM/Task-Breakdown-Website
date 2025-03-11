@@ -1,40 +1,29 @@
-import React, { useEffect, useState } from 'react';
-import Card from './ui/Card';
-import useFetchCompletedTasksTimeframe from '../hooks/useFetchCompletedTasksTimeframe';
-import { useAuth } from '../contexts/authContext';
+import Card from "./ui/Card";
+import useFetchCompletedTasksTimeframe from "../hooks/useFetchCompletedTasksTimeframe";
 
 interface TaskStatProps {
-  timeframe: string; // The timeframe (week, month, etc.)
-  title: string; // The title of the card (for display)
-  firebaseToken: string | null;  // The Firebase token passed as a prop
+  timeframe: string; // Timeframe (week, month, etc.)
+  title: string; // Card title
+  firebaseToken: string | null; // Firebase token
 }
 
 const TaskCompletedTimeframe: React.FC<TaskStatProps> = ({ timeframe, title, firebaseToken }) => {
-  const [error, setError] = useState<string | null>(null);
-  const {redirectToLogin} = useAuth()
-  // Use the custom hook to fetch completed tasks
-  const { completedTasks, loading, error: fetchError } = useFetchCompletedTasksTimeframe({
+  // Fetch completed tasks using the custom hook
+  const { completedTasks, loadingCompletedTasks, error } = useFetchCompletedTasksTimeframe({
     timeframe,
     firebaseToken,
   });
 
-  useEffect(() => {
-    if (fetchError === 'Unauthorized. Please login again.') {
-      setError(fetchError);
-      redirectToLogin();
-    } else if (fetchError) {
-      setError('Failed to load completed tasks');
-    }
-  }, [fetchError,redirectToLogin]);
-
   return (
     <Card title={title}>
-      {loading ? (
-        <p className="text-center">Loading...</p>
-      ) : error || fetchError ? (
-        <p className="text-center">{error || fetchError}</p>
+      {loadingCompletedTasks ? (
+        <p className="text-center text-gray-500">Loading...</p>
+      ) : error ? (
+        <p className="text-center text-red-500">Error: {error}</p>
+      ) : completedTasks !== null ? (
+        <p className="text-center font-semibold">{completedTasks}</p>
       ) : (
-        <p className="text-center">{completedTasks !== null ? completedTasks : 'No data available'}</p>
+        <p className="text-center text-gray-400">No data available</p>
       )}
     </Card>
   );
