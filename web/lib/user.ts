@@ -37,7 +37,7 @@ export const getUserData = async (): Promise<User> => {
 
     // Parse and return the JSON response
     const data = await response.json();
-    console.log(data);
+    //console.log(data);
     return data;
   } catch (error) {
     console.error('Error fetching user data:', error);

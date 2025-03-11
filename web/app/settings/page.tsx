@@ -2,39 +2,56 @@
 import { useUserSettings } from "../../contexts/UserSettingsContext";
 import { useState, useEffect, useRef } from "react";
 import ColorSwatchesPicker from "../../components/ui/ColorSwatchesPicker";
-import { UserSettings } from "../../types/userSettings";
+import { ColourScheme, UserSettings } from "../../types/userSettings";
+
+const DEFAULT_COLOUR_SCHEME: ColourScheme = {
+    overdue: "bg-red-600",
+    highPriority: "bg-red-200",
+    mediumPriority: "bg-yellow-200",
+    lowPriority: "bg-green-200",
+  };
+  
 
 const SettingsPage = () => {
   const { settings, updateSettings } = useUserSettings();
-  const [colorPickerVisible, setColorPickerVisible] = useState<string | null>(null); // Tracks the active color picker
-  const colorPickerRef = useRef<HTMLTableDataCellElement | null>(null);
+  const [colorPickerVisible, setColorPickerVisible] = useState<string | null>(null);
+  const colorPickerRef = useRef<HTMLDivElement | null>(null);
 
-  const handleColorChange = (key: keyof UserSettings["colourScheme"], color: string) => {
-    updateSettings({
-      colourScheme: { ...settings.colourScheme, [key]: color },
-    });
+  const handleColorChange = (key: keyof UserSettings["colour_scheme"], colorClass: string) => {
+    const updatedSettings = {
+      colour_scheme: { ...settings.colour_scheme, [key]: colorClass },
+    };
+  
+    console.log("Updating settings with:", updatedSettings); // Log the update
+  
+    updateSettings(updatedSettings);
+    setColorPickerVisible(null); // Close the picker after selection
+  };
+  
+  const resetColors = () => {
+    updateSettings({ colour_scheme: DEFAULT_COLOUR_SCHEME });
   };
 
+
   const handleRowClick = (key: string) => {
-    setColorPickerVisible(colorPickerVisible === key ? null : key); // Toggle visibility of the color picker
+    setColorPickerVisible(colorPickerVisible === key ? null : key);
   };
 
   useEffect(() => {
-    // Add event listener to detect outside clicks
     const handleOutsideClick = (e: MouseEvent) => {
       if (colorPickerRef.current && !colorPickerRef.current.contains(e.target as Node)) {
-        setColorPickerVisible(null); // Close the picker if the click is outside
+        setColorPickerVisible(null);
       }
     };
 
     const handleEscKey = (e: KeyboardEvent) => {
       if (e.key === "Escape") {
-        setColorPickerVisible(null); // Close the picker if Escape is pressed
+        setColorPickerVisible(null);
       }
     };
 
-    document.addEventListener("mousedown", handleOutsideClick); // Listen for outside clicks
-    document.addEventListener("keydown", handleEscKey); // Listen for Escape key press
+    document.addEventListener("mousedown", handleOutsideClick);
+    document.addEventListener("keydown", handleEscKey);
 
     return () => {
       document.removeEventListener("mousedown", handleOutsideClick);
@@ -47,18 +64,6 @@ const SettingsPage = () => {
   return (
     <div className="p-6 relative">
       <h1 className="text-2xl font-bold mb-4">User Settings</h1>
-
-      {/* Dark Mode Toggle */}
-      <div className="flex items-center space-x-2">
-        <label className="text-lg">Dark Mode</label>
-        <input
-          type="checkbox"
-          checked={settings.darkMode}
-          onChange={() => updateSettings({ darkMode: !settings.darkMode })}
-          className="w-6 h-6"
-          aria-label="Toggle Dark Mode"
-        />
-      </div>
 
       {/* Theme Selector */}
       <div className="mt-4">
@@ -74,71 +79,70 @@ const SettingsPage = () => {
         </select>
       </div>
 
-      {/* Language Selector */}
-      <div className="mt-4">
-        <h2 className="text-lg font-semibold">Language</h2>
-        <select
-          value={settings.language}
-          onChange={(e) => updateSettings({ language: e.target.value as UserSettings["language"] })}
-          className="border p-2 rounded"
-          aria-label="Language Selector"
-        >
-          <option value="en">English</option>
-          <option value="es">Spanish</option>
-          <option value="fr">French</option>
-        </select>
-      </div>
-
       {/* Notifications Toggle */}
       <div className="mt-4 flex items-center space-x-2">
         <label className="text-lg">Enable Notifications</label>
         <input
           type="checkbox"
-          checked={settings.notificationsEnabled}
-          onChange={() => updateSettings({ notificationsEnabled: !settings.notificationsEnabled })}
+          checked={settings.notifications_enabled}
+          onChange={() => updateSettings({ notifications_enabled: !settings.notifications_enabled })}
           className="w-6 h-6"
           aria-label="Toggle Notifications"
         />
       </div>
 
-      {/* Priority Colors */}
+              {/* Priority Colors Table */}
       <div className="mt-4">
-        <h2 className="text-lg font-semibold">Priority Colors</h2>
-        <div className="overflow-x-auto">
-          <table className="min-w-full table-auto">
+        <h2 className="text-lg font-semibold mb-2">Priority Colors</h2>
+        <div className="overflow-x-auto w-80 mx-auto">
+          <table className="w-full table-auto border-collapse text-sm">
             <thead>
-              <tr>
-                <th className="px-4 py-2">Priority Type</th>
+              <tr className="bg-gray-100">
+                <th className="px-2 py-1 border">Priority Type</th>
               </tr>
             </thead>
             <tbody>
-              {Object.keys(settings.colourScheme).map((key, index) => {
-                const currentColor = settings.colourScheme[key as keyof UserSettings["colourScheme"]];
+              {["overdue", "highPriority", "mediumPriority", "lowPriority"].map((key) => {
+                const currentColor = settings.colour_scheme[key as keyof ColourScheme];
                 return (
                   <tr
-                    key={`${key}-${index}`}
-                    className="cursor-pointer hover:bg-gray-100"
+                    key={key}
+                    className={`group cursor-pointer border ${currentColor}`}
                     onClick={() => handleRowClick(key)}
-                    style={{
-                      backgroundColor: currentColor,
-                    }}
                   >
-                    <td className="px-4 py-2">{key}</td>
-                    {colorPickerVisible === key && (
-                      <td ref={colorPickerRef} className="px-4 py-2 absolute z-10 top-0 left-1/2 transform -translate-x-1/2">
-                        <ColorSwatchesPicker
-                          currentColor={currentColor}
-                          onColorChange={(color) => handleColorChange(key as keyof UserSettings["colourScheme"], color)}
-                        />
-                      </td>
-                    )}
+                    <td className="px-2 py-1 border text-center">{key}</td>
                   </tr>
                 );
               })}
             </tbody>
           </table>
         </div>
+
+        {/* Reset Colors Button */}
+        <div className="mt-3 flex justify-center">
+          <button
+            onClick={resetColors}
+            className="bg-gray-200 hover:bg-gray-300 text-gray-800 font-semibold py-1 px-3 rounded-md shadow"
+          >
+            Reset Colors
+          </button>
+        </div>
       </div>
+
+      {/* Floating Color Picker */}
+      {colorPickerVisible && (
+        <div
+          ref={colorPickerRef}
+          className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-50 bg-white shadow-lg rounded p-4"
+        >
+          <ColorSwatchesPicker
+            currentColor={settings.colour_scheme[colorPickerVisible as keyof UserSettings["colour_scheme"]]}
+            onColorChange={(color) =>
+              handleColorChange(colorPickerVisible as keyof UserSettings["colour_scheme"], color)
+            }
+          />
+        </div>
+      )}
     </div>
   );
 };

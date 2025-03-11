@@ -79,8 +79,8 @@ export const fetchTasks = async (firebaseToken: string) => {
   export const saveUserSettings = async (firebaseToken: string, settings: UserSettings) => {
     if (!firebaseToken) throw new Error("Authentication is required");
   
-    const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/user/settings`, {
-      method: "POST",
+    const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/user/settings/update`, {
+      method: "PUT",
       headers: {
         "Content-Type": "application/json",
         Authorization: `Bearer ${firebaseToken}`,
@@ -96,7 +96,7 @@ export const fetchTasks = async (firebaseToken: string) => {
   export const fetchUserSettings = async (firebaseToken: string) => {
     if (!firebaseToken) throw new Error("Authentication is required");
   
-    const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/user/settings`, {
+    const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/user/settings/get`, {
       method: "GET",
       headers: {
         "Content-Type": "application/json",

@@ -34,7 +34,7 @@ const TaskListPage = () => {
   const router = useRouter();
 
   const [colourSchemeEnabled, setcolourSchemeEnabled] = useState(true);
-  const [colourScheme] = useState(settings.colourScheme);
+  const colourScheme = settings.colour_scheme;
 
   // Using the hook to fetch tasks
   const { tasks, loadingTasks, setTasks } = useFetchTasks(firebaseToken);

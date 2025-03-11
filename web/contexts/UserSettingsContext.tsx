@@ -14,27 +14,20 @@ interface UserSettingsContextType {
 const UserSettingsContext = createContext<UserSettingsContextType | undefined>(undefined);
 
 export const UserSettingsProvider = ({ children }: { children: React.ReactNode }) => {
-  // Set initial settings to the default settings.
+  const getDefaultUserSettings = (): UserSettings => ({
+    theme: "light",
+    notifications_enabled: true,
+    colour_scheme: {
+      overdue: "bg-red-600",
+      lowPriority: "bg-green-200",
+      mediumPriority: "bg-yellow-200",
+      highPriority: "bg-red-200",
+    },
+  });
 
-  const getDefaultUserSettings = (): UserSettings => {
-    return {
-      theme: 'light',
-      language: 'en',
-      notificationsEnabled: true,
-      colourScheme: {
-        overdue: 'bg-red-600',
-        lowPriority: 'bg-green-200',
-        mediumPriority: 'bg-yellow-200',
-        highPriority: 'bg-red-200',
-      },
-      darkMode: false,
-    };
-  };
-
-  const [settings, setSettings] = useState<UserSettings>(getDefaultUserSettings());
+  const [settings, setSettings] = useState<UserSettings | null>(null); // Initially null
   const { firebaseToken } = useAuth();
   const pathname = usePathname();
-
 
   useEffect(() => {
     const fetchSettings = async () => {
@@ -43,39 +36,42 @@ export const UserSettingsProvider = ({ children }: { children: React.ReactNode }
 
         const userSettings = await fetchUserSettings(firebaseToken);
         
-        // If fetched settings are invalid or null, keep the default settings
         if (userSettings) {
           setSettings(userSettings);
           localStorage.setItem("userSettings", JSON.stringify(userSettings));
         } else {
-          console.warn("Fetched settings are null or invalid. Using Default Settings");
-          setSettings(getDefaultUserSettings());
-          localStorage.setItem("userSettings", JSON.stringify(getDefaultUserSettings()));
+          throw new Error("Fetched settings are null or invalid.");
         }
       } catch (error) {
         console.error("Error fetching user settings:", error);
-        console.warn("Using Default Settings");
-        setSettings(getDefaultUserSettings());
-        localStorage.setItem("userSettings", JSON.stringify(getDefaultUserSettings()));
+        
+        // Only apply defaults if settings were never set
+        if (!settings) {
+          console.warn("Using Default Settings");
+          const defaultSettings = getDefaultUserSettings();
+          setSettings(defaultSettings);
+          localStorage.setItem("userSettings", JSON.stringify(defaultSettings));
+        }
       }
     };
 
-    // Check if settings are already in localStorage before fetching
     const savedSettings = localStorage.getItem("userSettings");
+
     if (savedSettings) {
-      setSettings(JSON.parse(savedSettings));
-    } else {
-      fetchSettings();  // Fetch settings if none found in localStorage
+      setSettings(JSON.parse(savedSettings)); // Use cached settings
     }
+
+    fetchSettings(); // Always fetch to get latest settings
   }, [firebaseToken, pathname]);
 
   const updateSettings = async (newSettings: Partial<UserSettings>) => {
+    if (!settings) return;
+
     const updatedSettings = { ...settings, ...newSettings };
     setSettings(updatedSettings);
     localStorage.setItem("userSettings", JSON.stringify(updatedSettings));
 
     try {
-      const firebaseToken = localStorage.getItem("firebaseToken");
       if (firebaseToken) {
         await saveUserSettings(firebaseToken, updatedSettings);
       }
@@ -85,7 +81,7 @@ export const UserSettingsProvider = ({ children }: { children: React.ReactNode }
   };
 
   return (
-    <UserSettingsContext.Provider value={{ settings, updateSettings }}>
+    <UserSettingsContext.Provider value={{ settings: settings ?? getDefaultUserSettings(), updateSettings }}>
       {children}
     </UserSettingsContext.Provider>
   );
