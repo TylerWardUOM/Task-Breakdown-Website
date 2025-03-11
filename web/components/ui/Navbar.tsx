@@ -1,6 +1,6 @@
 "use client";
 import { useRouter } from "next/navigation";
-import { useAuth } from "../../lib/authContext"; // Import the useAuth hook
+import { useAuth } from "../../contexts/authContext"; // Import the useAuth hook
 import { logout } from "../../lib/auth"; // Import the useAuth hook
 
 const Navbar = ({ onToggleSidebar }: { onToggleSidebar: () => void }) => {

@@ -1,3 +1,5 @@
+import { UserSettings } from "../types/userSettings";
+
 export const fetchTasks = async (firebaseToken: string) => {
     if (!firebaseToken) {
       throw new Error("Authentication is required");
@@ -71,5 +73,39 @@ export const fetchTasks = async (firebaseToken: string) => {
     }
   
     return response.json(); // Returns the categories
+  };
+  
+
+  export const saveUserSettings = async (firebaseToken: string, settings: UserSettings) => {
+    if (!firebaseToken) throw new Error("Authentication is required");
+  
+    const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/user/settings/update`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${firebaseToken}`,
+      },
+      body: JSON.stringify(settings),
+    });
+  
+    if (!response.ok) throw new Error("Failed to save user settings");
+  
+    return response.json(); // Returns updated settings
+  };
+  
+  export const fetchUserSettings = async (firebaseToken: string) => {
+    if (!firebaseToken) throw new Error("Authentication is required");
+  
+    const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/user/settings/get`, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${firebaseToken}`,
+      },
+    });
+  
+    if (!response.ok) throw new Error("Failed to fetch user settings");
+  
+    return response.json(); // Returns user settings
   };
   

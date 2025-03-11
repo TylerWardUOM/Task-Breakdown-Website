@@ -10,6 +10,7 @@ import userRoutes from "./routes/userRoutes";
 import categoryRoutes from "./routes/categoryRoutes";
 import {scheduleCronJobs,runRepeatTasks} from "./cronJob";  // Import the cron job schedule function
 import { deleteUnverifiedUsersFromDB } from "./models/userModel";
+import userSettingsRoutes from "./routes/userSettingsRoutes";
 
 
 dotenv.config();
@@ -31,6 +32,7 @@ app.use(helmet());
 app.use("/api/auth", authRoutes);
 app.use("/api/tasks", taskRoutes);
 app.use("/api/user",userRoutes,);
+app.use("/api/user/settings",userSettingsRoutes,);
 app.use("/api/category",categoryRoutes)
 // @ts-ignore
 app.get("/", (req, res) => {

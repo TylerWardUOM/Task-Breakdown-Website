@@ -1,8 +1,8 @@
 "use client";
 import { createContext, useState, useEffect, useContext, ReactNode } from "react";
 import { getAuth, onAuthStateChanged, onIdTokenChanged, getIdToken, signOut } from "firebase/auth";
-import { app } from "./firebase";
-import { getUserData } from "./user";
+import { app } from "../lib/firebase";
+import { getUserData } from "../lib/user";
 import { usePathname, useRouter } from "next/navigation"; 
 
 interface AuthContextType {

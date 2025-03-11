@@ -2,13 +2,7 @@ import React from "react";
 import { Task } from "../types/Task";
 import { Category } from "../types/Category";
 import { Filter } from "../types/Filter";
-
-interface ColorScheme {
-  overdue: string;        // Color for overdue tasks
-  lowPriority: string;    // Color for low priority tasks
-  mediumPriority: string; // Color for medium priority tasks
-  highPriority: string;   // Color for high priority tasks
-}
+import { ColourScheme } from "../types/userSettings";
 
 interface TaskTableProps {
   tasks: Task[];
@@ -26,8 +20,8 @@ interface TaskTableProps {
   onFocus?: (taskId: number) => void;
   // @ts-expect-error: Ignoring error because JSX is properly handled in this project
   renderActions?: (task: Task) => JSX.Element;
-  colorScheme: ColorScheme;       // New prop for custom color schemes
-  colorSchemeEnabled: boolean;    // New prop to toggle the color gradient
+  colourScheme: ColourScheme;       // New prop for custom colour schemes
+  colourSchemeEnabled: boolean;    // New prop to toggle the colour gradient
   showCompletedTasks?: boolean; // New optional prop
   emptyStateMessage?: React.ReactNode;
 }
@@ -90,20 +84,20 @@ const renderDueDate = (due_date: string | null) => {
   return new Date(due_date).toLocaleDateString();
 };
 
-// Determines the background color for a row based on priority and color scheme.
-const getPriorityColor = (priority: number, colorScheme: ColorScheme, colorSchemeEnabled: boolean): string => {
-  if (!colorSchemeEnabled) return ""; // If gradient is not enabled, return no color
+// Determines the background colour for a row based on priority and colour scheme.
+const getPrioritycolour = (priority: number, colourScheme: ColourScheme, colourSchemeEnabled: boolean): string => {
+  if (!colourSchemeEnabled) return "dark:bg-gray-800 dark:text-white"; // If gradient is not enabled, return no colour
 
-  // Overdue tasks should have a distinct color (red)
-  if (priority === 11) return colorScheme.overdue; // Red for overdue tasks
+  // Overdue tasks should have a distinct colour (red)
+  if (priority === 11) return colourScheme.overdue; // Red for overdue tasks
 
   // Gradient logic for priority levels
   if (priority <= 3) {
-    return colorScheme.lowPriority; // Low priority (Green)
+    return colourScheme.lowPriority; // Low priority (Green)
   } else if (priority <= 7) {
-    return colorScheme.mediumPriority; // Medium priority (Yellow)
+    return colourScheme.mediumPriority; // Medium priority (Yellow)
   } else {
-    return colorScheme.highPriority; // High priority (Red)
+    return colourScheme.highPriority; // High priority (Red)
   }
 };
 
@@ -213,8 +207,8 @@ const TaskTable: React.FC<TaskTableProps> = ({
     selectedFilter,
     sortBy,
     renderActions,
-    colorScheme,
-    colorSchemeEnabled,
+    colourScheme,
+    colourSchemeEnabled,
     showCompletedTasks = false,
     emptyStateMessage
   }) => {
@@ -224,7 +218,7 @@ const TaskTable: React.FC<TaskTableProps> = ({
   const filteredTasks = getFilteredTasks(tasks, selectedFilter, showCompletedTasks);
   if (filteredTasks.length === 0) {
     return (
-      <div className="text-center p-6 bg-gray-100 rounded-lg shadow-md">
+      <div className="text-center p-6 bg-gray-100 rounded-lg shadow-md dark:bg-gray-700">
         {emptyStateMessage || (
           <>
             <p className="text-lg font-semibold text-gray-700">No tasks at the moment!</p>
@@ -242,7 +236,7 @@ const TaskTable: React.FC<TaskTableProps> = ({
     <div className="overflow-x-auto bg-white shadow-md rounded-lg mt-4 w-full">
       <table className="min-w-full table-auto">
         <thead className="bg-gray-100">
-          <tr>
+          <tr className="bg-gray-200 dark:bg-gray-700">
             <th className="py-2 px-4 text-left">Task Title</th>
             <th className="py-2 px-4 text-left">Priority</th>
             <th className="py-2 px-4 text-left">Due Date</th>
@@ -252,12 +246,12 @@ const TaskTable: React.FC<TaskTableProps> = ({
             {renderActions && <th className="py-2 px-4 text-left">Actions</th>}          
             </tr>
         </thead>
-        <tbody>
+        <tbody className="text-black dark:text-black">
           {sortedTasks.map((task) => {
             const priority = calculatePriority(task);
-            const priorityColor = getPriorityColor(priority, colorScheme, colorSchemeEnabled);
+            const prioritycolour = getPrioritycolour(priority, colourScheme, colourSchemeEnabled);
             return (
-              <tr key={task.id} className={priorityColor}>
+              <tr key={task.id} className={`${prioritycolour}`}>
                 <td className="py-2 px-4">
                   <span className={task.completed ? "line-through text-gray-400" : ""}>
                     {task.title || "Untitled Task"}
