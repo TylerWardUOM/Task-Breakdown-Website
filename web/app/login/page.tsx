@@ -64,7 +64,7 @@ export default function LoginPage() {
       }
 
       // ✅ If login is successful, redirect to dashboard
-      router.push("/dashboard");
+      router.push("/user/dashboard");
     } catch (error: unknown) {
       console.error("Unexpected Login Error:", error);
 
