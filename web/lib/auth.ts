@@ -1,6 +1,6 @@
 "use client"; // Ensure it's a client-side module
 
-import { getAuth, signInWithEmailAndPassword, sendPasswordResetEmail, sendEmailVerification } from "firebase/auth";
+import { getAuth, signInWithEmailAndPassword, sendPasswordResetEmail, sendEmailVerification, UserCredential, GoogleAuthProvider } from "firebase/auth";
 import { app } from "./firebase"; // Import Firebase config
 import { markUserAsVerified, registerUserInDatabase } from "./api";
 
@@ -42,37 +42,59 @@ export const logoutCookies = async () => {
   });
 };
 
+
 export const signUpEmailVerificationCookies = async (
   email: string,
   password: string,
-  username: string
+  username: string,
+  userCredential: UserCredential | null
 ) => {
   try {
+    let requestBody: Record<string, unknown> = { email, password, username };
+
+    if (userCredential) {
+      // Handle Google sign-in
+      const credential = GoogleAuthProvider.credentialFromResult(userCredential);
+      if (!credential) {
+        throw new Error("Google authentication failed. No credential found.");
+      }
+
+      const idToken = credential.idToken; // Firebase ID token
+      const accessToken = credential.accessToken; // Google access token (optional)
+
+      if (!idToken) {
+        throw new Error("Failed to retrieve ID token from Google authentication.");
+      }
+
+      requestBody = { idToken, accessToken, google: true };
+      email = userCredential.user.email || email;
+      username = userCredential.user.displayName || username; // Default to username if displayName is null
+    }
+
+    // Step 1: Register with Firebase API
     const response = await fetch("/api/auth/register", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       credentials: "include",
-      body: JSON.stringify({ email, password, username }),
+      body: JSON.stringify(requestBody),
     });
 
     const data = await response.json();
     if (!response.ok) {
-      // Ensure the error response format is handled properly
+      // Ensure proper error handling
       if (data.error && typeof data.error === "object") {
-        const errorCode = data.error.code || "auth/unknown-error";
-        const errorMessage = data.error.message || "An unknown authentication error occurred.";
-
-        return { errorCode, errorMessage };
+        return {
+          errorCode: data.error.code || "auth/unknown-error",
+          errorMessage: data.error.message || "An unknown authentication error occurred.",
+        };
       }
       throw new Error("Register failed.");
     }
 
-    // Step 4: Send user details to backend SQL database
-    const responseDB = await registerUserInDatabase(email,username);
-
+    // Step 2: Register user in the SQL database
+    const responseDB = await registerUserInDatabase(email, username);
     if (!responseDB.success) {
-      const errorData = responseDB.errorCode
-      throw new Error(errorData.error || "Failed to register user in the database.");
+      throw new Error(responseDB.errorCode || "Failed to register user in the database.");
     }
 
     return { success: true, message: "Registration successful! Please verify your email before logging in." };
@@ -85,13 +107,38 @@ export const signUpEmailVerificationCookies = async (
   }
 };
 
-export const signInEmailVerificationCookies = async (email: string, password: string) => {
+
+export const signInEmailVerificationCookies = async (
+  email: string,
+  password: string,
+  userCredential: UserCredential | null
+) => {
   try {
+    let requestBody: Record<string, unknown> = { email, password };
+
+    if (userCredential) {
+      // Handle Google sign-in
+      const credential = GoogleAuthProvider.credentialFromResult(userCredential);
+      if (!credential) {
+        throw new Error("Google authentication failed. No credential found.");
+      }
+
+      const idToken = credential.idToken; // Firebase ID token
+      const accessToken = credential.accessToken; // Google access token (optional)
+
+      if (!idToken) {
+        throw new Error("Failed to retrieve ID token from Google authentication.");
+      }
+
+      requestBody = { idToken, accessToken, google: true };
+      email = userCredential.user.email || email;
+    }
+
     const response = await fetch("/api/auth/login", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       credentials: "include",
-      body: JSON.stringify({ email, password }),
+      body: JSON.stringify(requestBody),
     });
 
     const data = await response.json();
@@ -104,14 +151,20 @@ export const signInEmailVerificationCookies = async (email: string, password: st
           errorMessage: data.error.message || "An unknown authentication error occurred.",
         };
       }
-      
+
       // Handle specific case where email is not verified
       if (data.error === "Email not verified.") {
         return { emailVerified: false };
       }
+
       throw new Error("Login failed.");
     }
-    markUserAsVerified(email);
+
+    // Mark user as verified only if email is defined
+    if (email) {
+      markUserAsVerified(email);
+    }
+
     return { emailVerified: true, user: data.user };
   } catch (error) {
     console.error("Login error:", error);
@@ -122,4 +175,3 @@ export const signInEmailVerificationCookies = async (email: string, password: st
     };
   }
 };
-
