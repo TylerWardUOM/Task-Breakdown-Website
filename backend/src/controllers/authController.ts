@@ -7,7 +7,8 @@ import admin from "../config/firebase";
 
 // Register function on the backend (Node.js / Express)
 export const register = async (req: Request, res: Response): Promise<void> => {
-    const { token, username, email } = req.body; // Extract username, email, and token
+    const token = req.cookies?.authToken;
+    const {username, email } = req.body; // Extract username, email, and token
   
     if (!token || !username || !email) {
       res.status(400).json({ error: "Firebase token, username, and email are required" });

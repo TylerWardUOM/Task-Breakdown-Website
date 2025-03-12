@@ -1,52 +1,40 @@
 "use client";
-
 import { useState } from "react";
-import { resendVerificationEmail, signInEmailVerification } from "../../lib/auth";
+import { resendVerificationEmail, signInEmailVerificationCookies } from "../../lib/auth";
 import { useRouter } from "next/navigation";
-import { useAuth } from "../../contexts/authContext";
 import { FirebaseError } from "firebase/app";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [error, setError] = useState('');
-  const [success, setSuccess] = useState('');
+  const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
   const [loading, setLoading] = useState(false);
   const [emailVerified, setEmailVerified] = useState(true);
-  const { setIsSigningUp } = useAuth();
   const router = useRouter();
 
   const handleRegisterRedirect = () => {
-    router.push('/register');
+    router.push("/register");
   };
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    setError(''); // Reset errors
+    setError(""); // Reset errors
 
     try {
-      const result = await signInEmailVerification(email, password, setIsSigningUp);
-      if (result.emailVerified === false) {
-        // If email is not verified, show error and the resend option
-        setError("Please verify your email before logging in.");
-        setEmailVerified(false);
-      } else {
-        // If email is verified, redirect to dashboard
-        router.push("/dashboard");
-      }
-    } catch (error: unknown) {
-      console.error("Error during Login:", error);
+      const result = await signInEmailVerificationCookies(email, password);
 
-      if (error instanceof FirebaseError) {
-        // Handle specific Firebase authentication errors
-        switch (error.code) {
+      // ✅ Check if the API returned an error response
+      if (result.errorCode) {
+        console.error("API Error:", result.errorCode, result.errorMessage);
+
+        // Handle specific Firebase authentication errors from API response
+        switch (result.errorCode) {
           case "auth/user-not-found":
             setError("No account found with this email. Please check your email or sign up.");
             break;
           case "auth/wrong-password":
-            setError("Incorrect password. Please try again.");
-            break;
           case "auth/invalid-credential":
             setError("Incorrect password. Please try again.");
             break;
@@ -63,10 +51,27 @@ export default function LoginPage() {
             setError("Network error. Please check your internet connection.");
             break;
           default:
-            setError("Login failed. Please try again.");
+            setError(result.errorMessage || "Login failed. Please try again.");
         }
-      } else if (error instanceof Error) {
+        return; // Exit function if there was an error
+      }
+
+      // ✅ Check if email is not verified
+      if (result.emailVerified === false) {
+        setError("Please verify your email before logging in.");
+        setEmailVerified(false);
+        return;
+      }
+
+      // ✅ If login is successful, redirect to dashboard
+      router.push("/dashboard");
+    } catch (error: unknown) {
+      console.error("Unexpected Login Error:", error);
+
+      if (error instanceof FirebaseError) {
         setError(error.message || "Login failed. Please try again.");
+      } else if (error instanceof Error) {
+        setError(error.message || "An unexpected error occurred. Please try again.");
       } else {
         setError("An unexpected error occurred. Please try again.");
       }
@@ -77,13 +82,14 @@ export default function LoginPage() {
 
   const handleResendVerificationEmail = async () => {
     try {
-      const response = await resendVerificationEmail(email,password);
+      const response = await resendVerificationEmail(email, password);
       setSuccess(response.message);
     } catch (err) {
       console.error("Error sending verification email:", err);
       setError("Failed to send verification email. Please try again later.");
     }
   };
+
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-100">
       <div className="bg-white p-8 rounded-lg shadow-lg w-96">
@@ -92,7 +98,9 @@ export default function LoginPage() {
         {success && <p className="text-green-500 text-sm text-center mb-4">{success}</p>}
         <form onSubmit={handleLogin} className="space-y-4">
           <div>
-            <label htmlFor="email" className="block text-sm font-medium text-gray-700">Email</label>
+            <label htmlFor="email" className="block text-sm font-medium text-gray-700">
+              Email
+            </label>
             <input
               type="email"
               id="email"
@@ -105,7 +113,9 @@ export default function LoginPage() {
           </div>
 
           <div>
-            <label htmlFor="password" className="block text-sm font-medium text-gray-700">Password</label>
+            <label htmlFor="password" className="block text-sm font-medium text-gray-700">
+              Password
+            </label>
             <input
               type="password"
               id="password"
@@ -126,22 +136,16 @@ export default function LoginPage() {
           </button>
         </form>
 
-          <p className="text-sm text-center mt-4">
-          Don&apos;t have an account?{' '}
-          <button
-            onClick={handleRegisterRedirect}
-            className="text-blue-600 hover:underline"
-          >
+        <p className="text-sm text-center mt-4">
+          Don&apos;t have an account?{" "}
+          <button onClick={handleRegisterRedirect} className="text-blue-600 hover:underline">
             Register
           </button>
         </p>
         {!emailVerified && (
           <div className="text-center mt-4">
             <p className="text-sm">Didn&apos;t receive the verification email?</p>
-            <button
-              onClick={handleResendVerificationEmail}
-              className="text-blue-600 hover:underline"
-            >
+            <button onClick={handleResendVerificationEmail} className="text-blue-600 hover:underline">
               Resend Verification Email
             </button>
           </div>

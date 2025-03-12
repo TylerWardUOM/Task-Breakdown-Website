@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from "react";
 import ImportanceSelector from "./ImportanceSelector";
-import { getFirebaseToken } from "../../lib/auth";
 import { Task } from "../../types/Task";
 import { RepeatInterval } from "../../types/Task";
 import { Category } from "../../types/Category";
+import { saveTask } from "../../lib/api";
 
 // Helper function to format due date
 const formatDueDate = (date: string | null): string | null => {
@@ -87,28 +87,7 @@ const TaskModal: React.FC<TaskModalProps> = ({ onClose, onSave, existingTask, ca
     };
 
     try {
-      const token = await getFirebaseToken();
-      if (!token) throw new Error("User is not authenticated");
-
-      const endpoint = existingTask
-        ? `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/tasks/updateNulls`
-        : `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/tasks/create`;
-      const method = existingTask ? "PUT" : "POST";
-
-      const response = await fetch(endpoint, {
-        method,
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify(taskData),
-      });
-
-      if (!response.ok) {
-        throw new Error(existingTask ? "Failed to update task" : "Failed to create task");
-      }
-
-      const savedTask = await response.json();
+      const savedTask = await saveTask(taskData, existingTask);
       onSave(savedTask);
       onClose();
     } catch (err) {

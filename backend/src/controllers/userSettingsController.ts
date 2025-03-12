@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import { getUserSettings, updateUserSettings, resetUserSettings } from '../models/userSettingsModel'; 
+import { getUserSettings, updateUserSettings, resetUserSettings, createUserSettings } from '../models/userSettingsModel'; 
 
 // ✅ Get user settings by user ID
 export const getUserSettingsController = async (req: Request, res: Response): Promise<void> => {
@@ -13,7 +13,10 @@ export const getUserSettingsController = async (req: Request, res: Response): Pr
         const result = await getUserSettings(user.id);
 
         if (result.rows.length === 0) {
-            res.status(404).json({ error: 'User settings not found' });
+            const result_create = await createUserSettings(user.id);
+            if (result_create.rows.length === 0) {
+                res.status(404).json({ error: 'User settings not found' });
+            }
             return;
         }
 

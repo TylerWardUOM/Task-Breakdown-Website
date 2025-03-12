@@ -3,14 +3,13 @@
 import { createContext, useContext, useState, useEffect } from "react";
 import { UserSettings } from "../types/userSettings";
 import { fetchUserSettings, saveUserSettings } from "../lib/api";
-import { useAuth } from "./authContext";
 import { usePathname } from "next/navigation";
+import { useAuth } from "./authContext";
 
 interface UserSettingsContextType {
   settings: UserSettings;
   updateSettings: (newSettings: Partial<UserSettings>) => void;
 }
-
 const UserSettingsContext = createContext<UserSettingsContextType | undefined>(undefined);
 
 export const UserSettingsProvider = ({ children }: { children: React.ReactNode }) => {
@@ -26,15 +25,12 @@ export const UserSettingsProvider = ({ children }: { children: React.ReactNode }
   });
 
   const [settings, setSettings] = useState<UserSettings | null>(null); // Initially null
-  const { firebaseToken } = useAuth();
   const pathname = usePathname();
-
+  const {isAuthenticated} = useAuth();
   useEffect(() => {
     const fetchSettings = async () => {
       try {
-        if (!firebaseToken) return;
-
-        const userSettings = await fetchUserSettings(firebaseToken);
+        const userSettings = await fetchUserSettings();
         
         if (userSettings) {
           setSettings(userSettings);
@@ -60,9 +56,10 @@ export const UserSettingsProvider = ({ children }: { children: React.ReactNode }
     if (savedSettings) {
       setSettings(JSON.parse(savedSettings)); // Use cached settings
     }
-
-    fetchSettings(); // Always fetch to get latest settings
-  }, [firebaseToken, pathname]);
+    if (isAuthenticated===true){
+      fetchSettings(); // Always fetch to get latest settings
+    }
+  }, [pathname]);
 
   const updateSettings = async (newSettings: Partial<UserSettings>) => {
     if (!settings) return;
@@ -72,9 +69,7 @@ export const UserSettingsProvider = ({ children }: { children: React.ReactNode }
     localStorage.setItem("userSettings", JSON.stringify(updatedSettings));
 
     try {
-      if (firebaseToken) {
-        await saveUserSettings(firebaseToken, updatedSettings);
-      }
+        await saveUserSettings(updatedSettings);
     } catch (error) {
       console.error("Failed to save settings to API", error);
     }

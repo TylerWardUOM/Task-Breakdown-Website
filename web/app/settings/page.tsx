@@ -107,7 +107,7 @@ const SettingsPage = () => {
                 return (
                   <tr
                     key={key}
-                    className={`group cursor-pointer border ${currentColor} dark:border-gray-600`}
+                    className={`group cursor-pointer border ${currentColor} dark:border-gray-600 dark:text-black`}
                     onClick={() => handleRowClick(key)}
                   >
                     <td className={`px-2 py-1 border text-center dark:border-gray-600 ${index === arr.length - 1 ? "rounded-b-md" : ""}`}>
