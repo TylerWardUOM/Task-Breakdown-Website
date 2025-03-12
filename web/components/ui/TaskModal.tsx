@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from "react";
 import ImportanceSelector from "./ImportanceSelector";
-import { getFirebaseToken } from "../../lib/auth";
-import { Task } from "../../types/Task";
+import { Task, Task_data } from "../../types/Task";
 import { RepeatInterval } from "../../types/Task";
 import { Category } from "../../types/Category";
+import { saveTask } from "../../lib/api";
 
 // Helper function to format due date
 const formatDueDate = (date: string | null): string | null => {
@@ -75,9 +75,9 @@ const TaskModal: React.FC<TaskModalProps> = ({ onClose, onSave, existingTask, ca
   const handleSaveTask = async () => {
     const totalDuration = (hours || 0) * 60 + (minutes || 0);
 
-    const taskData = {
+    const taskData: Task_data = {
       taskId: existingTask?.id || undefined,
-      title: taskTitle || null,
+      title: taskTitle,
       description: description || null,
       due_date: dueDate || null,
       importance_factor: importanceValue,
@@ -87,28 +87,7 @@ const TaskModal: React.FC<TaskModalProps> = ({ onClose, onSave, existingTask, ca
     };
 
     try {
-      const token = await getFirebaseToken();
-      if (!token) throw new Error("User is not authenticated");
-
-      const endpoint = existingTask
-        ? `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/tasks/updateNulls`
-        : `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/tasks/create`;
-      const method = existingTask ? "PUT" : "POST";
-
-      const response = await fetch(endpoint, {
-        method,
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify(taskData),
-      });
-
-      if (!response.ok) {
-        throw new Error(existingTask ? "Failed to update task" : "Failed to create task");
-      }
-
-      const savedTask = await response.json();
+      const savedTask = await saveTask(taskData, existingTask);
       onSave(savedTask);
       onClose();
     } catch (err) {
@@ -118,71 +97,112 @@ const TaskModal: React.FC<TaskModalProps> = ({ onClose, onSave, existingTask, ca
 
   return (
     <div className="w-full space-y-4">
-      <h2 className="text-xl font-bold">{existingTask ? "Edit Task" : "Create Task"}</h2>
+  <h2 className="text-xl font-bold">{existingTask ? "Edit Task" : "Create Task"}</h2>
 
-      <input type="text" placeholder="Task Title" className="w-full p-2 border rounded" value={taskTitle} onChange={(e) => setTaskTitle(e.target.value)} />
+  <input
+    type="text"
+    placeholder="Task Title"
+    className="w-full p-2 border rounded bg-white text-black dark:bg-gray-800 dark:text-white dark:border-gray-600"
+    value={taskTitle}
+    onChange={(e) => setTaskTitle(e.target.value)}
+  />
 
-      <textarea placeholder="Task Description (Optional)" className="w-full p-2 border rounded text-sm" value={description} onChange={(e) => setDescription(e.target.value)} />
+  <textarea
+    placeholder="Task Description (Optional)"
+    className="w-full p-2 border rounded text-sm bg-white text-black dark:bg-gray-800 dark:text-white dark:border-gray-600"
+    value={description}
+    onChange={(e) => setDescription(e.target.value)}
+  />
 
-      <ImportanceSelector value={importanceValue} onChange={setImportanceValue} />
+  <ImportanceSelector value={importanceValue} onChange={setImportanceValue} />
 
+  <div className="flex items-center space-x-2">
+    <label htmlFor="date" className="text-gray-700 dark:text-gray-300 text-sm">
+      Due Date (Optional):
+    </label>
+    <input
+      id="date"
+      type="date"
+      className="p-2 border rounded flex-1 text-sm bg-white text-black dark:bg-gray-800 dark:text-white dark:border-gray-600"
+      value={dueDate || ""}
+      onChange={(e) => setDueDate(e.target.value || null)}
+    />
+  </div>
+
+  <div className="flex items-center space-x-2">
+    <label className="text-gray-700 dark:text-gray-300 text-sm">Duration:</label>
+    <input
+      type="number"
+      placeholder="Hours"
+      className="p-2 border rounded w-1/3 text-sm bg-white text-black dark:bg-gray-800 dark:text-white dark:border-gray-600"
+      value={hours || ""}
+      onChange={(e) => setHours(e.target.value ? parseInt(e.target.value) : null)}
+    />
+    <input
+      type="number"
+      placeholder="Minutes"
+      className="p-2 border rounded w-1/3 text-sm bg-white text-black dark:bg-gray-800 dark:text-white dark:border-gray-600"
+      value={minutes || ""}
+      onChange={(e) => setMinutes(e.target.value ? parseInt(e.target.value) : null)}
+    />
+  </div>
+
+  <button
+    onClick={() => setShowMoreOptions(!showMoreOptions)}
+    className="text-blue-600 dark:text-blue-400 text-sm underline"
+  >
+    {showMoreOptions ? "Hide Options ⬆" : "More Options ⬇"}
+  </button>
+
+  {showMoreOptions && (
+    <div className="mt-2 space-y-2 border-t pt-2 border-gray-300 dark:border-gray-600">
       <div className="flex items-center space-x-2">
-        <label htmlFor="date" className="text-gray-700 text-sm">
-          Due Date (Optional):
+        <label htmlFor="repeatTask" className="text-gray-700 dark:text-gray-300 text-sm">
+          Repeat Task:
         </label>
-        <input
-          id="date"
-          type="date"
-          className="p-2 border rounded flex-1 text-sm"
-          value={dueDate || ""}
-          onChange={(e) => setDueDate(e.target.value || null)}
-        />
+        <select
+          id="repeatTask"
+          className="p-2 border rounded flex-1 text-sm bg-white text-black dark:bg-gray-800 dark:text-white dark:border-gray-600"
+          value={repeatTask}
+          onChange={(e) => setRepeatTask(e.target.value)}
+        >
+          <option value="None">None</option>
+          <option value="Daily">Daily</option>
+          <option value="Weekly">Weekly</option>
+          <option value="Monthly">Monthly</option>
+        </select>
       </div>
 
       <div className="flex items-center space-x-2">
-        <label className="text-gray-700 text-sm">Duration:</label>
-        <input type="number" placeholder="Hours" className="p-2 border rounded w-1/3 text-sm" value={hours || ""} onChange={(e) => setHours(e.target.value ? parseInt(e.target.value) : null)} />
-        <input type="number" placeholder="Minutes" className="p-2 border rounded w-1/3 text-sm" value={minutes || ""} onChange={(e) => setMinutes(e.target.value ? parseInt(e.target.value) : null)} />
-      </div>
-
-      <button onClick={() => setShowMoreOptions(!showMoreOptions)} className="text-blue-600 text-sm underline">
-        {showMoreOptions ? "Hide Options ⬆" : "More Options ⬇"}
-      </button>
-
-      {showMoreOptions && (
-        <div className="mt-2 space-y-2 border-t pt-2">
-          <div className="flex items-center space-x-2">
-            <label htmlFor="repeatTask" className="text-gray-700 text-sm">Repeat Task:</label>
-            <select id="repeatTask" className="p-2 border rounded flex-1 text-sm" value={repeatTask} onChange={(e) => setRepeatTask(e.target.value)}>
-              <option value="None">None</option>
-              <option value="Daily">Daily</option>
-              <option value="Weekly">Weekly</option>
-              <option value="Monthly">Monthly</option>
-            </select>
-          </div>
-
-          <div className="flex items-center space-x-2">
-            <label htmlFor="category" className="text-gray-700 text-sm">Category:</label>
-            <select id="category" className="p-2 border rounded flex-1 text-sm" value={category} onChange={(e) => setCategory(e.target.value)}>
-              {categories.map((cat) => (
-                <option key={cat.id} value={cat.id}>
-                  {cat.name}
-                </option>
-              ))}
-            </select>
-          </div>
-        </div>
-      )}
-
-      <div className="mt-4 flex justify-between">
-        <button className="bg-gray-300 px-4 py-2 rounded" onClick={onClose}>
-          Cancel
-        </button>
-        <button className="bg-green-500 text-white px-4 py-2 rounded" onClick={handleSaveTask}>
-          {existingTask ? "Update Task" : "Save Task"}
-        </button>
+        <label htmlFor="category" className="text-gray-700 dark:text-gray-300 text-sm">
+          Category:
+        </label>
+        <select
+          id="category"
+          className="p-2 border rounded flex-1 text-sm bg-white text-black dark:bg-gray-800 dark:text-white dark:border-gray-600"
+          value={category}
+          onChange={(e) => setCategory(e.target.value)}
+        >
+          {categories.map((cat) => (
+            <option key={cat.id} value={cat.id}>
+              {cat.name}
+            </option>
+          ))}
+        </select>
       </div>
     </div>
+  )}
+
+  <div className="mt-4 flex justify-between">
+    <button className="bg-gray-300 dark:bg-gray-700 dark:text-white px-4 py-2 rounded" onClick={onClose}>
+      Cancel
+    </button>
+    <button className="bg-green-500 dark:bg-green-600 text-white px-4 py-2 rounded" onClick={handleSaveTask}>
+      {existingTask ? "Update Task" : "Save Task"}
+    </button>
+  </div>
+</div>
+
   );
 };
 

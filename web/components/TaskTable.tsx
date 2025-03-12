@@ -2,13 +2,8 @@ import React from "react";
 import { Task } from "../types/Task";
 import { Category } from "../types/Category";
 import { Filter } from "../types/Filter";
-
-interface ColorScheme {
-  overdue: string;        // Color for overdue tasks
-  lowPriority: string;    // Color for low priority tasks
-  mediumPriority: string; // Color for medium priority tasks
-  highPriority: string;   // Color for high priority tasks
-}
+import { ColourScheme } from "../types/userSettings";
+import { calculatePriority } from "../lib/calculatePriority";
 
 interface TaskTableProps {
   tasks: Task[];
@@ -26,55 +21,12 @@ interface TaskTableProps {
   onFocus?: (taskId: number) => void;
   // @ts-expect-error: Ignoring error because JSX is properly handled in this project
   renderActions?: (task: Task) => JSX.Element;
-  colorScheme: ColorScheme;       // New prop for custom color schemes
-  colorSchemeEnabled: boolean;    // New prop to toggle the color gradient
+  colourScheme: ColourScheme;       // New prop for custom colour schemes
+  colourSchemeEnabled: boolean;    // New prop to toggle the colour gradient
   showCompletedTasks?: boolean; // New optional prop
   emptyStateMessage?: React.ReactNode;
 }
 
-// Calculates the task priority based on importance, due date and duration.
-const calculatePriority = (task: Task): number => {
-  const currentDate = new Date();
-  const importance = task.importance_factor || 5; // Default importance if not set
-
-  // Due date logic
-  const dueDate = task.due_date ? new Date(task.due_date) : null;
-  let daysUntilDue = Number.MAX_VALUE; // Very high number if no due date
-  if (dueDate) {
-    const timeDifferenceInMs = dueDate.getTime() - currentDate.getTime();
-    daysUntilDue = Math.max(timeDifferenceInMs / (1000 * 3600 * 24), 0); // Ensure non-negative
-  }
-
-  if (task.completed){
-    return 0;
-  }
-
-  // If the task is overdue, return a priority of 11
-  if (dueDate && dueDate < currentDate) {
-    return 11; // Overdue tasks have the highest priority
-  }
-
-  // Task duration (assume minutes, default to 60 minutes)
-  const duration = task.duration ?? 60;
-
-  // Adjusted weights based on desired influence of each factor
-  const weightImportance = 3;  // Strong influence of importance
-  const weightDueDate = 5;     // Strong influence of due date
-  const weightDuration = 2;    // Moderate influence of duration
-
-  // Calculate priority score
-  const priorityScore =
-    (weightImportance * (importance / Math.log2(duration + 1))) +
-    (weightDueDate * (1 / (daysUntilDue + 1))) +  // More weight for tasks due soon
-    (weightDuration * (1 / (duration + 1)));      // Less weight for longer tasks
-
-  // Normalize between 1 and 10
-  const minPriority = 1;
-  const maxPriority = 10;
-  const normalizedPriority = Math.min(Math.max(minPriority, priorityScore), maxPriority);
-
-  return normalizedPriority;
-};
 
 // Formats the duration (in minutes) into a human-readable string.
 const renderDuration = (duration: Task["duration"]) => {
@@ -90,44 +42,39 @@ const renderDueDate = (due_date: string | null) => {
   return new Date(due_date).toLocaleDateString();
 };
 
-// Determines the background color for a row based on priority and color scheme.
-const getPriorityColor = (priority: number, colorScheme: ColorScheme, colorSchemeEnabled: boolean): string => {
-  if (!colorSchemeEnabled) return ""; // If gradient is not enabled, return no color
+// Determines the background colour for a row based on priority and colour scheme.
+const getPrioritycolour = (priority: number, colourScheme: ColourScheme, colourSchemeEnabled: boolean): string => {
+  if (!colourSchemeEnabled) return "dark:bg-gray-800 dark:text-white"; // If gradient is not enabled, return no colour
 
-  // Overdue tasks should have a distinct color (red)
-  if (priority === 11) return colorScheme.overdue; // Red for overdue tasks
+  // Overdue tasks should have a distinct colour (red)
+  if (priority === 11) return colourScheme.overdue; // Red for overdue tasks
 
   // Gradient logic for priority levels
   if (priority <= 3) {
-    return colorScheme.lowPriority; // Low priority (Green)
+    return colourScheme.lowPriority; // Low priority (Green)
   } else if (priority <= 7) {
-    return colorScheme.mediumPriority; // Medium priority (Yellow)
+    return colourScheme.mediumPriority; // Medium priority (Yellow)
   } else {
-    return colorScheme.highPriority; // High priority (Red)
+    return colourScheme.highPriority; // High priority (Red)
   }
 };
 
 // Modify sorting logic based on the selected sortBy prop
-const getSortedTasks = (tasks: Task[], sortBy: string) => {
-  return tasks.sort((a, b) => {
+const getSortedTasks = (tasks: (Task & { priority: number })[], sortBy: string) => {
+  return [...tasks].sort((a, b) => {
     if (sortBy === "priority") {
-      // Sort by priority
-      return calculatePriority(b) - calculatePriority(a);
+      return b.priority - a.priority;
     }
 
     if (sortBy === "dueDate") {
       const dueDateA = a.due_date ? new Date(a.due_date) : new Date(8640000000000000);
       const dueDateB = b.due_date ? new Date(b.due_date) : new Date(8640000000000000);
 
-      // First, sort by due date
-      const dueDateComparison = dueDateA.getTime() - dueDateB.getTime();
-      
-      // If due dates are the same, sort by priority (higher priority first)
-      if (dueDateComparison === 0) {
-        return calculatePriority(b) - calculatePriority(a);
-      }
+      // Overdue tasks should appear first
+      if (a.priority === 11 && b.priority !== 11) return -1;
+      if (b.priority === 11 && a.priority !== 11) return 1;
 
-      return dueDateComparison;
+      return dueDateA.getTime() - dueDateB.getTime();
     }
 
     return 0;
@@ -136,31 +83,26 @@ const getSortedTasks = (tasks: Task[], sortBy: string) => {
 
 
 // Modify filtering logic to consider completed tasks visibility
+// Filters tasks based on selected filters.
 const getFilteredTasks = (
-  tasks: Task[],
+  tasks: (Task & { priority: number })[],
   selectedFilter: Filter,
   showCompletedTasks: boolean
 ) => {
-  let filteredTasks = tasks;
-
-  if (!showCompletedTasks) {
-    // Filter out completed tasks unless explicitly allowed
-    filteredTasks = filteredTasks.filter((task) => !task.completed);
-  }
+  let filteredTasks = showCompletedTasks ? tasks : tasks.filter((task) => !task.completed);
 
   const { filter, minPriority, maxPriority, selectedCategories } = selectedFilter;
 
-  if (filter === "priorityRange" && minPriority !== undefined && maxPriority !== undefined) {
-    filteredTasks = filteredTasks.filter((task) => {
-      const taskPriority = calculatePriority(task);
-      return taskPriority >= minPriority && taskPriority <= maxPriority;
-    });
+  if (filter === "priorityRange") {
+    filteredTasks = filteredTasks.filter((task) => task.priority >= minPriority && task.priority <= maxPriority);
   }
 
   if (filter === "thisWeek") {
-    const currentDate = new Date();
-    const weekStart = new Date(currentDate.setDate(currentDate.getDate() - currentDate.getDay()));
-    const weekEnd = new Date(currentDate.setDate(currentDate.getDate() + 6 - currentDate.getDay()));
+    const today = new Date();
+    const weekStart = new Date(today);
+    weekStart.setDate(today.getDate() - today.getDay()); // Start of week (Sunday)
+    const weekEnd = new Date(weekStart);
+    weekEnd.setDate(weekStart.getDate() + 6); // End of week (Saturday)
 
     filteredTasks = filteredTasks.filter((task) => {
       if (!task.due_date) return false;
@@ -170,31 +112,20 @@ const getFilteredTasks = (
   }
 
   if (filter === "Priority>7") {
-    filteredTasks = filteredTasks.filter((task) => calculatePriority(task) > 7);
+    filteredTasks = filteredTasks.filter((task) => task.priority > 7);
   }
 
   if (filter === "overDue") {
-    const currentDate = new Date();
-    filteredTasks = filteredTasks.filter((task) => {
-      if (task.due_date) {
-        const dueDate = new Date(task.due_date);
-        return dueDate < currentDate && !task.completed;
-      }
-      return false;
-    });
+    const now = new Date();
+    filteredTasks = filteredTasks.filter((task) => task.due_date && new Date(task.due_date) < now && !task.completed);
   }
 
   if (filter === "highPriority") {
-    // Sort tasks by priority in descending order and get the top 5
-    filteredTasks = [...filteredTasks]
-      .sort((a, b) => calculatePriority(b) - calculatePriority(a))
-      .slice(0, 5);
+    filteredTasks = [...filteredTasks].sort((a, b) => b.priority - a.priority).slice(0, 5);
   }
 
   if (selectedCategories.length > 0) {
-    filteredTasks = filteredTasks.filter((task) =>
-      selectedCategories.includes(task.category_id ?? -1)  // Handle undefined category_id by checking for -1
-    );
+    filteredTasks = filteredTasks.filter((task) => selectedCategories.includes(task.category_id ?? -1));
   }
 
   return filteredTasks;
@@ -207,24 +138,41 @@ const getCategoryName = (categoryId: number | null, categories: Category[]) => {
   return category ? category.name : "Uncategorized";
 };
 
+// Helper function to normalize priorities
+const normalizePriorities = (tasks: Task[]): (Task & { priority: number })[] => {
+  const tasksWithPriorities = tasks.map(task => ({
+    ...task,
+    priority: calculatePriority(task),
+  }));
+
+  const maxPriority = Math.max(...tasksWithPriorities.filter(t => t.priority !== 11).map(t => t.priority), 1);
+
+  return tasksWithPriorities.map(task => ({
+    ...task,
+    priority: task.priority === 11 ? 11 : parseFloat(((task.priority / maxPriority) * 10).toFixed(2)),
+  }));
+};
+
 const TaskTable: React.FC<TaskTableProps> = ({ 
     tasks,
     categories, 
     selectedFilter,
     sortBy,
     renderActions,
-    colorScheme,
-    colorSchemeEnabled,
+    colourScheme,
+    colourSchemeEnabled,
     showCompletedTasks = false,
     emptyStateMessage
   }) => {
 
+  const normalizedTasks = normalizePriorities(tasks);
+
 
   // Apply filtering, including completed tasks visibility
-  const filteredTasks = getFilteredTasks(tasks, selectedFilter, showCompletedTasks);
+  const filteredTasks = getFilteredTasks(normalizedTasks, selectedFilter, showCompletedTasks);
   if (filteredTasks.length === 0) {
     return (
-      <div className="text-center p-6 bg-gray-100 rounded-lg shadow-md">
+      <div className="text-center p-6 bg-gray-100 rounded-lg shadow-md dark:bg-gray-700">
         {emptyStateMessage || (
           <>
             <p className="text-lg font-semibold text-gray-700">No tasks at the moment!</p>
@@ -242,7 +190,7 @@ const TaskTable: React.FC<TaskTableProps> = ({
     <div className="overflow-x-auto bg-white shadow-md rounded-lg mt-4 w-full">
       <table className="min-w-full table-auto">
         <thead className="bg-gray-100">
-          <tr>
+          <tr className="bg-gray-200 dark:bg-gray-700">
             <th className="py-2 px-4 text-left">Task Title</th>
             <th className="py-2 px-4 text-left">Priority</th>
             <th className="py-2 px-4 text-left">Due Date</th>
@@ -252,18 +200,18 @@ const TaskTable: React.FC<TaskTableProps> = ({
             {renderActions && <th className="py-2 px-4 text-left">Actions</th>}          
             </tr>
         </thead>
-        <tbody>
+        <tbody className="text-black dark:text-black">
           {sortedTasks.map((task) => {
             const priority = calculatePriority(task);
-            const priorityColor = getPriorityColor(priority, colorScheme, colorSchemeEnabled);
+            const prioritycolour = getPrioritycolour(priority, colourScheme, colourSchemeEnabled);
             return (
-              <tr key={task.id} className={priorityColor}>
+              <tr key={task.id} className={`${prioritycolour}`}>
                 <td className="py-2 px-4">
                   <span className={task.completed ? "line-through text-gray-400" : ""}>
                     {task.title || "Untitled Task"}
                   </span>
                 </td>
-                <td className="py-2 px-4">{priority.toFixed(2)}</td>
+                <td className="py-2 px-4">{task.priority.toFixed(2)}</td>
                 <td className="py-2 px-4">{renderDueDate(task.due_date)}</td>
                 <td className="py-2 px-4">{getCategoryName(task.category_id,categories)}</td>
                 <td className="py-2 px-4">{renderDuration(task.duration)}</td>

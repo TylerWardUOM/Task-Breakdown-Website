@@ -10,6 +10,10 @@ import userRoutes from "./routes/userRoutes";
 import categoryRoutes from "./routes/categoryRoutes";
 import {scheduleCronJobs,runRepeatTasks} from "./cronJob";  // Import the cron job schedule function
 import { deleteUnverifiedUsersFromDB } from "./models/userModel";
+import userSettingsRoutes from "./routes/userSettingsRoutes";
+import cookieParser from "cookie-parser";
+
+
 
 
 dotenv.config();
@@ -25,12 +29,18 @@ app.use(cors({
   credentials: true,
 }));
 app.use(express.json());
-app.use(helmet());
+app.use(helmet({
+  contentSecurityPolicy: false, // ✅ Prevents CSP blocking frontend scripts
+}));
+app.use(cookieParser()); // ✅ Enables Express to read cookies
+app.use(express.urlencoded({ extended: true })); // For parsing URL-encoded requests
+
 
 // Routes
 app.use("/api/auth", authRoutes);
 app.use("/api/tasks", taskRoutes);
 app.use("/api/user",userRoutes,);
+app.use("/api/user/settings",userSettingsRoutes,);
 app.use("/api/category",categoryRoutes)
 // @ts-ignore
 app.get("/", (req, res) => {

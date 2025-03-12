@@ -1,43 +1,60 @@
 "use client";
 import "./globals.css";
 import Navbar from "../components/ui/Navbar";
-import Sidebar from "../components/ui/Sidebar";
-import { AuthProvider } from "../lib/authContext"; // Import your AuthProvider
-import { useState } from "react"; // Import useState for managing sidebar state
+import { useEffect, useState } from "react";
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
-  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+function LayoutContent({ children }: { children: React.ReactNode }) {
+  const [theme, setTheme] = useState<"dark" | "light" | null>(null);
 
-  // Toggle sidebar visibility
-  const toggleSidebar = () => setIsSidebarOpen(!isSidebarOpen);
+  // Detect and apply system theme before rendering anything
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const systemTheme = window.matchMedia("(prefers-color-scheme: dark)").matches
+        ? "dark"
+        : "light";
+      setTheme(systemTheme);
+      document.documentElement.classList.toggle("dark", systemTheme === "dark");
+    }
+  }, []);
+
+  // Don't render anything until the system theme is set
+  if (theme === null) return null;
+
+  // Show loading state until authentication completes
+  // if (loading) {
+  //   return (
+  //     <div className="flex h-screen w-screen items-center justify-center dark:bg-gray-900 dark:text-white bg-white text-black">
+  //       <p className="text-xl font-semibold">Loading...</p>
+  //     </div>
+  //   );
+  // }
 
   return (
-    <AuthProvider>
-      <html lang="en">
-        <body className="h-screen w-screen flex flex-col">
-          {/* Navbar: Full width, stays at the top */}
-          <nav className="fixed top-0 left-0 w-full h-16 bg-gray-800 text-white flex items-center px-4 z-50 shadow-md">
-            <Navbar onToggleSidebar={toggleSidebar} />
-          </nav>
+    <div className="h-screen w-screen flex flex-col">
+      {/* Navbar (fixed at the top) */}
+      <nav className="fixed top-0 left-0 w-full h-16 bg-gray-800 text-white flex items-center px-4 z-50 shadow-md">
+        <Navbar/>
+      </nav>
 
-          {/* Layout Container */}
-          <div className="relative flex flex-1 pt-16">
-            {/* Sidebar: Fixed to the left, full height */}
-            <aside
-              className={`w-64 bg-gray-900 text-white h-screen fixed left-0 top-16 shadow-md transition-transform duration-300 z-40 ${
-                isSidebarOpen ? "transform-none" : "-translate-x-full"
-              } sm:block`} // Hides sidebar on mobile
-            >
-              <Sidebar isOpen={isSidebarOpen} closeSidebar={toggleSidebar} />
-            </aside>
 
-            {/* Main Content: Takes up remaining space, not affected by sidebar */}
-            <main className="flex-1 p-6 bg-gray-100 overflow-auto ml-0 sm:ml-0">
-              {children}
-            </main>
-          </div>
-        </body>
-      </html>
-    </AuthProvider>
+      {/* Layout container */}
+      <div className="flex flex-1 min-h-0 pt-16 relative">
+        {/* Sidebar */}
+        {/* Main Content */}
+        <main className="flex-1 h-full overflow-auto bg-gray-100 dark:bg-gray-900 dark:text-black">
+          {children}
+        </main>
+      </div>
+    </div>
+  );
+}
+
+export default function RootLayout({ children }: { children: React.ReactNode }) {
+  return (
+    <html lang="en">
+      <body>
+        <LayoutContent>{children}</LayoutContent>
+      </body>
+    </html>
   );
 }
