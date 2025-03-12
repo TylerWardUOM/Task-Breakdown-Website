@@ -1,5 +1,5 @@
 import { UserSettings } from "../types/userSettings";
-import { Task } from "../types/Task";
+import { Task, Task_data } from "../types/Task";
 
 export const fetchTasks = async () => {
   const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/tasks/get`, {
@@ -89,7 +89,6 @@ export const fetchUserSettings = async () => {
 
 
 export const toggleTaskCompletionRequest = async (taskId: number, isCompleted: boolean | null) => {
-  if (isCompleted){
   const url = isCompleted
     ? `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/tasks/${taskId}/uncomplete`
     : `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/tasks/${taskId}/complete`;
@@ -106,7 +105,6 @@ export const toggleTaskCompletionRequest = async (taskId: number, isCompleted: b
     }
     throw new Error(`Failed to ${isCompleted ? "unmark" : "mark"} task as complete`);
   }
-}
 };
 
 
@@ -130,7 +128,7 @@ export const deleteTaskRequest = async (taskId: number) => {
 
 
 
-export const saveTask = async (taskData: Partial<Task>, existingTask?: Task) => {
+export const saveTask = async (taskData: Partial<Task_data>, existingTask?: Task | null) => {
   try {
     const endpoint = existingTask
       ? `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/tasks/updateNulls`

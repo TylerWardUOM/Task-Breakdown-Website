@@ -20,3 +20,14 @@ export interface Task {
     duration: number | null; // Duration in minutes
     repeated: boolean;
   }
+
+export interface Task_data{
+  taskId: Task.id | undefined,
+  title: string,
+  description: string | null,
+  due_date: string | null,
+  importance_factor: number | null,
+  duration: number | null,
+  repeat_interval: string | null,
+  category_id: number | null,
+}

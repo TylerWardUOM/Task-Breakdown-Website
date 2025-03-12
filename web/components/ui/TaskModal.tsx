@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import ImportanceSelector from "./ImportanceSelector";
-import { Task } from "../../types/Task";
+import { Task, Task_data } from "../../types/Task";
 import { RepeatInterval } from "../../types/Task";
 import { Category } from "../../types/Category";
 import { saveTask } from "../../lib/api";
@@ -75,9 +75,9 @@ const TaskModal: React.FC<TaskModalProps> = ({ onClose, onSave, existingTask, ca
   const handleSaveTask = async () => {
     const totalDuration = (hours || 0) * 60 + (minutes || 0);
 
-    const taskData = {
+    const taskData: Task_data = {
       taskId: existingTask?.id || undefined,
-      title: taskTitle || null,
+      title: taskTitle,
       description: description || null,
       due_date: dueDate || null,
       importance_factor: importanceValue,
