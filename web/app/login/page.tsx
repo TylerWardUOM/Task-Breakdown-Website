@@ -17,6 +17,10 @@ export default function LoginPage() {
     router.push("/register");
   };
 
+  const handlePasswordResetRedirect = () =>{
+    router.push("/resetPassword")
+  }
+
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
@@ -135,6 +139,13 @@ export default function LoginPage() {
             {loading ? "Logging in..." : "Login"}
           </button>
         </form>
+
+        <p className="text-sm text-center mt-4">
+          Forgot Password?{" "}
+          <button onClick={handlePasswordResetRedirect} className="text-blue-600 hover:underline">
+            Reset Password
+          </button>
+        </p>
 
         <p className="text-sm text-center mt-4">
           Don&apos;t have an account?{" "}

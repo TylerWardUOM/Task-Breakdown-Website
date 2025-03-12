@@ -172,7 +172,7 @@ const TaskTable: React.FC<TaskTableProps> = ({
   const filteredTasks = getFilteredTasks(normalizedTasks, selectedFilter, showCompletedTasks);
   if (filteredTasks.length === 0) {
     return (
-      <div className="text-center p-6 bg-gray-100 rounded-lg shadow-md dark:bg-gray-700">
+      <div className="text-center p-6 bg-gray-100 rounded-lg shadow-md mt-4 dark:bg-gray-700">
         {emptyStateMessage || (
           <>
             <p className="text-lg font-semibold text-gray-700">No tasks at the moment!</p>
