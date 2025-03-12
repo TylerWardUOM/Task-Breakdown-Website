@@ -31,7 +31,7 @@ const SettingsLayoutContent = ({ children }: { children: ReactNode }) => {
   const { settings } = useUserSettings();
   const [isThemeLoaded, setIsThemeLoaded] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  const {userName} = useAuth();
+  const { userName } = useAuth();
 
   useEffect(() => {
     if (settings?.theme) {
@@ -67,36 +67,37 @@ const SettingsLayoutContent = ({ children }: { children: ReactNode }) => {
         >
           <Sidebar isOpen={isSidebarOpen} closeSidebar={() => setIsSidebarOpen(false)} />
         </aside>
-    <div className="settings-layout flex-1 w-full h-full p-6 bg-gray-100 text-black dark:bg-gray-900 dark:text-white">
-      {children}
-    </div>
-    </div>
+        <div className="settings-layout flex-1 w-full h-full p-6 bg-gray-100 text-black dark:bg-gray-900 dark:text-white">
+          {children}
+        </div>
+      </div>
     </div>
   );
 };
 
-function ProtectedSettingsLayout({ children }: { children: ReactNode }) {
+export default function UserSettingsLayout({ children }: { children: ReactNode }) {
+  return (
+    <AuthProvider>
+      <AuthGate>{children}</AuthGate>
+    </AuthProvider>
+  );
+}
+
+function AuthGate({ children }: { children: ReactNode }) {
   const { isAuthenticated, loading, redirectToLogin } = useAuth();
 
-  if (loading) return <LoadingScreen />; // Show loading screen while auth is loading
+  useEffect(() => {
+    if (!loading && !isAuthenticated) {
+      redirectToLogin();
+    }
+  }, [loading, isAuthenticated, redirectToLogin]);
 
-  if (!isAuthenticated) {
-    redirectToLogin();
-    return null; // Prevent rendering anything until redirected
-  }
+  if (loading) return <LoadingScreen />;
+  if (!isAuthenticated) return null; // Prevent rendering anything while redirecting
 
   return (
     <UserSettingsProvider>
       <SettingsLayoutContent>{children}</SettingsLayoutContent>
     </UserSettingsProvider>
-  );
-}
-
-// Ensure `AuthProvider` is always wrapping `useAuth()`
-export default function UserSettingsLayout({ children }: { children: ReactNode }) {
-  return (
-    <AuthProvider>
-      <ProtectedSettingsLayout>{children}</ProtectedSettingsLayout>
-    </AuthProvider>
   );
 }

@@ -88,7 +88,8 @@ export const fetchUserSettings = async () => {
 };
 
 
-export const toggleTaskCompletionRequest = async (taskId: number, isCompleted: boolean) => {
+export const toggleTaskCompletionRequest = async (taskId: number, isCompleted: boolean | null) => {
+  if (isCompleted){
   const url = isCompleted
     ? `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/tasks/${taskId}/uncomplete`
     : `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/tasks/${taskId}/complete`;
@@ -105,8 +106,7 @@ export const toggleTaskCompletionRequest = async (taskId: number, isCompleted: b
     }
     throw new Error(`Failed to ${isCompleted ? "unmark" : "mark"} task as complete`);
   }
-
-  return response.json(); // Return the updated task data (if needed)
+}
 };
 
 
@@ -126,7 +126,6 @@ export const deleteTaskRequest = async (taskId: number) => {
     throw new Error("Failed to delete task");
   }
 
-  return response.json(); // Return response (if needed)
 };
 
 
