@@ -1,19 +1,19 @@
 "use client";
 import { useState} from "react";
 import { FiPlusCircle } from "react-icons/fi";
-import Card from "../../components/ui/Card";
-import Modal from "../../components/ui/Modal";
-import TaskModal from "../../components/ui/TaskModal";
-import TaskCompletedTimeframe from "../../components/TaskCompletedTimeframe";
-import Toast from "../../components/ui/Toast";
-import { useAuth } from "../../contexts/authContext"; // Import the useAuth hook
-import TaskTable from "../../components/TaskTable";
-import useFetchTasks from "../../hooks/useFetchTasks";
+import Card from "../../../components/ui/Card";
+import Modal from "../../../components/ui/Modal";
+import TaskModal from "../../../components/ui/TaskModal";
+import TaskCompletedTimeframe from "../../../components/TaskCompletedTimeframe";
+import Toast from "../../../components/ui/Toast";
+import { useAuth } from "../../../contexts/authContext"; // Import the useAuth hook
+import TaskTable from "../../../components/TaskTable";
+import useFetchTasks from "../../../hooks/useFetchTasks";
 import Link from 'next/link';
-import { Task } from "../../types/Task";
-import useFetchCategories from "../../hooks/useFetchCategories";
-import { Filter } from "../../types/Filter";
-import { useUserSettings } from "../../contexts/UserSettingsContext";
+import { Task } from "../../../types/Task";
+import useFetchCategories from "../../../hooks/useFetchCategories";
+import { Filter } from "../../../types/Filter";
+import { useUserSettings } from "../../../contexts/UserSettingsContext";
 
 
 export default function Dashboard() {
@@ -90,7 +90,7 @@ export default function Dashboard() {
             colourSchemeEnabled={colourSchemeEnabled}
           />
           <div className="flex justify-center mt-4">
-            <Link href="/tasks">
+            <Link href="/user/tasks">
               <button className="bg-blue-600 text-white px-6 py-3 rounded-lg shadow hover:bg-blue-700">
                 All Tasks
               </button>

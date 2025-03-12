@@ -11,19 +11,19 @@ const Sidebar = ({ isOpen, closeSidebar }: { isOpen: boolean, closeSidebar: () =
     >
       <h2 className="text-xl font-bold mb-4">Dashboard</h2>
       <nav className="space-y-2">
-        <Link href="/dashboard" className="block hover:underline" onClick={closeSidebar}>
+        <Link href="/user/dashboard" className="block hover:underline" onClick={closeSidebar}>
           Home
         </Link>
-        <Link href="/tasks" className="block hover:underline" onClick={closeSidebar}>
+        <Link href="/user/tasks" className="block hover:underline" onClick={closeSidebar}>
           Tasks
         </Link>
-        <Link href="/calendar" className="block hover:underline" onClick={closeSidebar}>
+        <Link href="/user/calendar" className="block hover:underline" onClick={closeSidebar}>
           Calendar
         </Link>
-        <Link href="/analytics" className="block hover:underline" onClick={closeSidebar}>
+        <Link href="/user/analytics" className="block hover:underline" onClick={closeSidebar}>
           Analytics
         </Link>
-        <Link href="/settings" className="block hover:underline" onClick={closeSidebar}>
+        <Link href="/user/settings" className="block hover:underline" onClick={closeSidebar}>
           Settings
         </Link>
       </nav>

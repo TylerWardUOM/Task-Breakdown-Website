@@ -1,17 +1,17 @@
 "use client";
 import { useState} from "react";
 import { useRouter } from "next/navigation";
-import TaskTable from "../../components/TaskTable";
-import Modal from "../../components/ui/Modal";
-import TaskModal from "../../components/ui/TaskModal";
+import TaskTable from "../../../components/TaskTable";
+import Modal from "../../../components/ui/Modal";
+import TaskModal from "../../../components/ui/TaskModal";
 import { PlusCircleIcon, PencilIcon, CheckCircleIcon, XCircleIcon, EyeIcon } from "@heroicons/react/solid";
-import useFetchTasks from "../../hooks/useFetchTasks"; // Import the hook
-import { Task } from "../../types/Task";
-import useFetchCategories from "../../hooks/useFetchCategories";
-import FilterMenu from "../../components/ui/FilterMenu";
-import { Filter } from "../../types/Filter";
-import { useUserSettings } from "../../contexts/UserSettingsContext";
-import { deleteTaskRequest, toggleTaskCompletionRequest } from "../../lib/api";
+import useFetchTasks from "../../../hooks/useFetchTasks"; // Import the hook
+import { Task } from "../../../types/Task";
+import useFetchCategories from "../../../hooks/useFetchCategories";
+import FilterMenu from "../../../components/ui/FilterMenu";
+import { Filter } from "../../../types/Filter";
+import { useUserSettings } from "../../../contexts/UserSettingsContext";
+import { deleteTaskRequest, toggleTaskCompletionRequest } from "../../../lib/api";
 
 
 const TaskListPage = () => {
@@ -128,7 +128,7 @@ const deleteTask = async (taskId: number) => {
 
 
   const goToFocusMode = (taskId: number) => {
-    router.push(`/focus?task=${taskId}`);
+    router.push(`/user/focus?task=${taskId}`);
   };
 
   const renderActions = (task: Task) => (

@@ -1,8 +1,8 @@
 "use client";
-import { useUserSettings } from "../../contexts/UserSettingsContext";
+import { useUserSettings } from "../../../contexts/UserSettingsContext";
 import { useState, useEffect, useRef } from "react";
-import ColorSwatchesPicker from "../../components/ui/ColorSwatchesPicker";
-import { ColourScheme, UserSettings } from "../../types/userSettings";
+import ColorSwatchesPicker from "../../../components/ui/ColorSwatchesPicker";
+import { ColourScheme, UserSettings } from "../../../types/userSettings";
 
 const DEFAULT_COLOUR_SCHEME: ColourScheme = {
     overdue: "bg-red-600",
