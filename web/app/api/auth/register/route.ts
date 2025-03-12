@@ -24,12 +24,13 @@ export async function POST(req: Request) {
     // Step 4: Store the token in an HTTP-only secure cookie
     const cookieStore = await cookies(); // Await the cookies() function
     cookieStore.set("authToken", token, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      path: "/",
-      sameSite: "strict",
-      maxAge: 60 * 60 * 24 * 7, // 7 Days
-    });
+        httpOnly: true,
+        secure: process.env.NEXT_PUBLIC_NODE_ENV === "production", // This ensures the cookie is only sent over HTTPS
+        path: "/",
+        domain: ".taskmanager.shop", // This makes the cookie available to both subdomains
+        sameSite: "lax", // Required for cross-origin requests between subdomains
+        maxAge: 60 * 60 * 24 * 7, // 7 Days
+      });
 
     return NextResponse.json({ message: "User registered. Please verify email." }, { status: 201 });
   } catch (error: unknown) {

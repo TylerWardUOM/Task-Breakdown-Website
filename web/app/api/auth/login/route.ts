@@ -26,11 +26,13 @@ export async function POST(req: Request) {
     const cookieStore = await(cookies()); // No need to await this function
     cookieStore.set("authToken", token, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
+      secure: process.env.NEXT_PUBLIC_NODE_ENV === "production", // This ensures the cookie is only sent over HTTPS
       path: "/",
-      sameSite: "strict",
+      domain: ".taskmanager.shop", // This makes the cookie available to both subdomains
+      sameSite: "lax", // Required for cross-origin requests between subdomains
       maxAge: 60 * 60 * 24 * 7, // 7 Days
     });
+    
 
     return NextResponse.json({ message: "Login successful.", user: { email: user.email } });
   } catch (error) {
