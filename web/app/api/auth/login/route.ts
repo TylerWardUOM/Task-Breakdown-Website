@@ -1,9 +1,11 @@
 import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { getAuth, signInWithEmailAndPassword } from "firebase/auth";
-import {app} from "../../../../lib/firebase"  // Import Firebase instance
+import { app } from "../../../../lib/firebase"; // Import Firebase instance
+import { FirebaseError } from "firebase/app";
 
 const auth = getAuth(app);
+
 export async function POST(req: Request) {
   try {
     const { email, password } = await req.json();
@@ -21,7 +23,7 @@ export async function POST(req: Request) {
     const token = await user.getIdToken();
 
     // Step 4: Store the token in an HTTP-only secure cookie
-    const cookieStore = await cookies(); // Await the cookies() function
+    const cookieStore = await(cookies()); // No need to await this function
     cookieStore.set("authToken", token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
@@ -29,10 +31,23 @@ export async function POST(req: Request) {
       sameSite: "strict",
       maxAge: 60 * 60 * 24 * 7, // 7 Days
     });
-    
 
     return NextResponse.json({ message: "Login successful.", user: { email: user.email } });
-  } catch (error: any) {
-    return NextResponse.json({ error: "Invalid email or password." }, { status: 401 });
+  } catch (error) {
+    console.error("Login error:", error);
+
+    // Handle Firebase authentication errors
+    if (error instanceof FirebaseError) {
+      return NextResponse.json(
+        { error: { code: error.code, message: error.message } },
+        { status: 401 }
+      );
+    }
+
+    // Fallback for other errors
+    return NextResponse.json(
+      { error: { code: "auth/unknown-error", message: "An unexpected error occurred." } },
+      { status: 500 }
+    );
   }
 }

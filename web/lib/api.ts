@@ -157,3 +157,57 @@ export const saveTask = async (taskData: Partial<Task>, existingTask?: Task) => 
     throw error;
   }
 };
+
+export const registerUserInDatabase = async (email: string, username: string) => {
+  try {
+    const url = `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/auth/register`;
+
+    const response = await fetch(url, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      credentials: "include", // 🔥 Uses cookies for authentication
+      body: JSON.stringify({email,username}),
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      if (data.error && typeof data.error === "object") {
+        return {
+          errorCode: data.error.code || "auth/unknown-error",
+          errorMessage: data.error.message || "An unknown authentication error occurred.",
+        };
+      }
+      throw new Error("Failed to register user in the database.");
+    }
+
+    return { success: true, message: "Registration successful! Please verify your email before logging in." };
+  } catch (error) {
+    console.error("Database registration error:", error);
+    throw error;
+  }
+};
+
+export const markUserAsVerified = async (email: string) => {
+  try {
+    const url =  `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/user/markVerified`;
+    // Send a request to the backend to mark the user as verified
+    const response = await fetch(url, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      credentials: "include", // 🔥 Uses cookies for authentication
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(data.error || "Failed to mark user as verified.");
+    }
+    if (data.message != "User is already verified."){
+      console.log(`User ${email} marked as verified successfully`);
+    }
+  } catch (error) {
+    console.error("Error marking user as verified:", error);
+    throw new Error("Failed to mark user as verified.");
+  }
+};

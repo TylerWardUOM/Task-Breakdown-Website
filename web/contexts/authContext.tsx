@@ -9,7 +9,6 @@ interface AuthContextType {
   loading: boolean;
   logout: () => void;
   redirectToLogin: () => void;
-  setIsSigningUp: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -18,7 +17,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [userName, setUserName] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
-  const [isSigningUp, setIsSigningUp] = useState(false); 
   const router = useRouter();
   const pathname = usePathname();
 
@@ -44,12 +42,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         if (data.isAuthenticated) {
           try {
             // Fetch user data only if not signing up
-            if (!isSigningUp) {
               const fetchedUserData = await getUserData();
               if (fetchedUserData) {
                 setUserName(fetchedUserData.username);
               }
-            }
+
 
             setIsAuthenticated(true);
           } catch (error) {
@@ -68,10 +65,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     };
 
     checkSession();
-  }, [isSigningUp, pathname]);
+  }, [pathname]);
 
   return (
-    <AuthContext.Provider value={{ isAuthenticated, userName, loading, setIsSigningUp, logout, redirectToLogin }}>
+    <AuthContext.Provider value={{ isAuthenticated, userName, loading, logout, redirectToLogin }}>
       {children}
     </AuthContext.Provider>
   );

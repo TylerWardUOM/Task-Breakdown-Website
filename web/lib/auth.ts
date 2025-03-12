@@ -3,6 +3,7 @@
 import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, sendPasswordResetEmail, sendEmailVerification } from "firebase/auth";
 import { app } from "./firebase"; // Import Firebase config
 import { FirebaseError } from "firebase/app";
+import { markUserAsVerified, registerUserInDatabase } from "./api";
 
 const auth = getAuth(app);
 
@@ -140,7 +141,7 @@ export const signInEmailVerification = async (
     if (!response.ok) {
       throw new Error(data.error || "Login failed.");
     }
-    markUserAsVerified(token,email);
+    markUserAsVerified(email);
     setIsSigningUp(false); // Reset flag after success
     return { emailVerified: true, user: data.user }; // Return success and user data
 
@@ -156,30 +157,6 @@ export const signInEmailVerification = async (
   }
 };
 
-const markUserAsVerified = async (token: string, email: string) => {
-  try {
-    // Send a request to the backend to mark the user as verified
-    const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/user/markVerified`, {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${token}`,
-        "Content-Type": "application/json",
-      },
-    });
-
-    const data = await response.json();
-
-    if (!response.ok) {
-      throw new Error(data.error || "Failed to mark user as verified.");
-    }
-    if (data.message != "User is already verified."){
-      console.log(`User ${email} marked as verified successfully`);
-    }
-  } catch (error) {
-    console.error("Error marking user as verified:", error);
-    throw new Error("Failed to mark user as verified.");
-  }
-};
 
 
 export const logoutCookies = async () => {
@@ -192,12 +169,9 @@ export const logoutCookies = async () => {
 export const signUpEmailVerificationCookies = async (
   email: string,
   password: string,
-  username: string,
-  setIsSigningUp: React.Dispatch<React.SetStateAction<boolean>>
+  username: string
 ) => {
   try {
-    setIsSigningUp(true);
-
     const response = await fetch("/api/auth/register", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -205,27 +179,37 @@ export const signUpEmailVerificationCookies = async (
       body: JSON.stringify({ email, password, username }),
     });
 
+    const data = await response.json();
     if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(errorData.error || "Registration failed.");
+      // Ensure the error response format is handled properly
+      if (data.error && typeof data.error === "object") {
+        const errorCode = data.error.code || "auth/unknown-error";
+        const errorMessage = data.error.message || "An unknown authentication error occurred.";
+
+        return { errorCode, errorMessage };
+      }
+      throw new Error("Register failed.");
     }
 
-    setIsSigningUp(false);
-    return { success: true, message: "Please verify your email before logging in." };
+    // Step 4: Send user details to backend SQL database
+    const responseDB = await registerUserInDatabase(email,username);
+
+    if (!responseDB.success) {
+      const errorData = responseDB.errorCode
+      throw new Error(errorData.error || "Failed to register user in the database.");
+    }
+
+    return { success: true, message: "Registration successful! Please verify your email before logging in." };
   } catch (error) {
-    setIsSigningUp(false);
     console.error("Sign-up error:", error);
-    throw new Error("Sign-up failed.");
+    return {
+      errorCode: "auth/unknown-error",
+      errorMessage: error instanceof Error ? error.message : "An unknown error occurred.",
+    };
   }
 };
 
-export const signInEmailVerificationCookies = async (
-  email: string,
-  password: string,
-  setIsSigningUp: React.Dispatch<React.SetStateAction<boolean>>
-) => {
-  setIsSigningUp(true);
-
+export const signInEmailVerificationCookies = async (email: string, password: string) => {
   try {
     const response = await fetch("/api/auth/login", {
       method: "POST",
@@ -237,14 +221,29 @@ export const signInEmailVerificationCookies = async (
     const data = await response.json();
 
     if (!response.ok) {
-      throw new Error(data.error || "Login failed.");
+      // Ensure the error response format is handled properly
+      if (data.error && typeof data.error === "object") {
+        return {
+          errorCode: data.error.code || "auth/unknown-error",
+          errorMessage: data.error.message || "An unknown authentication error occurred.",
+        };
+      }
+      
+      // Handle specific case where email is not verified
+      if (data.error === "Email not verified.") {
+        return { emailVerified: false };
+      }
+      throw new Error("Login failed.");
     }
-
-    setIsSigningUp(false);
+    markUserAsVerified(email);
     return { emailVerified: true, user: data.user };
   } catch (error) {
-    setIsSigningUp(false);
     console.error("Login error:", error);
-    throw new Error("Login failed.");
+
+    return {
+      errorCode: "auth/unknown-error",
+      errorMessage: error instanceof Error ? error.message : "An unknown error occurred.",
+    };
   }
 };
+

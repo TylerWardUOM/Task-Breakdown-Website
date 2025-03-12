@@ -2,9 +2,8 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { signUpEmailVerification } from "../../lib/auth"; // Import updated function
+import {signUpEmailVerificationCookies } from "../../lib/auth"; // Import updated function
 import { FirebaseError } from "firebase/app"; // Import FirebaseError to handle specific errors
-import { useAuth } from '../../contexts/authContext';
 
 const RegisterPage = () => {
   const [email, setEmail] = useState('');
@@ -15,7 +14,6 @@ const RegisterPage = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [isRegistered, setIsRegistered] = useState(false); // Track if registration is successful
   const router = useRouter();
-  const { setIsSigningUp } = useAuth(); // Access the setIsSigningUp from context
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -38,19 +36,16 @@ const RegisterPage = () => {
 
     try {
       // Sign up and send email verification
-      const response = await signUpEmailVerification(email, password, username, setIsSigningUp);
-      setSuccess(response.message);
-      setIsRegistered(true); // Set registration success flag
-      setTimeout(() => {
-        router.push('/login');
-      }, 8000);
-      
-    } catch (error: unknown) {
-      console.error("Error during registration:", error);
-
-      if (error instanceof FirebaseError) {
-        // Map Firebase error codes to user-friendly messages
-        switch (error.code) {
+      const response = await signUpEmailVerificationCookies(email, password, username);
+      if (response.success){
+        setSuccess(response.message);
+        setIsRegistered(true); // Set registration success flag
+        setTimeout(() => {
+          router.push('/login');
+        }, 8000);
+      }
+      if (response.errorCode) {
+        switch (response.errorCode) {
           case "auth/email-already-in-use":
             setError("This email is already in use. Please try logging in.");
             break;
@@ -69,7 +64,10 @@ const RegisterPage = () => {
           default:
             setError("Registration failed. Please try again.");
         }
-      } else if (error instanceof Error) {
+      }
+    } catch (error: unknown) {
+      console.error("Error during registration:", error);  
+    if (error instanceof FirebaseError) {
         setError(error.message || 'Registration failed, please try again.');
       } else {
         setError('Registration failed, please try again.');

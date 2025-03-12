@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { createUserWithEmailAndPassword, getAuth, sendEmailVerification } from "firebase/auth";
 import {app} from "../../../../lib/firebase"  // Import Firebase instance
+import { FirebaseError } from "firebase/app";
 
 const auth = getAuth(app);
 
@@ -31,7 +32,19 @@ export async function POST(req: Request) {
     });
 
     return NextResponse.json({ message: "User registered. Please verify email." }, { status: 201 });
-  } catch (error: any) {
-    return NextResponse.json({ error: error.message }, { status: 400 });
-  }
-}
+  } catch (error: unknown) {
+    console.error("Unexpected Register Error:", error);
+    if (error instanceof FirebaseError) {
+        return NextResponse.json(
+        { error: { code: error.code, message: error.message } },
+        { status: 401 }
+        );
+    }
+
+    // Fallback for other errors
+    return NextResponse.json(
+        { error: { code: "auth/unknown-error", message: "An unexpected error occurred." } },
+        { status: 500 }
+    );
+    }
+    }
