@@ -55,9 +55,11 @@ export default function Dashboard() {
       <p className="text-gray-500 italic mt-2 dark:text-gray-400">&quot;Inspirational Quote of the Day&quot;</p>
       {/* Focus Mode & Add Task Buttons */}
       <div className="mt-6 flex space-x-4">
+      <Link href="/user/focus">
         <button className="bg-blue-600 text-white px-4 py-2 rounded-lg shadow hover:bg-blue-700">
           🎯 Start Focus Mode
         </button>
+      </Link>
         <button 
           className="bg-green-500 text-white px-4 py-2 rounded-lg shadow hover:bg-green-600 flex items-center" 
           onClick={openNewTaskModal}

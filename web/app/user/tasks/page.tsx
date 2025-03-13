@@ -4,7 +4,7 @@ import { useRouter } from "next/navigation";
 import TaskTable from "../../../components/TaskTable";
 import Modal from "../../../components/ui/Modal";
 import TaskModal from "../../../components/ui/TaskModal";
-import { PlusCircleIcon, PencilIcon, CheckCircleIcon, XCircleIcon, EyeIcon } from "@heroicons/react/solid";
+import { PlusCircleIcon, PencilIcon, CheckCircleIcon, XCircleIcon, EyeIcon, TrashIcon } from "@heroicons/react/solid";
 import useFetchTasks from "../../../hooks/useFetchTasks"; // Import the hook
 import { Task } from "../../../types/Task";
 import useFetchCategories from "../../../hooks/useFetchCategories";
@@ -133,50 +133,81 @@ const deleteTask = async (taskId: number) => {
 
   const renderActions = (task: Task) => (
     <div className="flex space-x-2">
-      <button
-        onClick={() => openTaskModal(task.id)}
-        className="bg-green-500 text-white px-4 py-2 rounded"
-        type="button"
-        aria-label="Edit Task"
-      >
-        <PencilIcon className="h-5 w-5" />
-      </button>
+  {/* Toggle Completion Button */}
+  <button
+    onClick={() => toggleTaskCompletion(task.id)}
+    className={`relative flex items-center justify-center w-10 h-10 rounded transition border-2 group
+      ${task.completed ? "bg-green-500 border-green-500 text-white hover:bg-red-500 hover:border-red-500" 
+      : "border-gray-400 text-gray-500 hover:bg-green-500 hover:border-green-500 hover:text-white"}
+      ${isToggling ? "opacity-50 cursor-not-allowed" : ""}`}
+    type="button"
+    aria-label={task.completed ? "Unmark Task as Complete" : "Mark Task as Complete"}
+    disabled={isToggling}
+  >
+    {/* Tooltip */}
+    <span className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 hidden group-hover:flex bg-gray-800 text-white text-xs px-2 py-1 rounded whitespace-nowrap">
+      {task.completed ? "Mark as Incomplete" : "Mark as Complete"}
+    </span>
 
-      <button
-        onClick={() => toggleTaskCompletion(task.id)}
-        className={`px-4 py-2 rounded ${task.completed ? "bg-red-500" : "bg-yellow-500"} ${isToggling ? "opacity-50 cursor-not-allowed" : ""}`}
-        type="button"
-        aria-label={task.completed ? "Unmark Task as Complete" : "Mark Task as Complete"}
-        disabled={isToggling} // Disable button during toggling
-      >
-        {task.completed ? (
-          <XCircleIcon className="h-5 w-5" />
-        ) : (
-          <CheckCircleIcon className="h-5 w-5" />
-        )}
-      </button>
+    {/* Show tick when completed, X on hover */}
+    {task.completed ? (
+      <>
+        <CheckCircleIcon className="h-5 w-5 group-hover:hidden" />
+        <XCircleIcon className="h-5 w-5 hidden group-hover:block" />
+      </>
+    ) : (
+      <CheckCircleIcon className="h-5 w-5" />
+    )}
+  </button>
+
+  {/* Edit Task Button */}
+  <button
+    onClick={() => openTaskModal(task.id)}
+    className="relative flex items-center justify-center w-10 h-10 bg-yellow-500 text-white rounded transition hover:bg-yellow-600 group"
+    type="button"
+    aria-label="Edit Task"
+  >
+    {/* Tooltip */}
+    <span className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 hidden group-hover:flex bg-gray-800 text-white text-xs px-2 py-1 rounded whitespace-nowrap">
+      Edit Task
+    </span>
+
+    <PencilIcon className="h-5 w-5" />
+  </button>
+
+  {/* Delete Task Button */}
+  <button
+    onClick={() => deleteTask(task.id)}
+    className={`relative flex items-center justify-center w-10 h-10 bg-red-500 text-white rounded transition hover:bg-red-600 group ${isDeleting ? "opacity-50 cursor-not-allowed" : ""}`}
+    type="button"
+    aria-label="Delete Task"
+    disabled={isDeleting}
+  >
+    {/* Tooltip */}
+    <span className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 hidden group-hover:flex bg-gray-800 text-white text-xs px-2 py-1 rounded whitespace-nowrap">
+      Delete Task
+    </span>
+
+    <TrashIcon className="h-5 w-5" />
+  </button>
+
+  {/* Go to Focus Mode Button */}
+  <button
+    onClick={() => goToFocusMode(task.id)}
+    className="relative flex items-center justify-center w-10 h-10 bg-purple-500 text-white rounded transition hover:bg-purple-600 group"
+    type="button"
+    aria-label="Go to Focus Mode"
+  >
+    {/* Tooltip */}
+    <span className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 hidden group-hover:flex bg-gray-800 text-white text-xs px-2 py-1 rounded whitespace-nowrap">
+      Focus Mode
+    </span>
+
+    <EyeIcon className="h-5 w-5" />
+  </button>
+</div>
 
 
-      <button
-        onClick={() => deleteTask(task.id)}
-        className={`bg-red-500 text-white px-4 py-2 rounded ${isDeleting ? "opacity-50 cursor-not-allowed" : ""}`}
-        type="button"
-        aria-label="Delete Task"
-        // `disabled` is optional, if you want to completely prevent interaction
-        disabled={isDeleting}
-      >
-          <XCircleIcon className="h-5 w-5" />
-      </button>
-
-      <button
-        onClick={() => goToFocusMode(task.id)}
-        className="bg-purple-500 text-white px-4 py-2 rounded flex items-center space-x-2"
-        type="button"
-        aria-label="Go to Focus Mode"
-      >
-        <EyeIcon className="h-5 w-5" />
-      </button>
-    </div>
   );
 
 
@@ -185,7 +216,7 @@ const deleteTask = async (taskId: number) => {
   }
 
   return (
-<div className="container mx-auto p-6">
+<div className="container mx-auto p-6 ">
   <div className="mt-6 inline-flex justify-between items-center">
     <button
       onClick={openNewTaskModal}
