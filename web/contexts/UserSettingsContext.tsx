@@ -14,7 +14,7 @@ const UserSettingsContext = createContext<UserSettingsContextType | undefined>(u
 
 export const UserSettingsProvider = ({ children }: { children: React.ReactNode }) => {
   const getDefaultUserSettings = (): UserSettings => ({
-    theme: "light",
+    theme: "dark",
     notifications_enabled: true,
     colour_scheme: {
       overdue: "bg-red-600",
