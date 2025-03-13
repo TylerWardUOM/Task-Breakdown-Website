@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { FirebaseError } from "firebase/app";
 import { getAuth, GoogleAuthProvider, signInWithPopup } from "firebase/auth";
 import { app } from "../../lib/firebase";
+import Image from "next/image";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
@@ -233,14 +234,21 @@ export default function LoginPage() {
             </button>
           </div>
         )}
-             <div className="mt-6 text-center">
-              <button
-                onClick={handleGoogleSignIn}
-                className="w-full bg-red-500 text-white p-2 rounded-md mt-4 hover:bg-red-600 transition duration-300"
-              >
-                Sign In with Google
-              </button>
-      </div>
+        <div className="mt-6 flex justify-center">
+          <button
+            onClick={handleGoogleSignIn}
+            aria-label="Sign in with Google"
+            className="w-max-full bg-white border border-gray-300 rounded-md flex items-center justify-center hover:bg-gray-100 transition duration-300 shadow-md"
+          >
+            <Image
+              src="/web_light_sq_SI.svg"
+              alt="Sign in with Google"
+              width={300} // Adjust width to match button
+              height={50} // Adjust height to match button
+              className="h-10 w-auto" 
+            />
+          </button>
+        </div>
       </div>
     </div>
   );

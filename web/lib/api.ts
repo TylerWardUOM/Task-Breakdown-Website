@@ -158,32 +158,38 @@ export const saveTask = async (taskData: Partial<Task_data>, existingTask?: Task
 export const registerUserInDatabase = async (email: string, username: string) => {
   try {
     const url = `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/auth/register`;
-
+    
     const response = await fetch(url, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      credentials: "include", // 🔥 Uses cookies for authentication
-      body: JSON.stringify({email,username}),
+      credentials: "include", // Uses cookies for authentication
+      body: JSON.stringify({ email, username }),
     });
 
     const data = await response.json();
 
     if (!response.ok) {
-      if (data.error && typeof data.error === "object") {
-        return {
-          errorCode: data.error.code || "auth/unknown-error",
-          errorMessage: data.error.message || "An unknown authentication error occurred.",
-        };
-      }
-      throw new Error("Failed to register user in the database.");
+      console.error("Database registration failed:", data);
+
+      return {
+        success: false,
+        errorCode: data.error?.code || "db/unknown-error",
+        errorMessage: data.error?.message || "Failed to register user in the database.",
+      };
     }
 
-    return { success: true, message: "Registration successful! Please verify your email before logging in." };
+    return { success: true, message: "User successfully added to the database." };
   } catch (error) {
     console.error("Database registration error:", error);
-    throw error;
+
+    return {
+      success: false,
+      errorCode: "db/network-error",
+      errorMessage: error instanceof Error ? error.message : "An unknown error occurred while registering the user.",
+    };
   }
 };
+
 
 export const markUserAsVerified = async (email: string) => {
   try {

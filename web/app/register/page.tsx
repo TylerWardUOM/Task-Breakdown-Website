@@ -1,10 +1,11 @@
 "use client";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { signUpEmailVerificationCookies } from "../../lib/auth"; // Import updated function
+import { signUpWithEmailPassword, signUpWithGoogle } from "../../lib/auth"; // Import updated function
 import { FirebaseError } from "firebase/app";
 import { getAuth, GoogleAuthProvider, signInWithPopup } from "firebase/auth";
 import { app } from "../../lib/firebase";
+import Image from "next/image";
 
 const RegisterPage = () => {
   const [email, setEmail] = useState("");
@@ -14,7 +15,6 @@ const RegisterPage = () => {
   const [success, setSuccess] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [isRegistered, setIsRegistered] = useState(false);
-  const [isGoogleSignIn, setIsGoogleSignIn] = useState(false); // Track if Google Sign-In was used
 
   const router = useRouter();
   const auth = getAuth(app);
@@ -39,15 +39,13 @@ const RegisterPage = () => {
     }
 
     try {
-      const response = await signUpEmailVerificationCookies(email, password, username, null);
-      if (response.success) {
+      const response = await signUpWithEmailPassword(email, password, username);
+      if ("success" in response && response.success) {
         setSuccess(response.message);
         setIsRegistered(true);
-        setTimeout(() => {
-          router.push("/login");
-        }, 8000);
-      }
-      if (response.errorCode) {
+        await new Promise((resolve) => setTimeout(resolve, 5000));
+        router.push("/login");
+      } else if (response.errorCode) {
         handleAuthErrors(response.errorCode);
       }
     } catch (error: unknown) {
@@ -62,21 +60,13 @@ const RegisterPage = () => {
     try {
       const userCredential = await signInWithPopup(auth, provider);
       if (userCredential) {
-        setIsGoogleSignIn(true);
-        const response = await signUpEmailVerificationCookies(
-          email,
-          password,
-          username,
-          userCredential
-        );
-        if (response.success) {
+        const response = await signUpWithGoogle(userCredential);
+        if ("success" in response && response.success) {
           setSuccess(response.message);
           setIsRegistered(true);
-          setTimeout(() => {
-            router.push("/login");
-          }, 5000);
-        }
-        if (response.errorCode) {
+          await new Promise((resolve) => setTimeout(resolve, 3000));
+          router.push("/login");
+        } else if (response.errorCode) {
           handleAuthErrors(response.errorCode);
         }
       } else {
@@ -97,6 +87,7 @@ const RegisterPage = () => {
       "auth/weak-password": "Weak password. Please choose a stronger password.",
       "auth/missing-password": "Please enter a password.",
       "auth/network-request-failed": "Network error. Please check your internet connection.",
+      "auth/user-already-exists": "User is already registered in the database. Please try logging in.",
     };
     setError(errorMessages[errorCode] || "Registration failed. Please try again.");
   };
@@ -177,32 +168,31 @@ const RegisterPage = () => {
               </a>
             </p>
 
-            <div className="mt-6 text-center">
-              <button
-                onClick={handleGoogleSignIn}
-                className="w-full bg-red-500 text-white p-2 rounded-md mt-4 hover:bg-red-600 transition duration-300"
-              >
-                Sign up with Google
-              </button>
-            </div>
+            <div className="mt-6 flex justify-center">
+          <button
+            type="button"
+            onClick={handleGoogleSignIn}
+            aria-label="Sign up with Google"
+            className="w-max-full bg-white border border-gray-300 rounded-md flex items-center justify-center hover:bg-gray-100 transition duration-300 shadow-md"
+          >
+            <Image
+              src="/web_light_sq_SU.svg"
+              alt="Sign in with Google"
+              width={300} // Adjust width to match button
+              height={50} // Adjust height to match button
+              className="h-10 w-auto" 
+            />
+          </button>
+        </div>
           </>
-        ) : !isGoogleSignIn ? ( // Show verification message only for email sign-ups
-          <div className="text-center">
-            <h2 className="text-2xl font-semibold text-green-600 mb-4">Registration Successful!</h2>
-            <p className="text-gray-700 mb-4">
-              Please verify your email address. You will be redirected to the login page shortly.
-            </p>
-            <p
-              className="text-sm text-blue-600 hover:underline cursor-pointer"
-              onClick={() => router.push("/login")}
-            >
-              Click here to login now.
-            </p>
-          </div>
         ) : (
           <div className="text-center">
             <h2 className="text-2xl font-semibold text-green-600 mb-4">Registration Successful!</h2>
-            <p className="text-gray-700 mb-4">You will be redirected to the login page shortly.</p>
+            <p className="text-gray-700 mb-4">
+              {success.includes("Google")
+                ? "You will be redirected to the login page shortly."
+                : "Please verify your email address. You will be redirected to the login page shortly."}
+            </p>
           </div>
         )}
       </div>
