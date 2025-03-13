@@ -175,8 +175,8 @@ const TaskTable: React.FC<TaskTableProps> = ({
       <div className="text-center p-6 bg-gray-100 rounded-lg shadow-md mt-4 dark:bg-gray-700">
         {emptyStateMessage || (
           <>
-            <p className="text-lg font-semibold text-gray-700">No tasks at the moment!</p>
-            <p className="text-gray-500">Start by adding some tasks to stay organized.</p>
+            <p className="text-lg font-semibold text-gray-700 dark:text-gray-300">No tasks at the moment!</p>
+            <p className="text-gray-500 dark:text-gray-400">Start by adding some tasks to stay organized.</p>
           </>
         )}
       </div>
