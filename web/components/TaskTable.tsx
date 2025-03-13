@@ -191,7 +191,7 @@ const TaskTable: React.FC<TaskTableProps> = ({
   const sortedTasks = getSortedTasks(filteredTasks, sortBy);
 
   return (
-    <div className="overflow-x-auto bg-white shadow-md rounded-lg mt-4 w-full">
+    <div className="overflow-x-auto bg-white shadow-md rounded-lg mt-4 w-full dark:bg-gray-900">
       <table className="min-w-full table-auto">
         <thead className="bg-gray-100">
           <tr className="bg-gray-200 dark:bg-gray-700">
