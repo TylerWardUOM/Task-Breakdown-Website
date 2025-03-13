@@ -3,6 +3,7 @@
 import { getAuth, signInWithEmailAndPassword, sendPasswordResetEmail, sendEmailVerification, UserCredential, GoogleAuthProvider, deleteUser } from "firebase/auth";
 import { app } from "./firebase"; // Import Firebase config
 import { markUserAsVerified, registerUserInDatabase} from "./api";
+import { getUserData } from "./user";
 
 const auth = getAuth(app);
 
@@ -81,6 +82,7 @@ export const signUpWithEmailPassword = async (email: string, password: string, u
 
   const dbResponse = await registerUserInDatabase(email, username);
   if (!dbResponse.success) {
+    await logoutCookies();
     if (dbResponse.errorCode) {
       if (dbResponse.errorCode != "auth/user-already-exists"){
         await deleteUser(user);
@@ -97,6 +99,7 @@ export const signUpWithEmailPassword = async (email: string, password: string, u
       errorMessage: "Failed to add user to database. Account has been removed.",
     };
   }
+    await logoutCookies();
     return authResponse; // Return successful auth response
 };
 
@@ -134,6 +137,7 @@ export const signUpWithGoogle = async (userCredential: UserCredential) => {
 
     // Step 3: Pass all error codes from the database
     if (!dbResponse.success) {
+      await logoutCookies();
       if (dbResponse.errorCode) {
         if (dbResponse.errorCode != "auth/user-already-exists"){
           await deleteUser(user);
@@ -150,7 +154,7 @@ export const signUpWithGoogle = async (userCredential: UserCredential) => {
         errorMessage: "Failed to add user to database. Account has been removed.",
       };
     }
-
+    await logoutCookies();
     return authResponse; // Return successful auth response
   } catch (error) {
     console.error("Google sign-up error:", error);
@@ -161,31 +165,31 @@ export const signUpWithGoogle = async (userCredential: UserCredential) => {
 
 
 
-export const signInEmailVerificationCookies = async (
-  email: string,
-  password: string,
-  userCredential: UserCredential | null
-) => {
-  try {
-    let requestBody: Record<string, unknown> = { email, password };
+const handleAuthLoginResponse = async (response: Response) => {
+  const data = await response.json();
 
-    if (userCredential) {
-      // Handle Google sign-in
-      const credential = GoogleAuthProvider.credentialFromResult(userCredential);
-      if (!credential) {
-        throw new Error("Google authentication failed. No credential found.");
-      }
-
-      const idToken = credential.idToken; // Firebase ID token
-      const accessToken = credential.accessToken; // Google access token (optional)
-
-      if (!idToken) {
-        throw new Error("Failed to retrieve ID token from Google authentication.");
-      }
-
-      requestBody = { idToken, accessToken, google: true };
-      email = userCredential.user.email || email;
+  if (!response.ok) {
+    logoutCookies();
+    if (data.error && typeof data.error === "object") {
+      return {
+        errorCode: data.error.code || "auth/unknown-error",
+        errorMessage: data.error.message || "An unknown authentication error occurred.",
+      };
     }
+
+    if (data.error === "Email not verified.") {
+      return { emailVerified: false };
+    }
+
+    throw new Error("Login failed.");
+  }
+
+  return { emailVerified: true, user: data.user };
+};
+
+export const signInWithEmailPassword = async (email: string, password: string) => {
+  try {
+    const requestBody = { email, password };
 
     const response = await fetch("/api/auth/login", {
       method: "POST",
@@ -194,36 +198,81 @@ export const signInEmailVerificationCookies = async (
       body: JSON.stringify(requestBody),
     });
 
-    const data = await response.json();
-
-    if (!response.ok) {
-      // Ensure the error response format is handled properly
-      if (data.error && typeof data.error === "object") {
+    const result = await handleAuthLoginResponse(response);
+    if (result.emailVerified) {
+      try{
+        markUserAsVerified(email);
+      }catch(error){
+        console.error("error Verifying User",error)
+        logoutCookies();
         return {
-          errorCode: data.error.code || "auth/unknown-error",
-          errorMessage: data.error.message || "An unknown authentication error occurred.",
+          errorCode: "auth/unknown-error",
+          errorMessage: error instanceof Error ? error.message : "An unknown error occurred.",
         };
       }
-
-      // Handle specific case where email is not verified
-      if (data.error === "Email not verified.") {
-        return { emailVerified: false };
-      }
-
-      throw new Error("Login failed.");
     }
 
-    // Mark user as verified only if email is defined
-    if (email) {
-      markUserAsVerified(email);
-    }
-
-    return { emailVerified: true, user: data.user };
+    return result;
   } catch (error) {
-    console.error("Login error:", error);
-
+    console.error("Email sign-in error:", error);
     return {
       errorCode: "auth/unknown-error",
+      errorMessage: error instanceof Error ? error.message : "An unknown error occurred.",
+    };
+  }
+};
+
+export const signInWithGoogle = async (userCredential: UserCredential) => {
+  try {
+    if (!userCredential) throw new Error("Google authentication failed. No credential found.");
+
+    const credential = GoogleAuthProvider.credentialFromResult(userCredential);
+    if (!credential) throw new Error("Failed to retrieve Google credential.");
+
+    const idToken = credential.idToken;
+    const accessToken = credential.accessToken;
+
+    if (!idToken) throw new Error("Failed to retrieve ID token from Google authentication.");
+
+    const email = userCredential.user.email;
+    if (!email) throw new Error("Google authentication failed. No email found in user profile.");
+
+    const requestBody = { idToken, accessToken, google: true };
+
+    const response = await fetch("/api/auth/login", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      credentials: "include",
+      body: JSON.stringify(requestBody),
+    });
+
+    const result = await handleAuthLoginResponse(response);
+
+    // ✅ Properly handle missing user in database
+    const userData = await getUserData();
+    if (!userData) {
+      console.error("User does not exist in database. Deleting Firebase user...");
+    
+      const auth = getAuth();
+      const user = auth.currentUser;
+
+      if (user) {
+        await deleteUser(user); // 🔥 Delete Google user from Firebase
+      }
+
+      await logoutCookies(); // 🔥 Clear session cookies
+
+      return {
+        errorCode: "auth/user-not-found",
+        errorMessage: "User not found. Account has been removed.",
+      };
+    }
+
+    return result;
+  } catch (error) {
+    console.error("Google sign-in error:", error);
+    return {
+      errorCode: "auth/google-auth-error",
       errorMessage: error instanceof Error ? error.message : "An unknown error occurred.",
     };
   }

@@ -40,7 +40,6 @@ export async function POST(req: Request) {
       sameSite: "lax",
       maxAge: 60 * 60 * 24 * 7, // 7 days
     });
-
     return NextResponse.json({
       message: google ? "User signed in successfully with Google." : "User registered successfully. Please verify your email.",
       user,

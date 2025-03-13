@@ -1,6 +1,6 @@
 "use client";
 import { useState } from "react";
-import { resendVerificationEmail, signInEmailVerificationCookies } from "../../lib/auth";
+import { resendVerificationEmail, signInWithEmailPassword, signInWithGoogle } from "../../lib/auth";
 import { useRouter } from "next/navigation";
 import { FirebaseError } from "firebase/app";
 import { getAuth, GoogleAuthProvider, signInWithPopup } from "firebase/auth";
@@ -32,7 +32,7 @@ export default function LoginPage() {
     setError(""); // Reset errors
 
     try {
-      const result = await signInEmailVerificationCookies(email, password,null);
+      const result = await signInWithEmailPassword(email, password);
 
       // ✅ Check if the API returned an error response
       if (result.errorCode) {
@@ -99,7 +99,7 @@ export default function LoginPage() {
       }
   
       // Call function to handle Google authentication & send tokens to the backend
-      const response = await signInEmailVerificationCookies("", "", userCredential);
+      const response = await signInWithGoogle(userCredential);
   
       // ✅ Check if the API returned an error response
       if (response.errorCode) {
