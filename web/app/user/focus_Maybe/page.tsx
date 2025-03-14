@@ -10,8 +10,9 @@ import { Task } from "../../../types/Task"; // Ensure Task type is correctly imp
 import Modal from "../../../components/ui/Modal"; // Using your custom modal
 import { CheckCircleIcon, MinusCircleIcon, PlusCircleIcon } from "@heroicons/react/solid";
 import { toggleTaskCompletionRequest } from "../../../lib/api";
+import Link from "next/link";
 
-export default function FocusMode({ exitFocusMode }: { exitFocusMode: () => void }) {
+export default function FocusMode() {
   const { settings } = useUserSettings();
   const { tasks, setTasks } = useFetchTasks();
   const { categories } = useFetchCategories();
@@ -126,7 +127,7 @@ export default function FocusMode({ exitFocusMode }: { exitFocusMode: () => void
         </button>
         <button 
           className="px-4 py-2 bg-red-500 rounded-md"
-          onClick={resetTimer}
+          onClick={() => resetTimer}
         >
           Reset
         </button>
@@ -187,7 +188,9 @@ export default function FocusMode({ exitFocusMode }: { exitFocusMode: () => void
 
 
       {/* Exit button */}
-      <button className="mt-6 px-4 py-2 bg-gray-700 rounded-md" onClick={exitFocusMode}>Exit Focus Mode</button>
+      <Link href={"/user/dashboard"}>
+      <button className="mt-6 px-4 py-2 bg-gray-700 rounded-md">Exit Focus Mode</button>
+      </Link>
     </div>
   );
 }

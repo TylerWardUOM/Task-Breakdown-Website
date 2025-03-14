@@ -12,6 +12,7 @@ import { CheckCircleIcon, CogIcon, MinusCircleIcon, PlusCircleIcon, XCircleIcon 
 import { toggleTaskCompletionRequest } from "../../../lib/api";
 import FilterMenu from "../../../components/ui/FilterMenu";
 import { Filter } from "../../../types/Filter";
+import Link from "next/link";
 
 interface TimerSettings{
     pomodoro: number,
@@ -23,7 +24,7 @@ interface TimerSettings{
 }
 
 
-export default function FocusMode2({ exitFocusMode }: { exitFocusMode: () => void }) {
+export default function FocusMode2() {
   const { settings } = useUserSettings();
   const { tasks, setTasks } = useFetchTasks();
   const { categories } = useFetchCategories();
@@ -284,82 +285,101 @@ export default function FocusMode2({ exitFocusMode }: { exitFocusMode: () => voi
           ))}
 
           {/* Auto-Start Toggles */}
-          <div className="flex justify-between items-center mt-2">
-            <span>Auto Start Breaks</span>
-            <input
-              type="checkbox"
-              className="form-checkbox h-5 w-5 text-blue-500"
-              checked={timerSettings.autoStartBreaks}
-              onChange={() => setTimerSettings((prev) => ({ ...prev, autoStartBreaks: !prev.autoStartBreaks }))}
-            />
-          </div>
+<div className="flex justify-between items-center mt-2">
+  <label htmlFor="autoStartBreaks">Auto Start Breaks</label>
+  <input
+    id="autoStartBreaks"
+    type="checkbox"
+    className="form-checkbox h-5 w-5 text-blue-500"
+    checked={timerSettings.autoStartBreaks}
+    onChange={() =>
+      setTimerSettings((prev) => ({ ...prev, autoStartBreaks: !prev.autoStartBreaks }))
+    }
+  />
+</div>
 
-          <div className="flex justify-between items-center mt-2">
-            <span>Auto Start Pomodoros</span>
-            <input
-              type="checkbox"
-              className="form-checkbox h-5 w-5 text-blue-500"
-              checked={timerSettings.autoStartPomodoros}
-              onChange={() => setTimerSettings((prev) => ({ ...prev, autoStartPomodoros: !prev.autoStartPomodoros }))}
-            />
-          </div>
+<div className="flex justify-between items-center mt-2">
+  <label htmlFor="autoStartPomodoros">Auto Start Pomodoros</label>
+  <input
+    id="autoStartPomodoros"
+    type="checkbox"
+    className="form-checkbox h-5 w-5 text-blue-500"
+    checked={timerSettings.autoStartPomodoros}
+    onChange={() =>
+      setTimerSettings((prev) => ({ ...prev, autoStartPomodoros: !prev.autoStartPomodoros }))
+    }
+  />
+</div>
 
-          {/* Long Break Interval */}
-          <div className="mt-4">
-            <label className="block text-sm font-medium">Long Break Interval (Pomodoros)</label>
-            <input
-              type="number"
-              min="1"
-              step="1"
-              className="bg-gray-700 rounded p-2 w-full"
-              value={timerSettings.longBreakInterval}
-              onChange={(e) => setTimerSettings((prev) => ({ ...prev, longBreakInterval: Number(e.target.value) }))}
-            />
-          </div>
-        </div>
+{/* Long Break Interval */}
+<div className="mt-4">
+  <label htmlFor="longBreakInterval" className="block text-sm font-medium">
+    Long Break Interval (Pomodoros)
+  </label>
+  <input
+    id="longBreakInterval"
+    type="number"
+    min="1"
+    step="1"
+    className="bg-gray-700 rounded p-2 w-full"
+    value={timerSettings.longBreakInterval}
+    onChange={(e) =>
+      setTimerSettings((prev) => ({ ...prev, longBreakInterval: Number(e.target.value) }))
+    }
+  />
+</div>
+</div>
+{/* Sound Settings */}
+<div className="bg-gray-800 p-4 rounded-lg mb-4">
+  <h4 className="font-semibold mb-2">Sound Settings</h4>
 
+  <label htmlFor="alarmSound">Alarm Sound</label>
+  <select id="alarmSound" className="bg-gray-700 rounded p-2 w-full">
+    <option>Bell</option>
+    <option>Bird</option>
+    <option>Digital</option>
+    <option>Kitchen</option>
+    <option>Wood</option>
+  </select>
 
-    {/* Sound Settings */}
-    <div className="bg-gray-800 p-4 rounded-lg mb-4">
-      <h4 className="font-semibold mb-2">Sound Settings</h4>
-      <label>Alarm Sound</label>
-      <select className="bg-gray-700 rounded p-2 w-full">
-        <option>Bell</option>
-        <option>Bird</option>
-        <option>Digital</option>
-        <option>Kitchen</option>
-        <option>Wood</option>
-      </select>
+  <label htmlFor="tickingSound">Ticking Sound</label>
+  <select id="tickingSound" className="bg-gray-700 rounded p-2 w-full">
+    <option>None</option>
+    <option>Ticking Fast</option>
+    <option>Ticking Slow</option>
+    <option>White Noise</option>
+    <option>Brown Noise</option>
+  </select>
 
-      <label>Ticking Sound</label>
-      <select className="bg-gray-700 rounded p-2 w-full">
-        <option>None</option>
-        <option>Ticking Fast</option>
-        <option>Ticking Slow</option>
-        <option>White Noise</option>
-        <option>Brown Noise</option>
-      </select>
+  <label htmlFor="volume">Volume</label>
+  <input id="volume" type="range" min="0" max="100" className="w-full" />
+</div>
 
-      <label>Volume</label>
-      <input type="range" min="0" max="100" className="w-full" />
-    </div>
+{/* Notification Settings */}
+<div className="bg-gray-800 p-4 rounded-lg">
+  <h4 className="font-semibold mb-2">Notification Settings</h4>
 
-    {/* Notification Settings */}
-    <div className="bg-gray-800 p-4 rounded-lg">
-      <h4 className="font-semibold mb-2">Notification Settings</h4>
-      <div className="flex justify-between items-center">
-        <span>Reminder Interval (minutes)</span>
-        <input type="number" min="1" step="1" className="bg-gray-700 rounded p-2 w-16" value="5" />
-      </div>
+  <div className="flex justify-between items-center">
+    <label htmlFor="reminderInterval">Reminder Interval (minutes)</label>
+    <input
+      id="reminderInterval"
+      type="number"
+      min="1"
+      step="1"
+      className="bg-gray-700 rounded p-2 w-16"
+      value="5"
+    />
+  </div>
 
-      <div className="flex justify-between items-center mt-2">
-        <span>Enable Mobile Alarm</span>
-        <input type="checkbox" className="form-checkbox h-5 w-5 text-blue-500" />
-      </div>
-    </div>
+  <div className="flex justify-between items-center mt-2">
+    <label htmlFor="enableMobileAlarm">Enable Mobile Alarm</label>
+    <input id="enableMobileAlarm" type="checkbox" className="form-checkbox h-5 w-5 text-blue-500" />
+  </div>
+</div>
   </Modal>
-
-      <button className="mt-6 px-4 py-2 bg-gray-700 rounded-md" onClick={exitFocusMode}>Exit Focus Mode</button>
+      <Link href={"/user/dashboard"}>
+      <button className="mt-6 px-4 py-2 bg-gray-700 rounded-md">Exit Focus Mode</button>
+      </Link>
     </div>
   );
 }
