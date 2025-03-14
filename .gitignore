@@ -10,3 +10,5 @@ backend/temp.sql
 /generateFolderStructure.js
 /node_modules
 /backend/temp.sql
+/backend/.env.docker
+/web/.env.docker

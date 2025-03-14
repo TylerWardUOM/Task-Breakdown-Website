@@ -1,8 +1,11 @@
 "use client";
 import { useState } from "react";
-import { resendVerificationEmail, signInEmailVerificationCookies } from "../../lib/auth";
+import { resendVerificationEmail, signInWithEmailPassword, signInWithGoogle } from "../../lib/auth";
 import { useRouter } from "next/navigation";
 import { FirebaseError } from "firebase/app";
+import { getAuth, GoogleAuthProvider, signInWithPopup } from "firebase/auth";
+import { app } from "../../lib/firebase";
+import Image from "next/image";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
@@ -12,10 +15,16 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false);
   const [emailVerified, setEmailVerified] = useState(true);
   const router = useRouter();
-
+  const auth = getAuth(app);
+  const provider = new GoogleAuthProvider();
+  
   const handleRegisterRedirect = () => {
     router.push("/register");
   };
+
+  const handlePasswordResetRedirect = () =>{
+    router.push("/resetPassword")
+  }
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -23,7 +32,7 @@ export default function LoginPage() {
     setError(""); // Reset errors
 
     try {
-      const result = await signInEmailVerificationCookies(email, password);
+      const result = await signInWithEmailPassword(email, password);
 
       // ✅ Check if the API returned an error response
       if (result.errorCode) {
@@ -80,6 +89,74 @@ export default function LoginPage() {
     }
   };
 
+  const handleGoogleSignIn = async () => {
+    try {
+      setLoading(true);      
+      const userCredential = await signInWithPopup(auth, provider);
+  
+      if (!userCredential) {
+        throw new Error("Google sign-in failed. No user credential returned.");
+      }
+  
+      // Call function to handle Google authentication & send tokens to the backend
+      const response = await signInWithGoogle(userCredential);
+  
+      // ✅ Check if the API returned an error response
+      if (response.errorCode) {
+        console.error("API Error:", response.errorCode, response.errorMessage);
+  
+        // Handle specific Firebase authentication errors from API response
+        switch (response.errorCode) {
+          case "auth/user-not-found":
+            setError("No account found with this email. Please sign up first.");
+            break;
+          case "auth/wrong-password":
+          case "auth/invalid-credential":
+            setError("Incorrect password. Please try again.");
+            break;
+          case "auth/invalid-email":
+            setError("Invalid email format. Please enter a valid email.");
+            break;
+          case "auth/too-many-requests":
+            setError("Too many failed attempts. Please wait a moment and try again.");
+            break;
+          case "auth/user-disabled":
+            setError("This account has been disabled. Please contact support.");
+            break;
+          case "auth/network-request-failed":
+            setError("Network error. Please check your internet connection.");
+            break;
+          default:
+            setError(response.errorMessage || "Login failed. Please try again.");
+        }
+        return; // Exit function if there was an error
+      }
+  
+      // ✅ Check if email is not verified
+      if (!userCredential.user.emailVerified) {
+        setError("Please verify your email before logging in.");
+        setEmailVerified(false);
+        return;
+      }
+  
+      // ✅ If login is successful, redirect to dashboard
+      router.push("/user/dashboard");
+    } catch (error: unknown) {
+      console.error("Unexpected Login Error:", error);
+  
+      if (error instanceof FirebaseError) {
+        setError(error.message || "Login failed. Please try again.");
+      } else if (error instanceof Error) {
+        setError(error.message || "An unexpected error occurred. Please try again.");
+      } else {
+        setError("An unexpected error occurred. Please try again.");
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  
   const handleResendVerificationEmail = async () => {
     try {
       const response = await resendVerificationEmail(email, password);
@@ -137,6 +214,13 @@ export default function LoginPage() {
         </form>
 
         <p className="text-sm text-center mt-4">
+          Forgot Password?{" "}
+          <button onClick={handlePasswordResetRedirect} className="text-blue-600 hover:underline">
+            Reset Password
+          </button>
+        </p>
+
+        <p className="text-sm text-center mt-4">
           Don&apos;t have an account?{" "}
           <button onClick={handleRegisterRedirect} className="text-blue-600 hover:underline">
             Register
@@ -150,6 +234,21 @@ export default function LoginPage() {
             </button>
           </div>
         )}
+        <div className="mt-6 flex justify-center">
+          <button
+            onClick={handleGoogleSignIn}
+            aria-label="Sign in with Google"
+            className="w-max-full bg-white border border-gray-300 rounded-md flex items-center justify-center hover:bg-gray-100 transition duration-300 shadow-md"
+          >
+            <Image
+              src="/web_light_sq_SI.svg"
+              alt="Sign in with Google"
+              width={300} // Adjust width to match button
+              height={50} // Adjust height to match button
+              className="h-10 w-auto" 
+            />
+          </button>
+        </div>
       </div>
     </div>
   );

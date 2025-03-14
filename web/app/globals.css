@@ -1,3 +1,42 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+
+/* Default Light Mode Scrollbar */
+/* Default Light Mode Scrollbar */
+html {
+    scrollbar-width: thin;
+    scrollbar-color: #cbd5e1 transparent; /* Transparent track */
+  }
+  
+  html::-webkit-scrollbar {
+    width: 8px;
+  }
+  
+  html::-webkit-scrollbar-track {
+    background: transparent; /* Makes scrollbar track blend with container */
+  }
+  
+  html::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 10px;
+  }
+  
+  html::-webkit-scrollbar-thumb:hover {
+    background: #94a3b8;
+  }
+  
+  /* Dark Mode Scrollbar */
+  html.dark {
+    scrollbar-color: #4a5568 transparent; /* Transparent track */
+  }
+  
+  html.dark::-webkit-scrollbar-thumb {
+    background: #4a5568;
+  }
+  
+  html.dark::-webkit-scrollbar-thumb:hover {
+    background: #718096;
+  }
+  

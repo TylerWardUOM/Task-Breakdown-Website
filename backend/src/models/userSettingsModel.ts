@@ -3,7 +3,7 @@ import { QueryResult } from 'pg';  // PostgreSQL query result type
 
 // Default settings (same as frontend defaults)
 const defaultSettings = {
-  theme: 'light',
+  theme: 'dark',
   notifications_enabled: true,
   colour_scheme: {
     overdue: 'bg-red-600',

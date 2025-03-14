@@ -25,7 +25,10 @@ interface TaskTableProps {
   colourSchemeEnabled: boolean;    // New prop to toggle the colour gradient
   showCompletedTasks?: boolean; // New optional prop
   emptyStateMessage?: React.ReactNode;
+  visibleColumns?: string[]; 
 }
+
+const DEFAULT_COLUMNS = ["title", "priority", "due_date", "category", "duration"];
 
 
 // Formats the duration (in minutes) into a human-readable string.
@@ -162,7 +165,8 @@ const TaskTable: React.FC<TaskTableProps> = ({
     colourScheme,
     colourSchemeEnabled,
     showCompletedTasks = false,
-    emptyStateMessage
+    emptyStateMessage,
+    visibleColumns = DEFAULT_COLUMNS,
   }) => {
 
   const normalizedTasks = normalizePriorities(tasks);
@@ -172,11 +176,11 @@ const TaskTable: React.FC<TaskTableProps> = ({
   const filteredTasks = getFilteredTasks(normalizedTasks, selectedFilter, showCompletedTasks);
   if (filteredTasks.length === 0) {
     return (
-      <div className="text-center p-6 bg-gray-100 rounded-lg shadow-md dark:bg-gray-700">
+      <div className="text-center p-6 bg-gray-100 rounded-lg shadow-md mt-4 dark:bg-gray-700">
         {emptyStateMessage || (
           <>
-            <p className="text-lg font-semibold text-gray-700">No tasks at the moment!</p>
-            <p className="text-gray-500">Start by adding some tasks to stay organized.</p>
+            <p className="text-lg font-semibold text-gray-700 dark:text-gray-300">No tasks at the moment!</p>
+            <p className="text-gray-500 dark:text-gray-400">Start by adding some tasks to stay organized.</p>
           </>
         )}
       </div>
@@ -187,15 +191,15 @@ const TaskTable: React.FC<TaskTableProps> = ({
   const sortedTasks = getSortedTasks(filteredTasks, sortBy);
 
   return (
-    <div className="overflow-x-auto bg-white shadow-md rounded-lg mt-4 w-full">
+    <div className="overflow-x-auto bg-white shadow-md rounded-lg mt-4 w-full dark:bg-gray-900">
       <table className="min-w-full table-auto">
         <thead className="bg-gray-100">
           <tr className="bg-gray-200 dark:bg-gray-700">
-            <th className="py-2 px-4 text-left">Task Title</th>
-            <th className="py-2 px-4 text-left">Priority</th>
-            <th className="py-2 px-4 text-left">Due Date</th>
-            <th className="py-2 px-4 text-left">Category</th>
-            <th className="py-2 px-4 text-left">Duration</th>
+            {visibleColumns.includes("title") && <th className="py-2 px-4 text-left">Task Title</th>}
+            {visibleColumns.includes("priority") && <th className="py-2 px-4 text-left">Priority</th>}
+            {visibleColumns.includes("due_date") && <th className="py-2 px-4 text-left">Due Date</th>}
+            {visibleColumns.includes("category") && <th className="py-2 px-4 text-left">Category</th>}
+            {visibleColumns.includes("duration") && <th className="py-2 px-4 text-left">Duration</th>}
             {/* Conditionally render Actions column */}
             {renderActions && <th className="py-2 px-4 text-left">Actions</th>}          
             </tr>
@@ -206,21 +210,25 @@ const TaskTable: React.FC<TaskTableProps> = ({
             const prioritycolour = getPrioritycolour(priority, colourScheme, colourSchemeEnabled);
             return (
               <tr key={task.id} className={`${prioritycolour}`}>
-                <td className="py-2 px-4">
-                  <span className={task.completed ? "line-through text-gray-400" : ""}>
-                    {task.title || "Untitled Task"}
-                  </span>
-                </td>
+                             {visibleColumns.includes("title") && (
+                <td className={`py-2 px-4 ${task.completed ? "line-through text-gray-400" : ""}`}>
+                  {task.title || "Untitled Task"}</td>
+              )}
+              {visibleColumns.includes("priority") && (
                 <td className="py-2 px-4">{task.priority.toFixed(2)}</td>
+              )}
+              {visibleColumns.includes("due_date") && (
                 <td className="py-2 px-4">{renderDueDate(task.due_date)}</td>
+              )}
+              {visibleColumns.includes("category") && (
                 <td className="py-2 px-4">{getCategoryName(task.category_id,categories)}</td>
+              )}
+              {visibleColumns.includes("duration") && (
                 <td className="py-2 px-4">{renderDuration(task.duration)}</td>
-                {/* Conditionally render Actions column */}
-                {renderActions && (
-                  <td className="py-2 px-4 flex space-x-2 w-auto">
-                    {renderActions(task)}
-                  </td>
-                )}
+              )}
+              {renderActions && (
+                <td className="py-2 px-4">{renderActions(task)}</td>
+              )}
               </tr>
             );
           })}

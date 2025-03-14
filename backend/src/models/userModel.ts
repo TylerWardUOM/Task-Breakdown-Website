@@ -4,14 +4,19 @@ import { QueryResult } from 'pg';  // Import QueryResult for typing
 import admin from '../config/firebase';
 
 // Create a new user in the database
-export const createUserInDB = async (firebase_uid: string, email: string, username: string): Promise<QueryResult> => {
-  const result = await pool.query(
-    `INSERT INTO users (firebase_uid, email, username) 
-     VALUES ($1, $2, $3) 
-     RETURNING *`,  // RETURNING * to return the newly created user record
-    [firebase_uid, email, username]
-  );
-  return result;
+export const createUserInDB = async (firebase_uid: string, email: string, username: string) => {
+  try {
+    const result = await pool.query(
+      `INSERT INTO users (firebase_uid, email, username) 
+       VALUES ($1, $2, $3) 
+       RETURNING *`,  
+      [firebase_uid, email, username]
+    );
+    return result;
+  } catch (error) {
+    console.error("Database Error:", error);
+    throw error; // Let the register function handle it
+  }
 };
 
 // Get a user by Firebase UID

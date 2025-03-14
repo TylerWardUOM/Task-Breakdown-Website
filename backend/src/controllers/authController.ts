@@ -2,39 +2,83 @@
 import { Request, Response } from "express";
 import { createUserInDB, getUserByFirebaseUID } from "../models/userModel";  // Assuming the user model is in the correct directory
 import admin from "../config/firebase";
+import pool from "../config/db";
 
 
 
 // Register function on the backend (Node.js / Express)
 export const register = async (req: Request, res: Response): Promise<void> => {
-    const token = req.cookies?.authToken;
-    const {username, email } = req.body; // Extract username, email, and token
-  
-    if (!token || !username || !email) {
-      res.status(400).json({ error: "Firebase token, username, and email are required" });
+  const token = req.cookies?.authToken;
+  const { username, email } = req.body;
+
+  // Validate request data
+  if (!token || !username || !email) {
+    res.status(400).json({ 
+      error: { 
+        code: "auth/missing-fields", 
+        message: "Firebase token, username, and email are required." 
+      } 
+    });
+    return;
+  }
+
+  try {
+    // Verify Firebase ID token
+    const decodedToken = await admin.auth().verifyIdToken(token);
+    const { uid } = decodedToken;
+
+    // Check if user already exists in the database
+    const existingUser = await pool.query("SELECT * FROM users WHERE firebase_uid = $1", [uid]);
+    if (existingUser.rows.length > 0) {
+      res.status(409).json({ 
+        error: { 
+          code: "auth/user-already-exists", 
+          message: "User is already registered in the database." 
+        } 
+      });
       return;
     }
-  
-    try {
-      // Verify Firebase ID token
-      const decodedToken = await admin.auth().verifyIdToken(token);
-      const { uid } = decodedToken;
-  
-      // Store user in PostgreSQL or any other DB with username, email, and uid
-      const result = await createUserInDB(uid, email, username);  // Modify `createUserInDB` to handle username
-      console.log("User saved in DB:", result);
-  
-      res.status(201).json({
-        message: "User registered successfully",
-        uid,
-        email,
-        username,  // Return the username too in the response
+
+    // Store user in PostgreSQL
+    const result = await createUserInDB(uid, email, username);
+    console.log("User saved in DB:", result.rows[0]);
+
+    res.status(201).json({
+      message: "User registered successfully.",
+      user: result.rows[0], // Send full user details
+    });
+  } catch (error: any) {
+    console.error("Error registering user:", error);
+
+    if (error.code === "23505") {
+      // Handle unique constraint violations (email or username already exists)
+      res.status(409).json({ 
+        error: { 
+          code: "auth/duplicate-user", 
+          message: "A user with this email or username already exists." 
+        } 
       });
-    } catch (error) {
-      console.error("Error verifying token:", error);
-      res.status(500).json({ error: "Error registering user" });
+      return;
     }
-  };
+
+    if (error.code === "auth/argument-error") {
+      res.status(400).json({ 
+        error: { 
+          code: "auth/invalid-token", 
+          message: "Invalid or expired Firebase authentication token." 
+        } 
+      });
+      return;
+    }
+
+    res.status(500).json({ 
+      error: { 
+        code: "auth/internal-error", 
+        message: "An unexpected error occurred while registering the user." 
+      } 
+    });
+  }
+};
   
 
   

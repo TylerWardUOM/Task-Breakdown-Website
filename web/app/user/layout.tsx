@@ -21,7 +21,7 @@ const LoadingScreen = () => {
   if (theme === null) return null; // Prevent rendering until theme is set
 
   return (
-    <div className="flex h-screen w-screen items-center justify-center bg-white dark:bg-gray-900 text-black dark:text-white">
+    <div className="flex h-screen w-screen items-center justify-center bg-gray-100 dark:bg-gray-900 text-black dark:text-white">
       <p className="text-xl font-semibold">Loading...</p>
     </div>
   );

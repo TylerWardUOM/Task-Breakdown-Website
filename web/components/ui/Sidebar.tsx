@@ -17,6 +17,9 @@ const Sidebar = ({ isOpen, closeSidebar }: { isOpen: boolean, closeSidebar: () =
         <Link href="/user/tasks" className="block hover:underline" onClick={closeSidebar}>
           Tasks
         </Link>
+        <Link href="/user/focus" className="block hover:underline" onClick={closeSidebar}>
+          Focus
+        </Link>
         <Link href="/user/calendar" className="block hover:underline" onClick={closeSidebar}>
           Calendar
         </Link>

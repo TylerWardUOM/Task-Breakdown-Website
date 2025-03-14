@@ -36,15 +36,15 @@ const Navbar: React.FC<NavbarProps> = ({
       ): null}
 
       {/* Logo */}
-      <span className="text-xl font-bold cursor-pointer">MyApp</span>
+      <span className="text-xl font-bold cursor-pointer">Task Manager</span>
 
       {/* Navigation Links */}
       <div className="space-x-4 hidden sm:block">
         <a href="/features" className="hover:underline">
-          Features
+          Bruh
         </a>
         <a href="/pricing" className="hover:underline">
-          Pricing
+          Bruh
         </a>
       </div>
 
