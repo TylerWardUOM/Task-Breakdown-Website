@@ -34,17 +34,19 @@ export async function POST(req: Request) {
     // Step 4: Set token in HTTP-only secure cookie
     const cookieStore = await cookies();
     cookieStore.set("authToken", token, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      path: "/",
-      sameSite: "lax",
-      maxAge: 60 * 60 * 24 * 7, // 7 days
+        httpOnly: true,
+        secure: process.env.NEXT_PUBLIC_NODE_ENV === "production", // This ensures the cookie is only sent over HTTPS
+        path: "/",
+        domain: ".taskmanager.shop", // This makes the cookie available to both subdomains
+        sameSite: "lax", // Required for cross-origin requests between subdomains
+        maxAge: 60 * 60 * 24 * 7, // 7 Days
     });
     return NextResponse.json({
       message: google ? "User signed in successfully with Google." : "User registered successfully. Please verify your email.",
       user,
     },{ status: google ? 200 : 201 });
   } catch (error) {
+
     console.error("Unexpected Register Error:", error);
     if (error instanceof FirebaseError) {
       return NextResponse.json(

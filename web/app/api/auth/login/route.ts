@@ -16,11 +16,12 @@ const auth = getAuth(app);
 const setAuthCookie = async (token: string) => {
   const cookieStore = await cookies();
   cookieStore.set("authToken", token, {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
-    path: "/",
-    sameSite: "lax",
-    maxAge: 60 * 60 * 24 * 7, // 7 days
+      httpOnly: true,
+      secure: process.env.NEXT_PUBLIC_NODE_ENV === "production", // This ensures the cookie is only sent over HTTPS
+      path: "/",
+      domain: ".taskmanager.shop", // This makes the cookie available to both subdomains
+      sameSite: "lax", // Required for cross-origin requests between subdomains
+      maxAge: 60 * 60 * 24 * 7, // 7 Days
   });
 };
 
@@ -60,6 +61,7 @@ export async function POST(req: Request) {
     // Email/password login
     userCredential = await signInWithEmailAndPassword(auth, email, password);
     return await handleLoginResponse(userCredential, false);
+
 
   } catch (error) {
     console.error("Login error:", error);
