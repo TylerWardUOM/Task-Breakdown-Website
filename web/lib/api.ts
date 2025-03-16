@@ -233,7 +233,7 @@ export const createSubtask = async (task_id: number,subtaskData: Subtask_data) =
   return response.json();
 };
 
-export const fetchSubtasksByTaskId = async (taskId: string) => {
+export const fetchSubtasksByTaskId = async (taskId: number) => {
   const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/subtasks/task/${taskId}`, {
     method: "GET",
     headers: {
