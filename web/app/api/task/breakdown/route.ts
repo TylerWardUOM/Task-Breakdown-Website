@@ -1,14 +1,80 @@
 // app/api/task/breakdown.ts
 import { NextRequest, NextResponse } from "next/server";
-import { TaskBreakdownResponse, TaskDuration, MainTask, SubTask } from "../../../../types/Task";
+import { Subtask_data, TaskBreakdownResponse, TaskDuration, Task_data } from "../../../../types/Task";
 
 
 const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
-
+const MOCK = true;
 
 export async function POST(req: NextRequest): Promise<NextResponse> {
   try {
     console.log("🔹 Received a request to break down task");
+
+    if (MOCK){
+    const mockResponse: TaskBreakdownResponse = {
+        main_task: {
+          title: "Write an essay on Shakespeare's Othello",
+          description: "Compose an essay analyzing Shakespeare's Othello using secondary sources that need to be referenced.",
+          duration: { hours: 3, minutes: 0 },
+          due_date: null, // Matches AI-generated response
+          importance_factor: null, // AI does not assign this
+          repeat_interval: null, // AI does not handle repetition
+          category_id: null // Default to null
+        },
+        subtasks: [
+          {
+            title: "Research secondary sources",
+            description: "Find and gather secondary sources related to Othello.",
+            duration: { hours: 1, minutes: 0 },
+            importance_factor: 10
+          },
+          {
+            title: "Read and take notes on sources",
+            description: "Read the gathered secondary sources and take detailed notes.",
+            duration: { hours: 1, minutes: 0 },
+            importance_factor: 8
+          },
+          {
+            title: "Create an outline for the essay",
+            description: "Draft a structured outline for the essay based on the notes.",
+            duration: { hours: 0, minutes: 30 },
+            importance_factor: 8
+          },
+          {
+            title: "Write the introduction",
+            description: "Compose the introduction section of the essay.",
+            duration: { hours: 0, minutes: 30 },
+            importance_factor: 8
+          },
+          {
+            title: "Write body paragraphs",
+            description: "Write the body paragraphs of the essay using the outline.",
+            duration: { hours: 1, minutes: 0 },
+            importance_factor: 10
+          },
+          {
+            title: "Write the conclusion",
+            description: "Compose the conclusion section of the essay.",
+            duration: { hours: 0, minutes: 30 },
+            importance_factor: 8
+          },
+          {
+            title: "Cite sources and format bibliography",
+            description: "Reference all secondary sources used and format the bibliography.",
+            duration: { hours: 0, minutes: 30 },
+            importance_factor: 8
+          },
+          {
+            title: "Proofread and edit the essay",
+            description: "Review the essay for any grammatical or structural errors.",
+            duration: { hours: 0, minutes: 30 },
+            importance_factor: 10
+          }
+        ]
+      };
+    
+      return NextResponse.json(mockResponse);
+    }
 
     if (!OPENAI_API_KEY) {
       console.error("❌ OPENAI_API_KEY is missing");
@@ -127,23 +193,29 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
         { status: 500 }
       );
     }
+  
 
-    // Function to convert minutes into { hours, minutes }
-    const convertMinutesToHours = (minutes: number): TaskDuration => ({
-      hours: Math.floor(minutes / 60),
-      minutes: minutes % 60
-    });
+        // Convert AI-generated main task into `Task_data`
+        const formattedMainTask: (Omit<Task_data, "taskId" | "duration"> & { duration: TaskDuration | null }) = {
+        title: parsedResponse.main_task.title,
+        description: parsedResponse.main_task.description,
+        due_date: null, // Default to null (can be updated later)
+        importance_factor: null, // AI does not assign an importance factor directly
+        duration: parsedResponse.main_task.duration, // Ensure duration format
+        repeat_interval: null, // AI does not handle repetition
+        category_id: null, // Default to null (can be assigned later)
+        };
 
-    // Convert main task duration
-    const formattedMainTask: MainTask = {
-      ...parsedResponse.main_task,
-      duration: convertMinutesToHours(parsedResponse.main_task.duration.hours * 60 + parsedResponse.main_task.duration.minutes)
-    };
 
-    // Convert subtasks durations
-    const formattedSubtasks: SubTask[] = parsedResponse.subtasks.map((subtask) => ({
-      ...subtask,
-      duration: convertMinutesToHours(subtask.duration.hours * 60 + subtask.duration.minutes)
+    // Convert subtasks into `SubTask` type
+    const formattedSubtasks: (Omit<Subtask_data, "duration"> & {
+        duration: TaskDuration | null; // AI returns duration in { hours, minutes }
+      })[] = parsedResponse.subtasks.map((subtask) => ({
+      subtaskId: undefined,
+      title: subtask.title,
+      description: subtask.description,
+      duration: subtask.duration,
+      importance_factor: subtask.importance_factor
     }));
 
     // Create final structured response

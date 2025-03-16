@@ -1,6 +1,6 @@
-import { TaskResponse } from "../types/Task";
+import { TaskBreakdownResponse } from "../types/Task";
 
-export async function getTaskBreakdown(task: string): Promise<TaskResponse | null> {
+export async function getTaskBreakdown(task: string): Promise<TaskBreakdownResponse | null> {
   try {
     const response = await fetch("/api/task/breakdown", {
       method: "POST",
