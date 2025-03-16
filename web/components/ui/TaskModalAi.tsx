@@ -6,7 +6,7 @@ import { TaskBreakdownResponse, Task_data, Subtask_data } from "../../types/Task
 import { Category } from "../../types/Category";
 import ImportanceSelector from "./ImportanceSelector";
 import { formatRepeatInterval, mapRepeatIntervalToDropdownValue, parseRepeatInterval } from "../../lib/taskUtils";
-import { saveTask } from "../../lib/api";
+import { createSubtask, saveTask } from "../../lib/api";
 
 
 // Define the props structure for TaskForm
@@ -114,6 +114,7 @@ const TaskForm: React.FC<TaskFormProps> = ({categories, onSave, onClose}) => {
     try {
       // Save main task
       const savedTask = await saveTask(taskData);
+
   
       // Save each subtask linked to the saved task
       const savedSubtasks = await Promise.all(
@@ -122,8 +123,8 @@ const TaskForm: React.FC<TaskFormProps> = ({categories, onSave, onClose}) => {
             ...subtask,
             parent_task_id: savedTask.taskId, // Link subtask to the main task
           };
-          //return await saveSubtask(subtaskToSave);
-          return;
+          return await createSubtask(savedTask.id,subtaskToSave);
+          //return;
         })
       );
   
