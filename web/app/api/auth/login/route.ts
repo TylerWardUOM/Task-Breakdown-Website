@@ -15,16 +15,21 @@ const auth = getAuth(app);
 // Helper function to set authentication cookies
 const setAuthCookie = async (token: string) => {
   const cookieStore = await cookies();
-  cookieStore.set("authToken", token, {
-      httpOnly: true,
-      secure: process.env.NEXT_PUBLIC_NODE_ENV === "production", // This ensures the cookie is only sent over HTTPS
-      path: "/",
-      domain: ".taskmanager.shop", // This makes the cookie available to both subdomains
-      sameSite: "lax", // Required for cross-origin requests between subdomains
-      maxAge: 60 * 60 * 24 * 7, // 7 Days
-  });
+  const cookieOptions: any = {
+    httpOnly: true,
+    secure: process.env.NEXT_PUBLIC_NODE_ENV === "production",
+    path: "/",
+    sameSite: "lax",
+    maxAge: 60 * 60 * 24 * 7, // 7 Days
+  };
+  
+  // Only set domain if in production
+  if (process.env.NEXT_PUBLIC_NODE_ENV === "production") {
+    cookieOptions.domain = ".taskmanager.shop";
+  }
+  
+  cookieStore.set("authToken", token, cookieOptions);
 };
-
 // Helper function to handle login response
 const handleLoginResponse = async (userCredential: UserCredential, isGoogleLogin: boolean) => {
   const user = userCredential.user;
