@@ -11,14 +11,14 @@ import {
 // Create a new subtask
 export const createSubtask = async (req: Request, res: Response): Promise<void> => {
     try {
-        const { task_id, title, description, duration, importance_factor } = req.body;
+        const { task_id, title, description, duration, importance_factor, order } = req.body;
 
         if (!task_id || !title) {
             res.status(400).json({ message: "Task ID and title are required" });
             return;
         }
 
-        const newSubtask = await createSubtaskInDB(task_id, title, description, duration, importance_factor);
+        const newSubtask = await createSubtaskInDB(task_id, title, description, duration, importance_factor, order);
         res.status(201).json(newSubtask.rows[0]);
     } catch (err) {
         console.error(err);
@@ -72,14 +72,14 @@ export const getSubtaskById = async (req: Request, res: Response): Promise<void>
 export const updateSubtask = async (req: Request, res: Response): Promise<void> => {
     try {
         const { subtask_id } = req.params;
-        const { title, description, duration, importance_factor } = req.body;
+        const { title, description, duration, importance_factor, order } = req.body;
 
         if (!subtask_id) {
             res.status(400).json({ message: "Subtask ID is required" });
             return;
         }
 
-        const updatedSubtask = await updateSubtaskInDB(Number(subtask_id), title, description, duration, importance_factor);
+        const updatedSubtask = await updateSubtaskInDB(Number(subtask_id), title, description, duration, importance_factor, order);
         res.status(200).json(updatedSubtask.rows[0]);
     } catch (err) {
         console.error(err);

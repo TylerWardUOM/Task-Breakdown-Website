@@ -26,49 +26,57 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
             title: "Research secondary sources",
             description: "Find and gather secondary sources related to Othello.",
             duration: { hours: 1, minutes: 0 },
-            importance_factor: 10
+            importance_factor: 10,
+            order: 1
           },
           {
             title: "Read and take notes on sources",
             description: "Read the gathered secondary sources and take detailed notes.",
             duration: { hours: 1, minutes: 0 },
-            importance_factor: 8
+            importance_factor: 8,
+            order: 2
           },
           {
             title: "Create an outline for the essay",
             description: "Draft a structured outline for the essay based on the notes.",
             duration: { hours: 0, minutes: 30 },
-            importance_factor: 8
+            importance_factor: 8,
+            order: 3
           },
           {
             title: "Write the introduction",
             description: "Compose the introduction section of the essay.",
             duration: { hours: 0, minutes: 30 },
-            importance_factor: 8
+            importance_factor: 8,
+            order: 4
           },
           {
             title: "Write body paragraphs",
             description: "Write the body paragraphs of the essay using the outline.",
             duration: { hours: 1, minutes: 0 },
-            importance_factor: 10
+            importance_factor: 10,
+            order: 5
           },
           {
             title: "Write the conclusion",
             description: "Compose the conclusion section of the essay.",
             duration: { hours: 0, minutes: 30 },
-            importance_factor: 8
+            importance_factor: 8,
+            order: 6
           },
           {
             title: "Cite sources and format bibliography",
             description: "Reference all secondary sources used and format the bibliography.",
             duration: { hours: 0, minutes: 30 },
-            importance_factor: 8
+            importance_factor: 8,
+            order: null
           },
           {
             title: "Proofread and edit the essay",
             description: "Review the essay for any grammatical or structural errors.",
             duration: { hours: 0, minutes: 30 },
-            importance_factor: 10
+            importance_factor: 10,
+            order: null
           }
         ]
       };
@@ -114,7 +122,8 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
             - **title** (string)  
             - **description** (string)  
             - **duration** (object with { "hours": integer, "minutes": integer })  
-            - **importance_factor** (integer, one of 2, 4, 8, or 10)  
+            - **importance_factor** (integer from 1 to 10, where 1 is least critical and 10 is most urgent/important). Use urgency, dependencies, and impact to determine this value.
+            - **order** (integer, starting from 1, representing the suggested execution order). If a subtask can be completed in any order, return "order": null or omit the field.
 
           **Duration Formatting:**  
           - If a task takes **less than an hour**, return as { "hours": 0, "minutes": X }.  
@@ -137,6 +146,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
                 "description": "Collect relevant images...",
                 "duration": { "hours": 0, "minutes": 30 },
                 "importance_factor": 8
+                "order": 1
               }
             ]
           }`
@@ -215,7 +225,8 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
       title: subtask.title,
       description: subtask.description,
       duration: subtask.duration,
-      importance_factor: subtask.importance_factor
+      importance_factor: subtask.importance_factor,
+      order: subtask.order
     }));
 
     // Create final structured response

@@ -26,7 +26,7 @@ interface TaskTableProps {
   showCompletedTasks?: boolean; // New optional prop
   emptyStateMessage?: React.ReactNode;
   visibleColumns?: string[]; 
-  subtasks: Record<number, Subtask[]>; // Added subtasks prop
+  subtasks: Subtask[]; // Added subtasks prop
 }
 
 const DEFAULT_COLUMNS = ["title", "priority", "due_date", "category", "duration"];
@@ -82,6 +82,22 @@ const getSortedTasks = (tasks: (Task & { priority: number })[], sortBy: string) 
     }
 
     return 0;
+  });
+};
+
+const getSortedSubtasks = (subtasks: Subtask[]) => {
+  return [...subtasks].sort((a, b) => {
+    // If both have valid orders, sort by order (ascending)
+    if (a.order !== null && b.order !== null) {
+      return a.order - b.order;
+    }
+    
+    // If only one has a valid order, prioritize it
+    if (a.order === null && b.order !== null) return 1;
+    if (b.order === null && a.order !== null) return -1;
+
+    // If both have null orders, sort by importance_factor (descending)
+    return (b?.importance_factor ?? 5) - (a?.importance_factor ?? 5);
   });
 };
 
@@ -173,7 +189,6 @@ const TaskTable: React.FC<TaskTableProps> = ({
 
   const normalizedTasks = normalizePriorities(tasks);
   const [expandedTasks, setExpandedTasks] = useState<Set<number>>(new Set());
-
   // Function to toggle expanded task
   const toggleTask = (taskId: number) => {
     setExpandedTasks((prev) => {
@@ -204,6 +219,8 @@ const TaskTable: React.FC<TaskTableProps> = ({
   
   // Apply sorting
   const sortedTasks = getSortedTasks(filteredTasks, sortBy);
+  const sortedSubtasks = getSortedSubtasks(subtasks);
+  console.log(sortedSubtasks);
 
   return (
     <div className="overflow-x-auto bg-white shadow-md rounded-lg mt-4 w-full dark:bg-gray-900">
@@ -224,7 +241,8 @@ const TaskTable: React.FC<TaskTableProps> = ({
             const priority = calculatePriority(task);
             const prioritycolour = getPrioritycolour(priority, colourScheme, colourSchemeEnabled);
             const isTaskExpanded = expandedTasks.has(task.id);
-  
+            const orderedSubtasks = sortedSubtasks.filter((subtask) => subtask.task_id === task.id && subtask.order !== null);
+            const unorderedSubtasks = sortedSubtasks.filter((subtask) => subtask.task_id === task.id && subtask.order === null);
             return (
               <React.Fragment key={task.id}>
                 {/* Main Task Row */}
@@ -255,15 +273,19 @@ const TaskTable: React.FC<TaskTableProps> = ({
                     <td className="py-2 px-4">{renderActions(task)}</td>
                   )}
                 </tr>
-  
-                {/* Expanded Task Subtasks */}
-                {isTaskExpanded && subtasks[task.id] && (
-                  <React.Fragment>
-                    {subtasks[task.id].length > 0 ? (
-                      subtasks[task.id].map((subtask) => {
-                        const subtaskPriorityColor = getPrioritycolour(subtask.importance_factor, colourScheme, colourSchemeEnabled);
-  
-                        return (
+
+
+              {/* Expanded Task Subtasks */}
+              {isTaskExpanded && (
+                <React.Fragment>
+                  {filteredSubtasks.length > 0 ? (
+                    filteredSubtasks.map((subtask: Subtask) => {
+                      const subtaskPriorityColor = getPrioritycolour(
+                        subtask?.importance_factor ?? 5,
+                        colourScheme,
+                        colourSchemeEnabled
+                      );
+                      return (
                           <tr key={subtask.id} className={`${subtaskPriorityColor}`}>
                             {/* Subtask Columns - Match the parent task columns */}
                             {visibleColumns.includes("title") && (
@@ -272,7 +294,7 @@ const TaskTable: React.FC<TaskTableProps> = ({
                               </td>
                             )}
                             {visibleColumns.includes("priority") && (
-                              <td className={`py-2 px-4`}>{subtask.importance_factor.toFixed(2)}</td>
+                              <td className={`py-2 px-4`}>{(subtask?.importance_factor ?? 5).toFixed(2)}</td>
                             )}
                             {visibleColumns.includes("due_date") && (
                               <td className="py-2 px-4">-</td>
@@ -295,12 +317,12 @@ const TaskTable: React.FC<TaskTableProps> = ({
                           <p className="text-gray-500 dark:text-gray-400">No subtasks available for this task.</p>
                         </td>
                       </tr>
-                    )}
-                  </React.Fragment>
-                )}
-              </React.Fragment>
-            );
-          })}
+                   )}
+                   </React.Fragment>
+                 )}
+               </React.Fragment>
+             );
+           })}
         </tbody>
       </table>
     </div>
