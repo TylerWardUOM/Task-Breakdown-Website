@@ -12,6 +12,7 @@ import FilterMenu from "../../../components/ui/FilterMenu";
 import { Filter } from "../../../types/Filter";
 import { useUserSettings } from "../../../contexts/UserSettingsContext";
 import { deleteTaskRequest, toggleTaskCompletionRequest } from "../../../lib/api";
+import useSubtasksByTaskIds from "../../../hooks/useSubtasksByTaskIds";
 
 
 const TaskListPage = () => {
@@ -37,6 +38,7 @@ const TaskListPage = () => {
 
   // Using the hook to fetch tasks
   const { tasks, loadingTasks, setTasks } = useFetchTasks();
+  const {subtasks} = useSubtasksByTaskIds(tasks)
   const { categories, /*loadingCategories, setCategories*/ } = useFetchCategories();
 
   const handleFilterChange = (filters: {
@@ -280,6 +282,7 @@ const deleteTask = async (taskId: number) => {
     colourScheme={colourScheme}
     colourSchemeEnabled={colourSchemeEnabled}
     showCompletedTasks={showCompleted}
+    subtasks={subtasks}
   />
 
   <Modal isOpen={isTaskModalOpen} onClose={closeTaskModal} width="max-w-3xl">

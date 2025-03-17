@@ -1,5 +1,5 @@
-import React from "react";
-import { Task } from "../types/Task";
+import React, { useState } from "react";
+import { Subtask, Task } from "../types/Task";
 import { Category } from "../types/Category";
 import { Filter } from "../types/Filter";
 import { ColourScheme } from "../types/userSettings";
@@ -26,6 +26,7 @@ interface TaskTableProps {
   showCompletedTasks?: boolean; // New optional prop
   emptyStateMessage?: React.ReactNode;
   visibleColumns?: string[]; 
+  subtasks: Record<number, Subtask[]>; // Added subtasks prop
 }
 
 const DEFAULT_COLUMNS = ["title", "priority", "due_date", "category", "duration"];
@@ -167,11 +168,25 @@ const TaskTable: React.FC<TaskTableProps> = ({
     showCompletedTasks = false,
     emptyStateMessage,
     visibleColumns = DEFAULT_COLUMNS,
+    subtasks,
   }) => {
 
   const normalizedTasks = normalizePriorities(tasks);
+  const [expandedTasks, setExpandedTasks] = useState<Set<number>>(new Set());
 
-
+  // Function to toggle expanded task
+  const toggleTask = (taskId: number) => {
+    setExpandedTasks((prev) => {
+      const newExpandedTasks = new Set(prev);
+      if (newExpandedTasks.has(taskId)) {
+        newExpandedTasks.delete(taskId);
+      } else {
+        newExpandedTasks.add(taskId);
+      }
+      return newExpandedTasks;
+    });
+  };
+  
   // Apply filtering, including completed tasks visibility
   const filteredTasks = getFilteredTasks(normalizedTasks, selectedFilter, showCompletedTasks);
   if (filteredTasks.length === 0) {
@@ -201,41 +216,94 @@ const TaskTable: React.FC<TaskTableProps> = ({
             {visibleColumns.includes("category") && <th className="py-2 px-4 text-left">Category</th>}
             {visibleColumns.includes("duration") && <th className="py-2 px-4 text-left">Duration</th>}
             {/* Conditionally render Actions column */}
-            {renderActions && <th className="py-2 px-4 text-left">Actions</th>}          
-            </tr>
+            {renderActions && <th className="py-2 px-4 text-left">Actions</th>}
+          </tr>
         </thead>
         <tbody className="text-black dark:text-black">
           {sortedTasks.map((task) => {
             const priority = calculatePriority(task);
             const prioritycolour = getPrioritycolour(priority, colourScheme, colourSchemeEnabled);
+            const isTaskExpanded = expandedTasks.has(task.id);
+  
             return (
-              <tr key={task.id} className={`${prioritycolour}`}>
-                             {visibleColumns.includes("title") && (
-                <td className={`py-2 px-4 ${task.completed ? "line-through text-gray-400" : ""}`}>
-                  {task.title || "Untitled Task"}</td>
-              )}
-              {visibleColumns.includes("priority") && (
-                <td className="py-2 px-4">{task.priority.toFixed(2)}</td>
-              )}
-              {visibleColumns.includes("due_date") && (
-                <td className="py-2 px-4">{renderDueDate(task.due_date)}</td>
-              )}
-              {visibleColumns.includes("category") && (
-                <td className="py-2 px-4">{getCategoryName(task.category_id,categories)}</td>
-              )}
-              {visibleColumns.includes("duration") && (
-                <td className="py-2 px-4">{renderDuration(task.duration)}</td>
-              )}
-              {renderActions && (
-                <td className="py-2 px-4">{renderActions(task)}</td>
-              )}
-              </tr>
+              <React.Fragment key={task.id}>
+                {/* Main Task Row */}
+                <tr
+                  key={task.id}
+                  className={`${prioritycolour}`}
+                  onClick={() => toggleTask(task.id)} // Toggle expanded/collapsed state
+                  style={{ cursor: "pointer" }}
+                >
+                  {visibleColumns.includes("title") && (
+                    <td className={`py-2 px-4 ${task.completed ? "line-through text-gray-400" : ""}`}>
+                      {task.title || "Untitled Task"}
+                    </td>
+                  )}
+                  {visibleColumns.includes("priority") && (
+                    <td className="py-2 px-4">{task.priority.toFixed(2)}</td>
+                  )}
+                  {visibleColumns.includes("due_date") && (
+                    <td className="py-2 px-4">{renderDueDate(task.due_date)}</td>
+                  )}
+                  {visibleColumns.includes("category") && (
+                    <td className="py-2 px-4">{getCategoryName(task.category_id, categories)}</td>
+                  )}
+                  {visibleColumns.includes("duration") && (
+                    <td className="py-2 px-4">{renderDuration(task.duration)}</td>
+                  )}
+                  {renderActions && (
+                    <td className="py-2 px-4">{renderActions(task)}</td>
+                  )}
+                </tr>
+  
+                {/* Expanded Task Subtasks */}
+                {isTaskExpanded && subtasks[task.id] && (
+                  <React.Fragment>
+                    {subtasks[task.id].length > 0 ? (
+                      subtasks[task.id].map((subtask) => {
+                        const subtaskPriorityColor = getPrioritycolour(subtask.importance_factor, colourScheme, colourSchemeEnabled);
+  
+                        return (
+                          <tr key={subtask.id} className={`${subtaskPriorityColor}`}>
+                            {/* Subtask Columns - Match the parent task columns */}
+                            {visibleColumns.includes("title") && (
+                              <td className={`py-2 px-4  pl-10 ${subtask.completed ? "line-through text-gray-400" : ""}`}>
+                                {subtask.title || "Untitled Subtask"}
+                              </td>
+                            )}
+                            {visibleColumns.includes("priority") && (
+                              <td className={`py-2 px-4`}>{subtask.importance_factor.toFixed(2)}</td>
+                            )}
+                            {visibleColumns.includes("due_date") && (
+                              <td className="py-2 px-4">-</td>
+                            )}
+                            {visibleColumns.includes("category") && (
+                              <td className="py-2 px-4">-</td>
+                            )}
+                            {visibleColumns.includes("duration") && (
+                              <td className="py-2 px-4">{renderDuration(subtask.duration)}</td>
+                            )}
+                            {renderActions && (
+                              <td className="py-2 px-4">-</td>
+                            )}
+                          </tr>
+                        );
+                      })
+                    ) : (
+                      <tr className="bg-gray-100 dark:bg-gray-800">
+                        <td colSpan={visibleColumns.length + (renderActions ? 1 : 0)} className="py-2 px-4">
+                          <p className="text-gray-500 dark:text-gray-400">No subtasks available for this task.</p>
+                        </td>
+                      </tr>
+                    )}
+                  </React.Fragment>
+                )}
+              </React.Fragment>
             );
           })}
         </tbody>
       </table>
     </div>
   );
-};
-
+};  
 export default TaskTable;
