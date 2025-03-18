@@ -29,8 +29,14 @@ const useSubtasksByTaskIds = (taskInput: Task[]): UseSubtasksResult => {
         // Fetch all subtasks in parallel and flatten the results
         const subtasksArray = await Promise.all(taskInput.map((task) => fetchSubtasksByTaskId(task.id)));
         setSubtasks(subtasksArray.flat());
-      } catch (err) {
+      } catch (err: unknown) {
+        console.error("Error fetching subtasks:", err);
+        if (err instanceof Error){
+          setError(err.message);
+        }
+        else{
         setError("Failed to fetch subtasks");
+        }
         setSubtasks([]);
       } finally {
         setLoading(false);
