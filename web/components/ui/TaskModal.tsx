@@ -96,7 +96,7 @@ const TaskModal: React.FC<TaskModalProps> = ({ onClose, onSave, existingTask, ca
   };
 
   return (
-    <div className="w-full space-y-4">
+    <div className="w-full space-y-4 p-6">
   <h2 className="text-xl font-bold">{existingTask ? "Edit Task" : "Create Task"}</h2>
 
   <input

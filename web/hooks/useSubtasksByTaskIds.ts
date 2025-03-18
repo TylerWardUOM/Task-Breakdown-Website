@@ -6,6 +6,7 @@ interface UseSubtasksResult {
   subtasks: Subtask[]; // Now returns a flat list of subtasks
   loading: boolean;
   error: string | null;
+  setSubtasks: React.Dispatch<React.SetStateAction<Subtask[]>>; // Properly typed setter
 }
 
 const useSubtasksByTaskIds = (taskInput: Task[]): UseSubtasksResult => {
@@ -39,7 +40,7 @@ const useSubtasksByTaskIds = (taskInput: Task[]): UseSubtasksResult => {
     fetchAllSubtasks();
   }, [taskInput]);
 
-  return { subtasks, loading, error };
+  return { subtasks, loading, error,setSubtasks};
 };
 
 export default useSubtasksByTaskIds;

@@ -9,7 +9,7 @@ import useFetchTasks from "../../../hooks/useFetchTasks";
 export default function Home() {
   const { categories } = useFetchCategories();
   const [isTaskModalOpen, setIsTaskModalOpen] = useState(true);
-  const { tasks, loadingTasks, setTasks } = useFetchTasks();
+  const { tasks} = useFetchTasks();
   const {subtasks} = useSubtasksByTaskIds(tasks)
 
   console.log(subtasks);

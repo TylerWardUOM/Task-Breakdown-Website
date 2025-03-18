@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { getTaskBreakdown } from "../../lib/getTaskBreakdown";
-import { TaskBreakdownResponse, Task_data, Subtask_data } from "../../types/Task";
+import { TaskBreakdownResponse, Task_data, Subtask_data, Task, Subtask } from "../../types/Task";
 import { Category } from "../../types/Category";
 import ImportanceSelector from "./ImportanceSelector";
 import { formatRepeatInterval, mapRepeatIntervalToDropdownValue, parseRepeatInterval } from "../../lib/taskUtils";
@@ -13,7 +13,7 @@ import { v4 as uuidv4 } from 'uuid';
 // Define the props structure for TaskForm
 interface TaskFormProps {
     categories: Category[];
-    onSave: (task: Task_data) => void; // Callback for when a task is saved
+    onSave: (savedata: { task: Task; subtasks: Subtask[] }) => void; // Callback for when a task is saved
     onClose: () => void; // Callback for closing the form
   }
 
@@ -21,7 +21,9 @@ interface TaskFormProps {
     uuid: string; // Temporary unique ID for React rendering
     subtask: Subtask_data
   };
-  
+    // Convert AI duration to minutes
+  const convertToMinutes = (duration: { hours: number; minutes: number } | null): number | null =>
+    duration ? duration.hours * 60 + duration.minutes : null;
   
 
 const TaskForm: React.FC<TaskFormProps> = ({categories, onSave, onClose}) => {
@@ -38,9 +40,7 @@ const TaskForm: React.FC<TaskFormProps> = ({categories, onSave, onClose}) => {
   const [localSubtasks, setLocalSubtasks] = useState<LocalSubtask[]>([]);
 
 
-  // Convert AI duration to minutes
-  const convertToMinutes = (duration: { hours: number; minutes: number } | null): number | null =>
-    duration ? duration.hours * 60 + duration.minutes : null;
+
 
   // Fetch AI task breakdown
   const fetchTaskBreakdown = async (taskText: string) => {
@@ -204,36 +204,38 @@ const TaskForm: React.FC<TaskFormProps> = ({categories, onSave, onClose}) => {
 
   
 
-  const handleSaveTask = async () => {
-    if (!taskData) return;
-  
-    try {
-      // Save main task
-      const savedTask = await saveTask(taskData);
-      
-      // Save each subtask linked to the saved task
-      const savedSubtasks = await Promise.all(
-        localSubtasks.map(async (localSubtask) => {
-          const subtaskToSave = {
-            ...localSubtask.subtask, // Only send the subtask part, excluding uuid
-          };
-          return await createSubtask(savedTask.id, subtaskToSave);
-        })
-      );
-  
-      console.log("Task saved successfully!", savedTask, "Subtasks saved:", savedSubtasks);
-  
-      // Call parent onSave handler if provided
-      if (onSave) {
-        onSave(savedTask);
-      }
-  
-      // Close the form after saving
-      onClose();
-    } catch (err) {
-      console.error("Error saving task:", err);
+const handleSaveTask = async () => {
+  if (!taskData) return;
+
+  try {
+    // Save main task
+    const savedTask = await saveTask(taskData);
+
+    // Save each subtask linked to the saved task
+    const savedSubtasks = await Promise.all(
+      localSubtasks.map(async (localSubtask) => {
+        const subtaskToSave = {
+          ...localSubtask.subtask, // Only send the subtask part, excluding uuid
+        };
+        return await createSubtask(savedTask.id, subtaskToSave);
+      })
+    );
+
+    console.log("Task saved successfully!", savedTask, "Subtasks saved:", savedSubtasks);
+
+    // Call parent onSave handler if provided
+    if (onSave) {
+      onSave({task: savedTask, subtasks: savedSubtasks });
     }
-  };
+
+    // Return new tasks and subtasks for handleSaveAITask
+    onClose();
+    return { task: savedTask, subtasks: savedSubtasks };
+  } catch (err) {
+    console.error("Error saving task:", err);
+    return null;
+  }
+};
   
 
 // Confirm before editing prompt
@@ -245,7 +247,7 @@ const handleEditPrompt = () => {
     };
 
   return (
-    <div className="w-full max-w-lg mx-auto space-y-6 p-6 bg-white shadow-md rounded-lg dark:bg-gray-800">
+    <div className="w-full max-w-lg mx-auto space-y-6 p-6 shadow-md rounded-lg">
       <h2 className="text-xl font-bold text-gray-900 dark:text-white">Task Breakdown Generator</h2>
 
       {/* Task Input Form */}
