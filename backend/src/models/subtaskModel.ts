@@ -6,20 +6,21 @@ export const createSubtaskInDB = async (
     title: string,
     description: string | null,
     duration: number | null,
-    importance_factor: number | null
+    importance_factor: number | null,
+    order: number | null
 ) => {
     const query = `
-        INSERT INTO subtasks (task_id, title, description, duration, importance_factor)
-        VALUES ($1, $2, $3, $4, $5)
+        INSERT INTO subtasks (task_id, title, description, duration, importance_factor, "order")
+        VALUES ($1, $2, $3, $4, $5, $6)
         RETURNING *;
     `;
-    const values = [task_id, title, description, duration, importance_factor];
+    const values = [task_id, title, description, duration, importance_factor, order];
     return pool.query(query, values);
 };
 
 // Get all subtasks for a specific task
 export const getSubtasksFromDB = async (task_id: number) => {
-    const query = 'SELECT * FROM subtasks WHERE task_id = $1 ORDER BY created_at DESC';
+    const query = 'SELECT * FROM subtasks WHERE task_id = $1 ORDER BY "order" NULLS LAST, created_at DESC;';
     return pool.query(query, [task_id]);
 };
 
@@ -35,7 +36,8 @@ export const updateSubtaskInDB = async (
     title?: string,
     description?: string | null,
     duration?: number | null,
-    importance_factor?: number | null
+    importance_factor?: number | null,
+    order?: number | null
 ) => {
     const query = `
         UPDATE subtasks
@@ -43,11 +45,12 @@ export const updateSubtaskInDB = async (
             description = COALESCE($3, description),
             duration = COALESCE($4, duration),
             importance_factor = COALESCE($5, importance_factor),
+            order = COALESCE($6, "order"),
             updated_at = NOW()
         WHERE id = $1
         RETURNING *;
     `;
-    const values = [subtask_id, title, description, duration, importance_factor];
+    const values = [subtask_id, title, description, duration, importance_factor, order];
     return pool.query(query, values);
 };
 
