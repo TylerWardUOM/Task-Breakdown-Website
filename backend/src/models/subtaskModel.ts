@@ -20,13 +20,13 @@ export const createSubtaskInDB = async (
 
 // Get all subtasks for a specific task
 export const getSubtasksFromDB = async (task_id: number) => {
-    const query = 'SELECT * FROM subtasks WHERE task_id = $1 ORDER BY "order" NULLS LAST, created_at DESC;';
+    const query = 'SELECT * FROM subtasks WHERE task_id = $1 AND is_deleted = FALSE ORDER BY "order" NULLS LAST, created_at DESC;';
     return pool.query(query, [task_id]);
 };
 
 // Get a single subtask by ID
 export const getSubtaskByIdFromDB = async (subtask_id: number) => {
-    const query = 'SELECT * FROM subtasks WHERE id = $1';
+    const query = 'SELECT * FROM subtasks WHERE id = $1 ';
     return pool.query(query, [subtask_id]);
 };
 
@@ -37,7 +37,8 @@ export const updateSubtaskInDB = async (
     description?: string | null,
     duration?: number | null,
     importance_factor?: number | null,
-    order?: number | null
+    order?: number | null,
+    is_deleted?: boolean | null,
 ) => {
     const query = `
         UPDATE subtasks
@@ -45,12 +46,13 @@ export const updateSubtaskInDB = async (
             description = COALESCE($3, description),
             duration = COALESCE($4, duration),
             importance_factor = COALESCE($5, importance_factor),
-            order = COALESCE($6, "order"),
+            "order" = $6,
+            is_deleted = COALESCE($7, is_deleted),
             updated_at = NOW()
         WHERE id = $1
         RETURNING *;
     `;
-    const values = [subtask_id, title, description, duration, importance_factor, order];
+    const values = [subtask_id, title, description, duration, importance_factor, order, is_deleted];
     return pool.query(query, values);
 };
 
@@ -65,10 +67,13 @@ export const completeSubtaskInDB = async (subtask_id: number) => {
     return pool.query(query, [subtask_id]);
 };
 
-// Delete a subtask (soft delete by marking as deleted)
+// Soft delete a subtask (set is_deleted = TRUE)
 export const deleteSubtaskInDB = async (subtask_id: number) => {
     const query = `
-        DELETE FROM subtasks WHERE id = $1 RETURNING *;
+        UPDATE subtasks
+        SET is_deleted = TRUE, updated_at = NOW() -- Soft delete instead of actual deletion
+        WHERE id = $1
+        RETURNING *;
     `;
     return pool.query(query, [subtask_id]);
 };

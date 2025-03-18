@@ -1,13 +1,13 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { getTaskBreakdown } from "../../lib/getTaskBreakdown";
 import { TaskBreakdownResponse, Task_data, Subtask_data, Task, Subtask } from "../../types/Task";
 import { Category } from "../../types/Category";
 import ImportanceSelector from "./ImportanceSelector";
 import { formatRepeatInterval, mapRepeatIntervalToDropdownValue, parseRepeatInterval } from "../../lib/taskUtils";
-import { createSubtask, saveTask } from "../../lib/api";
-import { v4 as uuidv4 } from 'uuid';
+import { saveSubtask, saveTask } from "../../lib/api";
+import SubtaskModal from "./SubtaskModal";
 
 
 // Define the props structure for TaskForm
@@ -17,10 +17,6 @@ interface TaskFormProps {
     onClose: () => void; // Callback for closing the form
   }
 
-  type LocalSubtask = {
-    uuid: string; // Temporary unique ID for React rendering
-    subtask: Subtask_data
-  };
     // Convert AI duration to minutes
   const convertToMinutes = (duration: { hours: number; minutes: number } | null): number | null =>
     duration ? duration.hours * 60 + duration.minutes : null;
@@ -35,9 +31,10 @@ const TaskForm: React.FC<TaskFormProps> = ({categories, onSave, onClose}) => {
   const [category, setCategory] = useState("1");
   const [repeatTask, setRepeatTask] = useState("None");
   const [showResults, setShowResults] = useState(false); // Toggle between form & results
+  const [taskBreakdownResponse, setTaskBreakdownResponse] = useState<TaskBreakdownResponse | null>(null);
 
+  const subtaskModalRef = useRef<{ getSubtasks: () => Subtask_data[] } | null>(null);
 
-  const [localSubtasks, setLocalSubtasks] = useState<LocalSubtask[]>([]);
 
 
 
@@ -46,7 +43,7 @@ const TaskForm: React.FC<TaskFormProps> = ({categories, onSave, onClose}) => {
   const fetchTaskBreakdown = async (taskText: string) => {
     setLoading(true);
     setTaskData(null);
-    setLocalSubtasks([]);
+    setTaskBreakdownResponse(null);
 
     const response: TaskBreakdownResponse | null = await getTaskBreakdown(taskText);
     
@@ -68,22 +65,9 @@ const TaskForm: React.FC<TaskFormProps> = ({categories, onSave, onClose}) => {
       repeat_interval: repeatTask !== "None" ? formatRepeatInterval(repeatTask) : null,
       category_id: category !== null ? parseInt(category) : null,
     };
-
-    const newLocalSubtasks: LocalSubtask[] = response.subtasks.map((subtask) => ({
-      uuid: uuidv4(), // Temporary unique ID for React rendering
-      subtask: {
-        subtaskId: undefined,
-        title: subtask.title,
-        description: subtask.description,
-        duration: convertToMinutes(subtask.duration),
-        importance_factor: subtask.importance_factor,
-        order: subtask.order ?? null,
-      },
-    }));
     
-
+    setTaskBreakdownResponse(response);
     setTaskData(newMainTask);
-    setLocalSubtasks(newLocalSubtasks);
     setLoading(false);
     setShowResults(true); // Switch to showing results
   };
@@ -102,21 +86,7 @@ const TaskForm: React.FC<TaskFormProps> = ({categories, onSave, onClose}) => {
     }
   };
 
-  // Update Subtask Field
-  const updateSubtaskField = (uuid: string, field: keyof Subtask_data, value: unknown) => {
-    setLocalSubtasks((prevSubtasks) =>
-      prevSubtasks.map((subtask) =>
-        subtask.uuid === uuid ? { ...subtask, [field]: value } : subtask
-      )
-    );
-  };
-  
 
-  // Delete Subtask
-  const deleteSubtask = (uuid: string) => {
-    setLocalSubtasks((prevSubtasks) => prevSubtasks.filter((subtask) => subtask.uuid !== uuid));
-  };
-  
 
   // Confirm before regenerating
   const handleRegenerate = () => {
@@ -127,81 +97,6 @@ const TaskForm: React.FC<TaskFormProps> = ({categories, onSave, onClose}) => {
   };
 
 
-  const moveSubtaskBetweenSections = (uuid: string) => {
-    setLocalSubtasks((prev) => {
-      let updatedSubtasks = [...prev];
-      const subtaskIndex = updatedSubtasks.findIndex((entry) => entry.uuid === uuid);
-      if (subtaskIndex === -1) return prev;
-  
-      const subtask = updatedSubtasks[subtaskIndex].subtask;
-  
-      if (subtask.order === null) {
-        // Moving to ordered: Assign last available order
-        const orderedSubtasks = updatedSubtasks.filter((s) => s.subtask.order !== null);
-        const maxOrder = orderedSubtasks.length > 0 ? Math.max(...orderedSubtasks.map((s) => s.subtask.order ?? 0)) : 0;
-        updatedSubtasks[subtaskIndex] = { ...updatedSubtasks[subtaskIndex], subtask: { ...subtask, order: maxOrder + 1 } };
-      } else {
-        // Moving to unordered: Remove order
-        updatedSubtasks[subtaskIndex] = { ...updatedSubtasks[subtaskIndex], subtask: { ...subtask, order: null } };
-  
-        // Reorder ordered tasks sequentially
-        const orderedTasks = updatedSubtasks
-          .filter((s) => s.subtask.order !== null)
-          .sort((a, b) => (a.subtask.order ?? 0) - (b.subtask.order ?? 0))
-          .map((task, i) => ({ ...task, subtask: { ...task.subtask, order: i + 1 } }));
-  
-        // Merge updated ordered list back into the full list
-        updatedSubtasks = updatedSubtasks.map((s) => orderedTasks.find((ordered) => ordered.uuid === s.uuid) || s);
-      }
-  
-      return updatedSubtasks;
-    });
-  };
-  
-  const changeSubtaskOrder = (uuid: string, direction: "up" | "down") => {
-    setLocalSubtasks((prev) => {
-      // Clone the array to avoid mutating state directly
-      const updatedSubtasks = [...prev];
-  
-      // Find the target subtask
-      const subtaskEntry = updatedSubtasks.find((s) => s.uuid === uuid);
-      if (!subtaskEntry || subtaskEntry.subtask.order == null) return prev; // Ensure valid subtask
-  
-      const currentOrder = subtaskEntry.subtask.order;
-      const swapOrder = direction === "up" ? currentOrder - 1 : currentOrder + 1;
-  
-      // Find the subtask with the swap order
-      const swapIndex = updatedSubtasks.findIndex((s) => s.subtask.order === swapOrder);
-      if (swapIndex === -1) return prev; // Ensure valid swap target
-  
-      const targetIndex = updatedSubtasks.findIndex((s) => s.uuid === uuid);
-  
-      // Swap the order values in the main list
-      updatedSubtasks[targetIndex] = {
-        ...updatedSubtasks[targetIndex],
-        subtask: { ...updatedSubtasks[targetIndex].subtask, order: swapOrder },
-      };
-  
-      updatedSubtasks[swapIndex] = {
-        ...updatedSubtasks[swapIndex],
-        subtask: { ...updatedSubtasks[swapIndex].subtask, order: currentOrder },
-      };
-  
-      // Return the updated array to trigger a re-render
-      return updatedSubtasks;
-    });
-  };
-  
-  
-  
-  
-  // Derived ordered and unordered lists
-  const orderedSubtasks = localSubtasks
-    .filter((entry) => entry.subtask.order !== null)
-    .sort((a, b) => (a.subtask.order ?? 0) - (b.subtask.order ?? 0));
-  
-  const unorderedSubtasks = localSubtasks.filter((entry) => entry.subtask.order === null);
-
   
 
 const handleSaveTask = async () => {
@@ -211,13 +106,13 @@ const handleSaveTask = async () => {
     // Save main task
     const savedTask = await saveTask(taskData);
 
+    // ✅ Fetch latest subtasks from SubtaskModal
+    const latestSubtasks = subtaskModalRef.current?.getSubtasks() || [];
+
     // Save each subtask linked to the saved task
     const savedSubtasks = await Promise.all(
-      localSubtasks.map(async (localSubtask) => {
-        const subtaskToSave = {
-          ...localSubtask.subtask, // Only send the subtask part, excluding uuid
-        };
-        return await createSubtask(savedTask.id, subtaskToSave);
+      latestSubtasks.map(async (subtask) => {
+        return await saveSubtask(savedTask.id, subtask);
       })
     );
 
@@ -225,17 +120,19 @@ const handleSaveTask = async () => {
 
     // Call parent onSave handler if provided
     if (onSave) {
-      onSave({task: savedTask, subtasks: savedSubtasks });
+      onSave({ task: savedTask, subtasks: savedSubtasks });
     }
 
-    // Return new tasks and subtasks for handleSaveAITask
+    // Close modal after saving
     onClose();
+
     return { task: savedTask, subtasks: savedSubtasks };
   } catch (err) {
     console.error("Error saving task:", err);
     return null;
   }
 };
+
   
 
 // Confirm before editing prompt
@@ -273,7 +170,7 @@ const handleEditPrompt = () => {
         />
 
         {/* Importance Factor */}
-        <ImportanceSelector value={importance} onChange={setImportance}></ImportanceSelector>
+        <ImportanceSelector value={importance} onChange={(value) => setImportance(value)}></ImportanceSelector>
         
         <div className="flex items-center space-x-2">
         <label htmlFor="category" className="text-gray-700 dark:text-gray-300 text-sm">
@@ -400,121 +297,7 @@ const handleEditPrompt = () => {
       </div>
     </div>
 
-    {/* Subtasks */}
-    <div className="p-4 bg-white rounded-lg shadow dark:bg-gray-700 dark:border dark:border-gray-600 mt-2">
-      <h4 className="font-semibold text-gray-900 dark:text-white">Subtasks</h4>
-      <div className="space-y-3">
-      {orderedSubtasks.map((localSubtask) => (
-          <div key={localSubtask.uuid} className="p-3 bg-gray-50 rounded-lg border relative dark:bg-gray-800 dark:border-gray-700">
-            <button className="p-3" onClick={() => changeSubtaskOrder(localSubtask.uuid, "up")}>⬆</button>
-            <button onClick={() => changeSubtaskOrder(localSubtask.uuid, "down")}>⬇</button>
-            <button onClick={() => moveSubtaskBetweenSections(localSubtask.uuid)}>Move to Unordered</button>
-            <button
-              onClick={() => deleteSubtask(localSubtask.uuid)}
-              className="absolute top-2 right-2 bg-red-500 text-white px-2 py-1 text-xs rounded hover:bg-red-600"
-            >
-              ✕
-            </button>
-
-            <input
-              type="text"
-              className="w-full p-2 border rounded bg-white text-black dark:bg-gray-800 dark:text-white dark:border-gray-600"
-              value={localSubtask.subtask.title}
-              onChange={(e) => updateSubtaskField(localSubtask.uuid, "title", e.target.value)}
-              placeholder="Enter subtask title..."
-            />
-            <textarea
-              className="w-full p-2 border rounded bg-white text-black dark:bg-gray-800 dark:text-white dark:border-gray-600 mt-2"
-              value={localSubtask.subtask.description || ""}
-              onChange={(e) => updateSubtaskField(localSubtask.uuid, "description", e.target.value || null)}
-              placeholder="Enter subtask description..."
-              rows={2}
-            />
-
-            {/* Duration */}
-            <div className="flex items-center space-x-2 mt-2">
-              <label className="text-sm text-gray-600 dark:text-gray-300">Duration:</label>
-              <input
-                type="number"
-                className="p-1 border rounded w-16 bg-white text-black dark:bg-gray-800 dark:text-white dark:border-gray-600"
-                value={localSubtask.subtask.duration ?? ""}
-                onChange={(e) =>
-                  updateSubtaskField(localSubtask.uuid, "duration", e.target.value ? Number(e.target.value) : null)
-                }
-                placeholder="Mins"
-              />
-            </div>
-
-            {/* Importance Factor */}
-            <label htmlFor="Importance Factor" className="text-sm text-gray-600 dark:text-gray-300">Importance:</label>
-            <select
-              id="Importance Factor"
-              className="p-1 border rounded bg-white text-black dark:bg-gray-800 dark:text-white dark:border-gray-600"
-              value={localSubtask.subtask.importance_factor ?? ""}
-              onChange={(e) => updateSubtaskField(localSubtask.uuid, "importance_factor", Number(e.target.value))}
-            >
-              <option value={2}>2</option>
-              <option value={4}>4</option>
-              <option value={8}>8</option>
-              <option value={10}>10</option>
-            </select>
-          </div>
-      ))}
-      {unorderedSubtasks.map(({ uuid, subtask }) => (
-          <div key={uuid} className="p-3 bg-gray-50 rounded-lg border relative dark:bg-gray-800 dark:border-gray-700">
-            <button onClick={() => moveSubtaskBetweenSections(uuid)}>Move to Ordered</button>
-            <button
-              onClick={() => deleteSubtask(uuid)}
-              className="absolute top-2 right-2 bg-red-500 text-white px-2 py-1 text-xs rounded hover:bg-red-600"
-            >
-              ✕
-            </button>
-
-            <input
-              type="text"
-              className="w-full p-2 border rounded bg-white text-black dark:bg-gray-800 dark:text-white dark:border-gray-600"
-              value={subtask.title}
-              onChange={(e) => updateSubtaskField(uuid, "title", e.target.value)}
-              placeholder="Enter subtask title..."
-            />
-            <textarea
-              className="w-full p-2 border rounded bg-white text-black dark:bg-gray-800 dark:text-white dark:border-gray-600 mt-2"
-              value={subtask.description || ""}
-              onChange={(e) => updateSubtaskField(uuid, "description", e.target.value || null)}
-              placeholder="Enter subtask description..."
-              rows={2}
-            />
-
-            {/* Duration */}
-            <div className="flex items-center space-x-2 mt-2">
-              <label className="text-sm text-gray-600 dark:text-gray-300">Duration:</label>
-              <input
-                type="number"
-                className="p-1 border rounded w-16 bg-white text-black dark:bg-gray-800 dark:text-white dark:border-gray-600"
-                value={subtask.duration ?? ""}
-                onChange={(e) =>
-                  updateSubtaskField(uuid, "duration", e.target.value ? Number(e.target.value) : null)
-                }
-                placeholder="Mins"
-              />
-            </div>
-
-            {/* Importance Factor */}
-            <label htmlFor="Importance Factor" className="text-sm text-gray-600 dark:text-gray-300">Importance:</label>
-            <select
-              id="Importance Factor"
-              className="p-1 border rounded bg-white text-black dark:bg-gray-800 dark:text-white dark:border-gray-600"
-              value={subtask.importance_factor ?? ""}
-              onChange={(e) => updateSubtaskField(uuid, "importance_factor", Number(e.target.value))}
-            >
-              <option value={2}>2</option>
-              <option value={4}>4</option>
-              <option value={8}>8</option>
-              <option value={10}>10</option>
-            </select>
-          </div>
-        ))}
-      </div>
+    <SubtaskModal ref={subtaskModalRef} response={taskBreakdownResponse}></SubtaskModal>
 
       {/* Buttons for actions */}
       <div className="flex space-x-4 mt-4">
@@ -540,7 +323,6 @@ const handleEditPrompt = () => {
 
       </div>
     </div>
-  </div>
 )}
     </div>
   );

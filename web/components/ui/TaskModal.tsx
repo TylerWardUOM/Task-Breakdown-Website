@@ -1,9 +1,10 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import ImportanceSelector from "./ImportanceSelector";
-import { Task, Task_data } from "../../types/Task";
+import { Subtask, Subtask_data, Task, Task_data } from "../../types/Task";
 import { RepeatInterval } from "../../types/Task";
 import { Category } from "../../types/Category";
-import { saveTask } from "../../lib/api";
+import { saveSubtask, saveTask } from "../../lib/api";
+import SubtaskModal from "./SubtaskModal";
 
 // Helper function to format due date
 const formatDueDate = (date: string | null): string | null => {
@@ -40,10 +41,11 @@ interface TaskModalProps {
   onClose: () => void;
   onSave: (task: Task) => void;
   existingTask?: Task | null;
+  existing_subtasks?: Subtask[] | null | [];
   categories: Category[];
 }
 
-const TaskModal: React.FC<TaskModalProps> = ({ onClose, onSave, existingTask, categories }) => {
+const TaskModal: React.FC<TaskModalProps> = ({ onClose, onSave, existingTask, categories, existing_subtasks }) => {
   const [taskTitle, setTaskTitle] = useState("");
   const [dueDate, setDueDate] = useState<string | null>(null);
   const [hours, setHours] = useState<number | null>(null);
@@ -53,6 +55,7 @@ const TaskModal: React.FC<TaskModalProps> = ({ onClose, onSave, existingTask, ca
   const [repeatTask, setRepeatTask] = useState("None");
   const [category, setCategory] = useState("1");
   const [showMoreOptions, setShowMoreOptions] = useState(false);
+  const subtaskModalRef = useRef<{ getSubtasks: () => Subtask_data[] } | null>(null);
 
   useEffect(() => {
     if (existingTask) {
@@ -88,6 +91,17 @@ const TaskModal: React.FC<TaskModalProps> = ({ onClose, onSave, existingTask, ca
 
     try {
       const savedTask = await saveTask(taskData, existingTask);
+         // ✅ Fetch latest subtasks from SubtaskModal
+        const latestSubtasks = subtaskModalRef.current?.getSubtasks() || [];
+
+        // Save each subtask linked to the saved task
+        const savedSubtasks = await Promise.all(
+        latestSubtasks.map(async (subtask) => {
+        return await saveSubtask(savedTask.id, subtask);
+      })
+    );
+
+    console.log("Task saved successfully!", savedTask, "Subtasks saved:", savedSubtasks);
       onSave(savedTask);
       onClose();
     } catch (err) {
@@ -190,6 +204,7 @@ const TaskModal: React.FC<TaskModalProps> = ({ onClose, onSave, existingTask, ca
           ))}
         </select>
       </div>
+      <SubtaskModal ref={subtaskModalRef} existing_subtasks={existing_subtasks}></SubtaskModal>
     </div>
   )}
 

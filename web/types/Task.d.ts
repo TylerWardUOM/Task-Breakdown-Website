@@ -36,6 +36,7 @@ export interface Subtask {
   created_at: string;
   updated_at: string;
   order: number | null
+  is_deleted: boolean | undefined;
 }
 
 
@@ -58,6 +59,7 @@ export interface Subtask_data {
   duration: number | null; // Stored in minutes
   importance_factor: number | null;
   order: number | null;
+  is_deleted: boolean | undefined;
 }
 
 

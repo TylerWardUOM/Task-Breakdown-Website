@@ -226,7 +226,8 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
       description: subtask.description,
       duration: subtask.duration,
       importance_factor: subtask.importance_factor,
-      order: subtask.order
+      order: subtask.order,
+      is_deleted: subtask.is_deleted ?? undefined,
     }));
 
     // Create final structured response

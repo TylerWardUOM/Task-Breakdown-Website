@@ -22,6 +22,7 @@ const TaskListPage = () => {
   const [isTaskModalOpen, setIsTaskModalOpen] = useState(false);
   const [isAITaskModalOpen, setIsAITaskModalOpen] = useState(false);
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
+  const [selectedSubtasks, setSelectedSubtasks] = useState<Subtask[] | [] |null>(null);
   const [isDeleting, setIsDeleting] = useState<boolean>(false);
   const [isToggling, setIsToggling] = useState(false);
   const [showCompleted, setShowCompleted] = useState(false);
@@ -92,6 +93,10 @@ const TaskListPage = () => {
     const taskToEdit = tasks.find((task) => task.id === taskId);
     if (taskToEdit) {
       setSelectedTask(taskToEdit);
+      const taskToEdit_Subtasks = subtasks.filter((subtask) => subtask.task_id === taskToEdit.id)
+      if (taskToEdit_Subtasks.length>0){
+        setSelectedSubtasks(taskToEdit_Subtasks);
+      }
       setIsTaskModalOpen(true);
     }
   };
@@ -103,6 +108,7 @@ const TaskListPage = () => {
   const closeTaskModal = () => {
     setIsTaskModalOpen(false);
     setSelectedTask(null);
+    setSelectedSubtasks(null);
   };
 
   const closeAITaskModal = () => {
@@ -316,10 +322,11 @@ const deleteTask = async (taskId: number) => {
     subtasks={subtasks}
   />
 
-  <Modal isOpen={isTaskModalOpen} onClose={closeTaskModal} width="max-w-3xl">
+  <Modal isOpen={isTaskModalOpen} onClose={closeTaskModal} width="max-w-lg">
     <TaskModal
       categories={categories}
       existingTask={selectedTask}
+      existing_subtasks={selectedSubtasks}
       onSave={handleSaveTask}
       onClose={closeTaskModal}
     />
@@ -328,7 +335,7 @@ const deleteTask = async (taskId: number) => {
       <TaskForm 
         categories={categories} 
         onSave={handleSaveAITask} 
-        onClose={closeTaskModal} 
+        onClose={closeAITaskModal} 
       />
   </Modal>
 </div>

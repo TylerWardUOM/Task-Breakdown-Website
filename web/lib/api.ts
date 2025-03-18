@@ -216,22 +216,29 @@ export const markUserAsVerified = async (email: string) => {
 };
 
 
-export const createSubtask = async (task_id: number,subtaskData: Subtask_data) => {
-  const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/subtasks/create`, {
-    method: "POST",
+export const saveSubtask = async (task_id: number, subtaskData: Subtask_data) => {
+  const isNewSubtask = subtaskData.subtaskId === undefined;
+  const url = isNewSubtask
+    ? `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/subtasks/create`
+    : `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/subtasks/${subtaskData.subtaskId}`;
+
+  const response = await fetch(url, {
+    method: isNewSubtask ? "POST" : "PUT",
     headers: {
       "Content-Type": "application/json",
     },
     credentials: "include", // Ensures cookies (session) are sent
-    body: JSON.stringify({ task_id, ...subtaskData }), // Wrap both in a single object
+    body: JSON.stringify({ task_id, ...subtaskData }), // Include task_id for both create & update
   });
 
   if (!response.ok) {
-    throw new Error("Failed to create subtask");
+    console.error(`Failed to ${isNewSubtask ? "create" : "update"} subtask`, response.status);
+    throw new Error(`Failed to ${isNewSubtask ? "create" : "update"} subtask`);
   }
 
   return response.json();
 };
+
 
 export const fetchSubtasksByTaskId = async (taskId: number) => {
   const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/subtasks/task/${taskId}`, {
@@ -267,7 +274,7 @@ export const fetchSubtaskById = async (subtaskId: string) => {
 };
 
 
-export const updateSubtask = async (subtaskId: string, updatedData: Partial<Subtask_data>) => {
+export const updateSubtask = async (subtaskId: number, updatedData: Partial<Subtask_data>) => {
   const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/subtasks/${subtaskId}`, {
     method: "PUT",
     headers: {
@@ -285,7 +292,7 @@ export const updateSubtask = async (subtaskId: string, updatedData: Partial<Subt
 };
 
 
-export const completeSubtask = async (subtaskId: string) => {
+export const completeSubtask = async (subtaskId: number) => {
   const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/subtasks/${subtaskId}/complete`, {
     method: "PATCH",
     headers: {
@@ -302,7 +309,7 @@ export const completeSubtask = async (subtaskId: string) => {
 };
 
 
-export const deleteSubtask = async (subtaskId: string) => {
+export const deleteSubtask = async (subtaskId: number) => {
   const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/subtasks/${subtaskId}`, {
     method: "DELETE",
     headers: {
