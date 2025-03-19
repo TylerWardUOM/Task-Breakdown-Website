@@ -1,14 +1,13 @@
 "use client";
 import React, { useState } from "react";
-import { calculatePriority } from "../lib/calculatePriority";
-import { getFilteredTasks, getSortedTasks, normalizePriorities, 
-  getPrioritycolour, getCategoryName, renderDuration, 
-  renderDueDate, getSortedSubtasks,
-  getOrdinalSuffix} from "@Utils/TaskTableUtils";
 import { Filter } from "@FrontendTypes/filter";
 import { Category } from "@GlobalTypes/Category";
 import { ColourScheme } from "@GlobalTypes/ColourScheme";
 import { Task, Subtask } from "@GlobalTypes/Task";
+import { calculatePriority } from "@lib/calculatePriority";
+import { normalizePriorities, getFilteredTasks, getSortedTasks, 
+  getSortedSubtasks, getPrioritycolour, renderDueDate, getCategoryName, 
+  renderDuration, getOrdinalSuffix } from "@Utils/TaskTableUtils";
 
 
 interface TaskTableProps {

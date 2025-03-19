@@ -2,11 +2,11 @@
 import { useState } from "react";
 import { Task, Subtask } from "@GlobalTypes/Task";
 import { Filter } from "@FrontendTypes/filter";
-import useFetchCategories from "@Hooks/useFetchCategories";
-import useFetchTasks from "@Hooks/useFetchTasks";
-import useSubtasksByTaskIds from "@Hooks/useSubtasksByTaskIds";
-import { toggleTaskCompletionRequest, deleteTaskRequest } from "@lib/api";
-import { useUserSettings } from "../web/contexts/UserSettingsContext";
+import useFetchCategories from "./useFetchCategories";
+import useFetchTasks from "./useFetchTasks";
+import useSubtasksByTaskIds from "./useSubtasksByTaskIds";
+import { toggleTaskCompletionRequest, deleteTaskRequest } from "../lib/api";
+import { useUserSettings } from "../../web/contexts/UserSettingsContext";
 
 export const useTaskPage = () => {
   const { settings } = useUserSettings();

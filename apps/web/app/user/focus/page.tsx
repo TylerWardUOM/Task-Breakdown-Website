@@ -3,9 +3,9 @@
 import { Filter } from "@FrontendTypes/filter";
 import { Task } from "@GlobalTypes/Task";
 import { CheckCircleIcon, XCircleIcon, MinusCircleIcon, CogIcon, PlusCircleIcon } from "@heroicons/react/solid";
-import useFetchCategories from "@Hooks/useFetchCategories";
-import useFetchTasks from "@Hooks/useFetchTasks";
-import { toggleTaskCompletionRequest } from "@lib/api";
+import useFetchCategories from "../../../../packages/hooks/useFetchCategories";
+import useFetchTasks from "../../../../packages/hooks/useFetchTasks";
+import { toggleTaskCompletionRequest } from "../../../../packages/lib/api";
 import Link from "next/link";
 import { useState, useEffect } from "react";
 import TaskTable from "../../../components/TaskTable";

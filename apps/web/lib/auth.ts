@@ -2,7 +2,7 @@
 
 import { getAuth, signInWithEmailAndPassword, sendPasswordResetEmail, sendEmailVerification, UserCredential, GoogleAuthProvider, deleteUser } from "firebase/auth";
 import { app } from "./firebase"; // Import Firebase config
-import { markUserAsVerified, registerUserInDatabase} from "@lib/api";
+import { markUserAsVerified, registerUserInDatabase} from "../../packages/lib/api";
 import { getUserData } from "./user";
 
 const auth = getAuth(app);

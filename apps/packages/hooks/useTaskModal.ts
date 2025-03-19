@@ -1,8 +1,7 @@
 import { useState, useEffect, useRef } from "react";
-import { Category } from "@GlobalTypes/Category";
-import { RepeatInterval, Task, Subtask, Subtask_data, Task_data } from "@GlobalTypes/Task";
-import { formatDueDate, formatRepeatInterval, mapRepeatIntervalToDropdownValue } from "@Utils/TaskModalUtils";
-import { saveTask, saveSubtask } from "@lib/api";
+import { Task, Subtask, Subtask_data, Task_data } from "@GlobalTypes/Task";
+import { formatDueDate, formatRepeatInterval, mapRepeatIntervalToDropdownValue } from "../utils/TaskModalUtils";
+import { saveTask, saveSubtask } from "../lib/api";
 
 export const useTaskModal = (existingTask: Task | null, existing_subtasks: Subtask[] | null, onSave: (task: Task) => void, onClose: () => void) => {
   const [taskTitle, setTaskTitle] = useState("");

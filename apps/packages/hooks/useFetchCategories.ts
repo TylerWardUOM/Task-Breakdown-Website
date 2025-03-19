@@ -1,5 +1,5 @@
 import { Category } from "@GlobalTypes/Category";
-import { fetchCategories } from "@lib/api";
+import { fetchCategories } from "../lib/api";
 import { useState, useEffect } from "react";
 
 

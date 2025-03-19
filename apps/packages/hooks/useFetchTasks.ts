@@ -1,5 +1,5 @@
 import { Task } from "@GlobalTypes/Task";
-import { fetchTasks } from "@lib/api";
+import { fetchTasks } from "../lib/api";
 import { useState, useEffect } from "react";
 
 

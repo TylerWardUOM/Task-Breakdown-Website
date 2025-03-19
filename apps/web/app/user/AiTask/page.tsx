@@ -1,10 +1,10 @@
 "use client";
 import TaskForm from "../../../components/ui/TaskModalAi";
-import useFetchCategories from "../../../../hooks/useFetchCategories";
+import useFetchCategories from "../../../../packages/hooks/useFetchCategories";
 import Modal from "../../../components/ui/Modal";
 import { useState } from "react";
-import useSubtasksByTaskIds from "../../../../hooks/useSubtasksByTaskIds";
-import useFetchTasks from "../../../../hooks/useFetchTasks";
+import useSubtasksByTaskIds from "../../../../packages/hooks/useSubtasksByTaskIds";
+import useFetchTasks from "../../../../packages/hooks/useFetchTasks";
 
 export default function Home() {
   const { categories } = useFetchCategories();

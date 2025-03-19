@@ -1,5 +1,5 @@
+import useFetchCompletedTasksTimeframe from "@Hooks/useFetchCompletedTasksTimeframe";
 import Card from "./ui/Card";
-import useFetchCompletedTasksTimeframe from "../../hooks/useFetchCompletedTasksTimeframe";
 
 interface TaskStatProps {
   timeframe: string; // Timeframe (week, month, etc.)

@@ -2,8 +2,8 @@
 
 import { Filter } from "@FrontendTypes/filter";
 import { Task } from "@GlobalTypes/Task";
-import useFetchCategories from "@Hooks/useFetchCategories";
-import useFetchTasks from "@Hooks/useFetchTasks";
+import useFetchCategories from "../../../../packages/hooks/useFetchCategories";
+import useFetchTasks from "../../../../packages/hooks/useFetchTasks";
 import Link from "next/link";
 import { useState } from "react";
 import { FiPlusCircle } from "react-icons/fi";

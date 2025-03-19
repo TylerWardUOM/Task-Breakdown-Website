@@ -5,7 +5,7 @@ import FilterMenu from "../../../components/ui/FilterMenu";
 import Modal from "../../../components/ui/Modal";
 import TaskModal from "../../../components/ui/TaskModal";
 import TaskForm from "../../../components/ui/TaskModalAi";
-import { useTaskPage } from "@Hooks/useTaskPage";
+import { useTaskPage } from "../../../../packages/hooks/useTaskPage";
 import { useRouter } from "next/navigation";
 import { Task } from "@GlobalTypes/Task";
 

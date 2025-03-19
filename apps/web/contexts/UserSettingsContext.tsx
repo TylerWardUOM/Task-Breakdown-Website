@@ -1,6 +1,6 @@
 "use client";
 import { UserSettings } from "@GlobalTypes/UserSettings";
-import { fetchUserSettings, saveUserSettings } from "@lib/api";
+import { fetchUserSettings, saveUserSettings } from "../../packages/lib/api";
 import { usePathname } from "next/navigation";
 import { createContext, useState, useEffect, useContext } from "react";
 import { useAuth } from "./authContext";

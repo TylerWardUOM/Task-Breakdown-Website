@@ -28,9 +28,9 @@
       "@GlobalTypes/*": ["../../types/*"],
       "@FrontendTypes/*": ["../packages/types/*"],
       "@ui/*": ["./../packages/ui/*"],
-      "@Hooks/*": ["../hooks/*"],
-      "@Utils/*": ["../utils/*"],
-      "@lib/*": ["../lib/*"]
+      "@Hooks/*": ["../packages/hooks/*"],
+      "@Utils/*": ["../packages/utils/*"],
+      "@lib/*": ["../packages/lib/*"]
     }
   },
   "include": [
@@ -41,9 +41,9 @@
     "app/register",
     "../../types/**/*.ts",
     "../../types/**/*.d.ts",
-    "../hooks/**/*.ts",
-    "../utils/**/*.ts",
-    "../lib/**/*.ts",
+    "../packages/hooks/**/*.ts",
+    "../packages/utils/**/*.ts",
+    "../packages/lib/**/*.ts",
     "../packages/**/*.ts",
   ],
   "exclude": [

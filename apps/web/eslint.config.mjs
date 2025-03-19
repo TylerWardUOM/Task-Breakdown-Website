@@ -1,4 +1,4 @@
-import { dirname } from "path";
+import { dirname, resolve } from "path";
 import { fileURLToPath } from "url";
 import { FlatCompat } from "@eslint/eslintrc";
 
@@ -11,6 +11,12 @@ const compat = new FlatCompat({
 
 const eslintConfig = [
   ...compat.extends("next/core-web-vitals", "next/typescript"),
+  {
+    files: ["packages/**/*.{js,ts,tsx}"], // Lint all JS/TS files in packages/
+    rules: {
+      "no-console": "warn", // Example: Customize rules for packages
+    },
+  },
 ];
 
 export default eslintConfig;

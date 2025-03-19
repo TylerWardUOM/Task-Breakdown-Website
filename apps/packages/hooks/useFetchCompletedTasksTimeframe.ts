@@ -1,4 +1,4 @@
-import { fetchCompletedTasksTimeframe } from "@lib/api";
+import { fetchCompletedTasksTimeframe } from "../lib/api";
 import { useState, useEffect } from "react";
 
 interface UseFetchCompletedTasksTimeframeProps {

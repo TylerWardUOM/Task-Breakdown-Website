@@ -1,5 +1,5 @@
 import { Subtask, Task } from "@GlobalTypes/Task";
-import { fetchSubtasksByTaskId } from "@lib/api";
+import { fetchSubtasksByTaskId } from "../lib/api";
 import { useState, useEffect } from "react";
 
 

@@ -1,7 +1,7 @@
 import { FilterIcon, XIcon } from "@heroicons/react/solid";
 import { Category } from "@GlobalTypes/Category";
 import { Filter } from "@FrontendTypes/filter";
-import {useFilterMenu} from "../../../hooks/useFilterMenu";
+import { useFilterMenu } from "@Hooks/useFilterMenu";
 
 interface FilterMenuProps {
   categories: Category[];
