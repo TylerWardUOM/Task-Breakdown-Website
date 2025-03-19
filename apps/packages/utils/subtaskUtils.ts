@@ -24,6 +24,7 @@ export const mapResponseSubtasks = (response: TaskBreakdownResponse | null) => {
             order: subtask.order ?? null,
             is_deleted: undefined,
         },
+        temp_order: subtask.order ?? null
     }));
 };
 
@@ -42,6 +43,7 @@ export const mapExistingSubtasks = (existing_subtasks: Subtask[] | [] = []) => {
             order: subtask.order ?? null,
             is_deleted: subtask.is_deleted ?? undefined,
         },
+        temp_order: subtask.order,
     }));
 };
 

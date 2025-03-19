@@ -1,5 +1,5 @@
 import { forwardRef, useImperativeHandle } from "react";
-import { Subtask, Subtask_data } from "@GlobalTypes/Task";
+import { Subtask } from "@GlobalTypes/Task";
 import { TaskBreakdownResponse } from "@FrontendTypes/AiResponse";
 import useSubtasks from "@Hooks/useSubtasks";
 
@@ -10,27 +10,20 @@ interface SubtaskModalProps {
 
 const SubtaskModal = forwardRef(({ existing_subtasks, response }: SubtaskModalProps, ref) => {
   const {
-    localSubtasks, // Added localSubtasks reference for useImperativeHandle
+    getSubtasks, // Added localSubtasks reference for useImperativeHandle
     orderedSubtasks,
     unorderedSubtasks,
     updateSubtaskField,
     deleteSubtask,
+    addSubtask,
     moveSubtaskBetweenSections,
     changeSubtaskOrder,
+    findMaxOrder,
   } = useSubtasks({ existing_subtasks, response });
 
   // **Expose function to get subtasks**
   useImperativeHandle(ref, () => ({
-    getSubtasks: (): Subtask_data[] =>
-      localSubtasks.map(({ subtask }) => ({
-        subtaskId: subtask.subtaskId ?? undefined, // Ensure optional subtaskId
-        title: subtask.title,
-        description: subtask.description,
-        duration: subtask.duration,
-        importance_factor: subtask.importance_factor,
-        order: subtask.order,
-        is_deleted: subtask.is_deleted ?? undefined,
-      })),
+    getSubtasks,
   }));
 
     return (
@@ -93,6 +86,12 @@ const SubtaskModal = forwardRef(({ existing_subtasks, response }: SubtaskModalPr
             </select>
           </div>
       ))}
+      <button
+        onClick={() => addSubtask(findMaxOrder())}
+        className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
+        >
+        Add Subtask to Ordered
+      </button>
       {unorderedSubtasks.map(({ uuid, subtask }) => (
           <div key={uuid} className="p-3 bg-gray-50 rounded-lg border relative dark:bg-gray-800 dark:border-gray-700">
             <button onClick={() => moveSubtaskBetweenSections(uuid)}>Move to Ordered</button>
@@ -147,6 +146,12 @@ const SubtaskModal = forwardRef(({ existing_subtasks, response }: SubtaskModalPr
             </select>
           </div>
         ))}
+        <button
+        onClick={() => addSubtask(null)}
+        className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
+        >
+        Add Subtask to UnOrdered
+      </button>
       </div>
     </div>
     )
