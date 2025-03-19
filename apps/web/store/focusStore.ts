@@ -1,5 +1,5 @@
+import { Task } from "@GlobalTypes/Task";
 import { create } from "zustand";
-import { Task } from "../types/Task";
 
 interface FocusState {
   tasks: Task[]; // Selected tasks for focus mode

@@ -15,6 +15,7 @@
     "moduleResolution": "bundler",
     "resolveJsonModule": true,
     "isolatedModules": true,
+    "forceConsistentCasingInFileNames": true,
     "jsx": "preserve",
     "types": ["react"],
     "incremental": true,
@@ -45,6 +46,7 @@
     "../packages/utils/**/*.ts",
     "../packages/lib/**/*.ts",
     "../packages/**/*.ts",
+    "../packages/**/*.d.ts",
   ],
   "exclude": [
     "node_modules"

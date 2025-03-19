@@ -11,7 +11,6 @@ import { Task } from "@GlobalTypes/Task";
 
 const TaskListPage = () => {
   const {
-    settings,
     tasks,
     subtasks,
     categories,
@@ -30,7 +29,6 @@ const TaskListPage = () => {
     closeTaskModal,
     handleSaveTask,
     handleSaveAITask,
-    setIsAITaskModalOpen,
     toggleTaskCompletion,
     isToggling,
     deleteTask,
