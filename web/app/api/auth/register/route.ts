@@ -3,6 +3,7 @@ import { cookies } from "next/headers";
 import { getAuth, sendEmailVerification, signInWithCredential, GoogleAuthProvider, createUserWithEmailAndPassword } from "firebase/auth";
 import { app } from "../../../../lib/firebase"; // Import Firebase instance
 import { FirebaseError } from "firebase/app";
+import { cookieOptions } from "../../../../lib/cookieOptions";
 
 const auth = getAuth(app);
 
@@ -33,14 +34,8 @@ export async function POST(req: Request) {
 
     // Step 4: Set token in HTTP-only secure cookie
     const cookieStore = await cookies();
-    cookieStore.set("authToken", token, {
-        httpOnly: true,
-        secure: process.env.NEXT_PUBLIC_NODE_ENV === "production", // This ensures the cookie is only sent over HTTPS
-        path: "/",
-        domain: ".taskmanager.shop", // This makes the cookie available to both subdomains
-        sameSite: "lax", // Required for cross-origin requests between subdomains
-        maxAge: 60 * 60 * 24 * 7, // 7 Days
-    });
+    cookieStore.set("authToken", token, cookieOptions);
+
     return NextResponse.json({
       message: google ? "User signed in successfully with Google." : "User registered successfully. Please verify your email.",
       user,

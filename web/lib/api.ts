@@ -1,5 +1,5 @@
 import { UserSettings } from "../types/userSettings";
-import { Task, Task_data } from "../types/Task";
+import {Subtask_data, Task, Task_data } from "../types/Task";
 
 export const fetchTasks = async () => {
   const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/tasks/get`, {
@@ -213,4 +213,114 @@ export const markUserAsVerified = async (email: string) => {
     console.error("Error marking user as verified:", error);
     throw new Error("Failed to mark user as verified.");
   }
+};
+
+
+export const saveSubtask = async (task_id: number, subtaskData: Subtask_data) => {
+  const isNewSubtask = subtaskData.subtaskId === undefined;
+  const url = isNewSubtask
+    ? `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/subtasks/create`
+    : `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/subtasks/${subtaskData.subtaskId}`;
+
+  const response = await fetch(url, {
+    method: isNewSubtask ? "POST" : "PUT",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    credentials: "include", // Ensures cookies (session) are sent
+    body: JSON.stringify({ task_id, ...subtaskData }), // Include task_id for both create & update
+  });
+
+  if (!response.ok) {
+    console.error(`Failed to ${isNewSubtask ? "create" : "update"} subtask`, response.status);
+    throw new Error(`Failed to ${isNewSubtask ? "create" : "update"} subtask`);
+  }
+
+  return response.json();
+};
+
+
+export const fetchSubtasksByTaskId = async (taskId: number) => {
+  const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/subtasks/task/${taskId}`, {
+    method: "GET",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    credentials: "include", // Ensures cookies (session) are sent
+  });
+
+  if (!response.ok) {
+    throw new Error("Failed to fetch subtasks for the task");
+  }
+
+  return response.json();
+};
+
+
+export const fetchSubtaskById = async (subtaskId: string) => {
+  const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/subtasks/${subtaskId}`, {
+    method: "GET",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    credentials: "include", // Ensures cookies (session) are sent
+  });
+
+  if (!response.ok) {
+    throw new Error("Failed to fetch subtask");
+  }
+
+  return response.json();
+};
+
+
+export const updateSubtask = async (subtaskId: number, updatedData: Partial<Subtask_data>) => {
+  const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/subtasks/${subtaskId}`, {
+    method: "PUT",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    credentials: "include", // Ensures cookies (session) are sent
+    body: JSON.stringify(updatedData),
+  });
+
+  if (!response.ok) {
+    throw new Error("Failed to update subtask");
+  }
+
+  return response.json();
+};
+
+
+export const completeSubtask = async (subtaskId: number) => {
+  const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/subtasks/${subtaskId}/complete`, {
+    method: "PATCH",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    credentials: "include", // Ensures cookies (session) are sent
+  });
+
+  if (!response.ok) {
+    throw new Error("Failed to mark subtask as completed");
+  }
+
+  return response.json();
+};
+
+
+export const deleteSubtask = async (subtaskId: number) => {
+  const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/subtasks/${subtaskId}`, {
+    method: "DELETE",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    credentials: "include", // Ensures cookies (session) are sent
+  });
+
+  if (!response.ok) {
+    throw new Error("Failed to delete subtask");
+  }
+
+  return response.json();
 };

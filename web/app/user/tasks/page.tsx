@@ -6,19 +6,23 @@ import Modal from "../../../components/ui/Modal";
 import TaskModal from "../../../components/ui/TaskModal";
 import { PlusCircleIcon, PencilIcon, CheckCircleIcon, XCircleIcon, EyeIcon, TrashIcon } from "@heroicons/react/solid";
 import useFetchTasks from "../../../hooks/useFetchTasks"; // Import the hook
-import { Task } from "../../../types/Task";
+import { Subtask, Task } from "../../../types/Task";
 import useFetchCategories from "../../../hooks/useFetchCategories";
 import FilterMenu from "../../../components/ui/FilterMenu";
 import { Filter } from "../../../types/Filter";
 import { useUserSettings } from "../../../contexts/UserSettingsContext";
 import { deleteTaskRequest, toggleTaskCompletionRequest } from "../../../lib/api";
+import useSubtasksByTaskIds from "../../../hooks/useSubtasksByTaskIds";
+import TaskForm from "../../../components/ui/TaskModalAi";
 
 
 const TaskListPage = () => {
   const {settings} = useUserSettings();
   const [sortBy, setSortBy] = useState<string>("priority"); // Default sorting by priority
   const [isTaskModalOpen, setIsTaskModalOpen] = useState(false);
+  const [isAITaskModalOpen, setIsAITaskModalOpen] = useState(false);
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
+  const [selectedSubtasks, setSelectedSubtasks] = useState<Subtask[] | [] |null>(null);
   const [isDeleting, setIsDeleting] = useState<boolean>(false);
   const [isToggling, setIsToggling] = useState(false);
   const [showCompleted, setShowCompleted] = useState(false);
@@ -37,6 +41,7 @@ const TaskListPage = () => {
 
   // Using the hook to fetch tasks
   const { tasks, loadingTasks, setTasks } = useFetchTasks();
+  const {subtasks, setSubtasks} = useSubtasksByTaskIds(tasks)
   const { categories, /*loadingCategories, setCategories*/ } = useFetchCategories();
 
   const handleFilterChange = (filters: {
@@ -88,12 +93,26 @@ const TaskListPage = () => {
     const taskToEdit = tasks.find((task) => task.id === taskId);
     if (taskToEdit) {
       setSelectedTask(taskToEdit);
+      const taskToEdit_Subtasks = subtasks.filter((subtask) => subtask.task_id === taskToEdit.id)
+      if (taskToEdit_Subtasks.length>0){
+        setSelectedSubtasks(taskToEdit_Subtasks);
+      }
       setIsTaskModalOpen(true);
     }
   };
 
+  const openAITaskModal = () =>{
+    setIsAITaskModalOpen(true)
+  }
+
   const closeTaskModal = () => {
     setIsTaskModalOpen(false);
+    setSelectedTask(null);
+    setSelectedSubtasks(null);
+  };
+
+  const closeAITaskModal = () => {
+    setIsAITaskModalOpen(false);
     setSelectedTask(null);
   };
 
@@ -101,11 +120,24 @@ const TaskListPage = () => {
     if (selectedTask) {
       setTasks(tasks.map((task) => (task.id === updatedTask.id ? updatedTask : task)));
     } else {
-      setTasks([...tasks, { ...updatedTask, id: tasks.length + 1 }]);
+    setTasks([...tasks, updatedTask]);
     }
     closeTaskModal();
   };
 
+  const handleSaveAITask = (savedData: { task: Task; subtasks: Subtask[] }) => {
+    if (savedData) {
+      // Update task list
+      setTasks([...tasks, savedData.task]);
+  
+      // Update subtasks list with the newly saved subtasks
+      const updatedSubtasks = [...subtasks, ...savedData.subtasks];
+      setSubtasks(updatedSubtasks);
+  
+      closeAITaskModal();
+    }
+  };
+  
 
 const deleteTask = async (taskId: number) => {
   try {
@@ -217,13 +249,20 @@ const deleteTask = async (taskId: number) => {
 
   return (
 <div className="container mx-auto p-6 ">
-  <div className="mt-6 inline-flex justify-between items-center">
+  <div className="mt-6 inline-flex justify-between items-center gap-2">
     <button
       onClick={openNewTaskModal}
       className="px-4 py-2 rounded flex items-center space-x-2 text-white bg-blue-500 hover:bg-blue-600 dark:bg-blue-700 dark:hover:bg-blue-800"
     >
       <PlusCircleIcon className="h-5 w-5" />
       <span>New Task</span>
+    </button>
+    <button
+      onClick={openAITaskModal}
+      className="px-4 py-2 rounded flex items-center space-x-2 text-white bg-blue-500 hover:bg-blue-600 dark:bg-blue-700 dark:hover:bg-blue-800"
+    >
+      <PlusCircleIcon className="h-5 w-5" />
+      <span>New Task AI</span>
     </button>
   </div>
 
@@ -280,15 +319,24 @@ const deleteTask = async (taskId: number) => {
     colourScheme={colourScheme}
     colourSchemeEnabled={colourSchemeEnabled}
     showCompletedTasks={showCompleted}
+    subtasks={subtasks}
   />
 
-  <Modal isOpen={isTaskModalOpen} onClose={closeTaskModal} width="max-w-3xl">
+  <Modal isOpen={isTaskModalOpen} onClose={closeTaskModal} width="max-w-lg">
     <TaskModal
       categories={categories}
       existingTask={selectedTask}
+      existing_subtasks={selectedSubtasks}
       onSave={handleSaveTask}
       onClose={closeTaskModal}
     />
+  </Modal>
+  <Modal isOpen={isAITaskModalOpen} onClose={closeAITaskModal} width="max-w-lg">
+      <TaskForm 
+        categories={categories} 
+        onSave={handleSaveAITask} 
+        onClose={closeAITaskModal} 
+      />
   </Modal>
 </div>
   );

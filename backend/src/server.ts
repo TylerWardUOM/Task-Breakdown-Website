@@ -12,6 +12,7 @@ import {scheduleCronJobs,runRepeatTasks} from "./cronJob";  // Import the cron j
 import { deleteUnverifiedUsersFromDB } from "./models/userModel";
 import userSettingsRoutes from "./routes/userSettingsRoutes";
 import cookieParser from "cookie-parser";
+import subtaskRoutes from "./routes/subtaskRoutes";
 
 
 
@@ -42,6 +43,7 @@ app.use("/api/tasks", taskRoutes);
 app.use("/api/user",userRoutes,);
 app.use("/api/user/settings",userSettingsRoutes,);
 app.use("/api/category",categoryRoutes)
+app.use("/api/subtasks",subtaskRoutes)
 // @ts-ignore
 app.get("/", (req, res) => {
   res.send("🚀 Server is running!");
