@@ -9,25 +9,13 @@ import {
 } from "firebase/auth";
 import { app } from "../../../../lib/firebase"; // Firebase instance
 import { FirebaseError } from "firebase/app";
+import { cookieOptions } from "../../../../lib/cookieOptions";
 
 const auth = getAuth(app);
 
 // Helper function to set authentication cookies
 const setAuthCookie = async (token: string) => {
   const cookieStore = await cookies();
-  const cookieOptions: any = {
-    httpOnly: true,
-    secure: process.env.NEXT_PUBLIC_NODE_ENV === "production",
-    path: "/",
-    sameSite: "lax",
-    maxAge: 60 * 60 * 24 * 7, // 7 Days
-  };
-  
-  // Only set domain if in production
-  if (process.env.NEXT_PUBLIC_NODE_ENV === "production") {
-    cookieOptions.domain = ".taskmanager.shop";
-  }
-  
   cookieStore.set("authToken", token, cookieOptions);
 };
 // Helper function to handle login response
