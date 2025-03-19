@@ -1,0 +1,53 @@
+import { Subtask, Task } from "@GlobalTypes/Task";
+import { fetchSubtasksByTaskId } from "@lib/api";
+import { useState, useEffect } from "react";
+
+
+interface UseSubtasksResult {
+  subtasks: Subtask[]; // Now returns a flat list of subtasks
+  loading: boolean;
+  error: string | null;
+  setSubtasks: React.Dispatch<React.SetStateAction<Subtask[]>>; // Properly typed setter
+}
+
+const useSubtasksByTaskIds = (taskInput: Task[]): UseSubtasksResult => {
+  const [subtasks, setSubtasks] = useState<Subtask[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (taskInput.length === 0) {
+      setSubtasks([]);
+      setLoading(false);
+      return;
+    }
+
+    const fetchAllSubtasks = async () => {
+      setLoading(true);
+      setError(null);
+
+      try {
+        // Fetch all subtasks in parallel and flatten the results
+        const subtasksArray = await Promise.all(taskInput.map((task) => fetchSubtasksByTaskId(task.id)));
+        setSubtasks(subtasksArray.flat());
+      } catch (err: unknown) {
+        console.error("Error fetching subtasks:", err);
+        if (err instanceof Error){
+          setError(err.message);
+        }
+        else{
+        setError("Failed to fetch subtasks");
+        }
+        setSubtasks([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchAllSubtasks();
+  }, [taskInput]);
+
+  return { subtasks, loading, error,setSubtasks};
+};
+
+export default useSubtasksByTaskIds;
