@@ -1,7 +1,7 @@
 import { forwardRef, useImperativeHandle } from "react";
 import { Subtask, Subtask_data } from "@GlobalTypes/Task";
-import { TaskBreakdownResponse } from "../../types/Task";
 import useSubtasks from "@Hooks/useSubtasks";
+import { TaskBreakdownResponse } from "@FrontendTypes/AiResponse";
 
 interface SubtaskModalProps {
   existing_subtasks?: Subtask[] | null;

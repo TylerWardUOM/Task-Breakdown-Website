@@ -1,18 +1,20 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { useFocusStore } from "../../../store/focusStore";
-import TaskTable from "../../../components/TaskTable";
-import useFetchCategories from "../../../../hooks/useFetchCategories";
-import { useUserSettings } from "../../../contexts/UserSettingsContext";
-import useFetchTasks from "../../../../hooks/useFetchTasks";
-import { Task } from "../../../types/Task";
-import Modal from "../../../components/ui/Modal";
-import { CheckCircleIcon, CogIcon, MinusCircleIcon, PlusCircleIcon, XCircleIcon } from "@heroicons/react/solid";
-import { toggleTaskCompletionRequest } from "../../../lib/api";
-import FilterMenu from "../../../components/ui/FilterMenu";
-import { Filter } from "../../../types/Filter";
+import { Filter } from "@FrontendTypes/filter";
+import { Task } from "@GlobalTypes/Task";
+import { CheckCircleIcon, XCircleIcon, MinusCircleIcon, CogIcon, PlusCircleIcon } from "@heroicons/react/solid";
+import useFetchCategories from "@Hooks/useFetchCategories";
+import useFetchTasks from "@Hooks/useFetchTasks";
+import { toggleTaskCompletionRequest } from "@lib/api";
 import Link from "next/link";
+import { useState, useEffect } from "react";
+import TaskTable from "../../../components/TaskTable";
+import FilterMenu from "../../../components/ui/FilterMenu";
+import Modal from "../../../components/ui/Modal";
+import { useUserSettings } from "../../../contexts/UserSettingsContext";
+import { useFocusStore } from "../../../store/focusStore";
+
+
 
 interface TimerSettings{
     pomodoro: number,

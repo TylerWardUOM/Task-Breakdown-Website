@@ -1,6 +1,6 @@
 import { v4 as uuidv4 } from 'uuid';
 import { Subtask, Subtask_data } from "@GlobalTypes/Task";
-import { TaskBreakdownResponse } from "../web/types/Task";
+import { TaskBreakdownResponse } from '@FrontendTypes/AiResponse';
 
 /**
  * Convert AI duration to minutes.

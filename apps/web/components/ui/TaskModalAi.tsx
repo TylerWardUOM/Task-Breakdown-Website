@@ -2,13 +2,12 @@
 import { Category } from "@GlobalTypes/Category";
 import { Task, Subtask, Task_data, Subtask_data } from "@GlobalTypes/Task";
 import { saveTask, saveSubtask } from "@lib/api";
-import { formatRepeatInterval, mapRepeatIntervalToDropdownValue } from "@Utils/TaskModalUtils";
 import { useState, useRef } from "react";
-import { getTaskBreakdown } from "../../lib/getTaskBreakdown";
-import { parseRepeatInterval } from "../../lib/taskUtils";
-import { TaskBreakdownResponse } from "../../types/Task";
 import ImportanceSelector from "./ImportanceSelector";
 import SubtaskModal from "./SubtaskModal";
+import { TaskBreakdownResponse } from "@FrontendTypes/AiResponse";
+import {getTaskBreakdown} from "@Utils/getTaskBreakdown";
+import { formatRepeatInterval, mapRepeatIntervalToDropdownValue, parseRepeatInterval } from "@Utils/TaskModalUtils";
 
 // Define the props structure for TaskForm
 interface TaskFormProps {

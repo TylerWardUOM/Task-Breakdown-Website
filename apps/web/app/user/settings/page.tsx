@@ -2,7 +2,8 @@
 import { useUserSettings } from "../../../contexts/UserSettingsContext";
 import { useState, useEffect, useRef } from "react";
 import ColorSwatchesPicker from "../../../components/ui/ColorSwatchesPicker";
-import { ColourScheme, UserSettings } from "../../../types/userSettings";
+import { ColourScheme } from "@GlobalTypes/ColourScheme";
+import { UserSettings } from "@GlobalTypes/UserSettings";
 
 const DEFAULT_COLOUR_SCHEME: ColourScheme = {
     overdue: "bg-red-600",

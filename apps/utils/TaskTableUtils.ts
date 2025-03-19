@@ -1,8 +1,8 @@
 import { Category } from "@GlobalTypes/Category";
 import { ColourScheme } from "@GlobalTypes/ColourScheme";
 import { Filter } from "@FrontendTypes/filter";
-import { calculatePriority } from "../web/lib/calculatePriority";
 import {Subtask, Task} from "@GlobalTypes/Task"
+import { calculatePriority } from "@lib/calculatePriority";
 
 // Formats the duration (in minutes) into a human-readable string.
 export const renderDuration = (duration: Task["duration"]) => {

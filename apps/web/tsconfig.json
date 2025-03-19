@@ -26,7 +26,7 @@
     "paths": {
       "@/*": ["./src/*"],
       "@GlobalTypes/*": ["../../types/*"],
-      "@FrontendTypes/*": ["./../packages/types/*"],
+      "@FrontendTypes/*": ["../packages/types/*"],
       "@ui/*": ["./../packages/ui/*"],
       "@Hooks/*": ["../hooks/*"],
       "@Utils/*": ["../utils/*"],
@@ -44,6 +44,7 @@
     "../hooks/**/*.ts",
     "../utils/**/*.ts",
     "../lib/**/*.ts",
+    "../packages/**/*.ts",
   ],
   "exclude": [
     "node_modules"

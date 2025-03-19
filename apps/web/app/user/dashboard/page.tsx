@@ -1,19 +1,21 @@
 "use client";
-import { useState} from "react";
+
+import { Filter } from "@FrontendTypes/filter";
+import { Task } from "@GlobalTypes/Task";
+import useFetchCategories from "@Hooks/useFetchCategories";
+import useFetchTasks from "@Hooks/useFetchTasks";
+import Link from "next/link";
+import { useState } from "react";
 import { FiPlusCircle } from "react-icons/fi";
+import TaskCompletedTimeframe from "../../../components/TaskCompletedTimeframe";
+import TaskTable from "../../../components/TaskTable";
 import Card from "../../../components/ui/Card";
 import Modal from "../../../components/ui/Modal";
 import TaskModal from "../../../components/ui/TaskModal";
-import TaskCompletedTimeframe from "../../../components/TaskCompletedTimeframe";
 import Toast from "../../../components/ui/Toast";
-import { useAuth } from "../../../contexts/authContext"; // Import the useAuth hook
-import TaskTable from "../../../components/TaskTable";
-import useFetchTasks from "../../../../hooks/useFetchTasks";
-import Link from 'next/link';
-import { Task } from "../../../types/Task";
-import useFetchCategories from "../../../../hooks/useFetchCategories";
-import { Filter } from "../../../types/Filter";
+import { useAuth } from "../../../contexts/authContext";
 import { useUserSettings } from "../../../contexts/UserSettingsContext";
+
 
 
 export default function Dashboard() {

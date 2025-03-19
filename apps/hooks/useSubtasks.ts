@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Subtask, Subtask_data } from "@GlobalTypes/Task";
-import { TaskBreakdownResponse } from "../web/types/Task";
 import { mapExistingSubtasks, mapResponseSubtasks } from "@Utils/subtaskUtils";
+import { TaskBreakdownResponse } from "@FrontendTypes/AiResponse";
 
 // Define the props for initialization
 interface UseSubtasksProps {

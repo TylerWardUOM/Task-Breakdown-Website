@@ -1,14 +1,14 @@
 // app/api/task/breakdown.ts
-import { NextRequest, NextResponse } from "next/server";
-import {TaskBreakdownResponse, TaskDuration} from "../../../../types/Task";
+
+import { TaskBreakdownResponse, TaskDuration } from "@FrontendTypes/AiResponse";
 import { Subtask_data, Task_data } from "@GlobalTypes/Task";
 
 
 const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
 const MOCK = true;
 
-export async function POST(req: NextRequest): Promise<NextResponse> {
-  try {
+export async function getTaskBreakdown(task: string): Promise<TaskBreakdownResponse | null> {
+    try {
     console.log("🔹 Received a request to break down task");
 
     if (MOCK){
@@ -82,24 +82,12 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
         ]
       };
     
-      return NextResponse.json(mockResponse);
+      return mockResponse;
     }
 
     if (!OPENAI_API_KEY) {
-      console.error("❌ OPENAI_API_KEY is missing");
-      return NextResponse.json(
-        { error: "Server misconfiguration: API key missing" },
-        { status: 500 }
-      );
-    }
-
-    const { task } = await req.json();
-    if (!task) {
-      console.warn("⚠️ Task description is missing");
-      return NextResponse.json(
-        { error: "Task description is required." },
-        { status: 400 }
-      );
+        console.error("❌ OPENAI_API_KEY is missing");
+        throw new Error("Server misconfiguration: API key missing");
     }
 
     console.log("📩 Task received:", task);
@@ -181,12 +169,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     console.log("📥 OpenAI API Response Status:", response.status);
 
     if (!response.ok) {
-      const errorText = await response.text();
-      console.error("❌ OpenAI API error:", errorText);
-      return NextResponse.json(
-        { error: "Failed to fetch data from OpenAI", details: errorText },
-        { status: response.status }
-      );
+        throw new Error(`OpenAI API error: ${await response.text()}`);
     }
 
     // Parse the response
@@ -199,10 +182,8 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
 
     if (!parsedResponse || !parsedResponse.main_task || !parsedResponse.subtasks) {
       console.error("❌ Invalid response format from OpenAI");
-      return NextResponse.json(
-        { error: "Unexpected response format from OpenAI", details: parsedResponse },
-        { status: 500 }
-      );
+      throw new Error("Invalid response format from OpenAI");
+
     }
   
 
@@ -237,13 +218,10 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
       subtasks: formattedSubtasks
     };
 
-    return NextResponse.json(formattedResponse);
+    return formattedResponse;
 
   } catch (error) {
     console.error("❌ Error in API route:", error);
-    return NextResponse.json(
-      { error: "Internal Server Error", details: String(error) },
-      { status: 500 }
-    );
+    return null;
   }
 }
