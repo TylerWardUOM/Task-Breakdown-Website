@@ -1,9 +1,5 @@
 {
   "private": true,
-  "workspaces": [
-    "web",
-    "packages/*"
-  ],
   "devDependencies": {
 
   },
