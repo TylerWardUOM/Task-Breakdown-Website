@@ -8,6 +8,7 @@ import { TaskBreakdownResponse } from "@FrontendTypes/AiResponse";
 import { formatRepeatInterval, mapRepeatIntervalToDropdownValue, parseRepeatInterval } from "@Utils/TaskModalUtils";
 import { saveTask, saveSubtask } from "@lib/api";
 import { getTaskBreakdown } from "@Utils/getTaskBreakdown";
+import { fetchApiKey} from "lib/getOpenAIKey";
 
 
 // Define the props structure for TaskForm
@@ -45,8 +46,10 @@ const TaskForm: React.FC<TaskFormProps> = ({categories, onSave, onClose}) => {
     setTaskData(null);
     setTaskBreakdownResponse(null);
 
-    const response: TaskBreakdownResponse | null = await getTaskBreakdown(process.env.OPENAI_API_KEY,taskText);
-    
+    const openAIKey = await fetchApiKey();
+    console.log(openAIKey);
+
+    const response: TaskBreakdownResponse | null = await getTaskBreakdown(openAIKey,taskText);
     if (!response) {
         throw new Error("Failed to fetch task breakdown. Please try again later.");
       }
