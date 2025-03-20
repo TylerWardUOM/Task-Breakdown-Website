@@ -1,10 +1,13 @@
 {
+  "private": true,
+  "workspaces": [
+    "web/*"
+  ],
   "devDependencies": {
     "@types/react": "^19.0.12",
     "@types/react-dom": "^19.0.4"
   },
   "dependencies": {
-    "@types/react-dom": "^19.0.4",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "uuid": "^11.1.0"
