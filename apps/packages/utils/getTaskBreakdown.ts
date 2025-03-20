@@ -3,9 +3,9 @@
 import { TaskBreakdownResponse, TaskDuration } from "@FrontendTypes/AiResponse";
 import { Subtask_data, Task_data } from "@GlobalTypes/Task";
 import { getUserData } from "../../web/lib/user";
+import { OPENAI_API_KEY } from "../../web/lib/openAIkey";
 
 
-const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
 let MOCK = true;
 
 const user = await getUserData();
