@@ -24,13 +24,14 @@
         "name": "next"
       }
     ],
+    "baseUrl": ".",
     "paths": {
-      "react": ["../node_modules/react"],
+      "react": ["../node_modules/@types/react"],
       "react/jsx-runtime": ["../node_modules/react/jsx-runtime"],
       "@/*": ["./src/*"],
       "@GlobalTypes/*": ["../../types/*"],
       "@FrontendTypes/*": ["../packages/types/*"],
-      "@ui/*": ["./../packages/ui/*"],
+      "@ui/*": ["../packages/ui/*"],
       "@Hooks/*": ["../packages/hooks/*"],
       "@Utils/*": ["../packages/utils/*"],
       "@lib/*": ["../packages/lib/*"]
