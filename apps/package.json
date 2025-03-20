@@ -12,5 +12,9 @@
     "uuid": "^11.1.0",
     "@types/react": "^19.0.12",
     "@types/react-dom": "^19.0.4"
-  }
+  },
+  "scripts": {
+  "postinstall": "npm install @types/react"
 }
+}
+
