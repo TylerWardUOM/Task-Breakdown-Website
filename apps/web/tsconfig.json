@@ -25,7 +25,7 @@
       }
     ],
     "paths": {
-      "react": ["../node_modules/@types/react"],
+      "react": ["../node_modules/react"],
       "react/jsx-runtime": ["../node_modules/react/jsx-runtime"],
       "@/*": ["./src/*"],
       "@GlobalTypes/*": ["../../types/*"],
