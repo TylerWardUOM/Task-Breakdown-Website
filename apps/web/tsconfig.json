@@ -25,6 +25,8 @@
       }
     ],
     "paths": {
+      "react": ["../node_modules/@types/react"],
+      "react/jsx-runtime": ["../node_modules/react/jsx-runtime"],
       "@/*": ["./src/*"],
       "@GlobalTypes/*": ["../../types/*"],
       "@FrontendTypes/*": ["../packages/types/*"],
@@ -47,6 +49,7 @@
     "../packages/lib/**/*.ts",
     "../packages/**/*.ts",
     "../packages/**/*.d.ts",
+    "../packages/**/*.tsx",
   ],
   "exclude": [
     "node_modules"
