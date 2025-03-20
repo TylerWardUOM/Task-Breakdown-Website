@@ -45,7 +45,7 @@ const TaskForm: React.FC<TaskFormProps> = ({categories, onSave, onClose}) => {
     setTaskData(null);
     setTaskBreakdownResponse(null);
 
-    const response: TaskBreakdownResponse | null = await getTaskBreakdown(taskText);
+    const response: TaskBreakdownResponse | null = await getTaskBreakdown(process.env.OPENAI_API_KEY,taskText);
     
     if (!response) {
         throw new Error("Failed to fetch task breakdown. Please try again later.");
