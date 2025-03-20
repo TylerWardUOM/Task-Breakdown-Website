@@ -2,10 +2,19 @@
 
 import { TaskBreakdownResponse, TaskDuration } from "@FrontendTypes/AiResponse";
 import { Subtask_data, Task_data } from "@GlobalTypes/Task";
+import { getUserData } from "../../web/lib/user";
 
 
 const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
-const MOCK = true;
+let MOCK = true;
+
+const user = await getUserData();
+if (user!=null){
+  if (user.email=="tylerward123456@gmail.com"){
+    MOCK=false;
+  }
+}
+
 
 export async function getTaskBreakdown(task: string): Promise<TaskBreakdownResponse | null> {
     try {

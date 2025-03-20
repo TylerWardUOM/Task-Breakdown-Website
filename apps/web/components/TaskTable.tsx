@@ -1,13 +1,11 @@
 "use client";
-import React, { useState } from "react";
+import React from "react";
 import { Filter } from "@FrontendTypes/filter";
 import { Category } from "@GlobalTypes/Category";
 import { ColourScheme } from "@GlobalTypes/ColourScheme";
 import { Task, Subtask } from "@GlobalTypes/Task";
-import { calculatePriority } from "@lib/calculatePriority";
-import { normalizePriorities, getFilteredTasks, getSortedTasks, 
-  getSortedSubtasks, getPrioritycolour, renderDueDate, getCategoryName, 
-  renderDuration, getOrdinalSuffix } from "@Utils/TaskTableUtils";
+import { normalizePriorities, getFilteredTasks, getSortedTasks} from "@Utils/TaskTableUtils";
+import TaskRow from "./TaskRow";
 
 
 interface TaskTableProps {
@@ -29,23 +27,9 @@ interface TaskTableProps {
   subtasks?: Subtask[]; 
 }
 
-interface TaskRowProps{
-  task: Task;
-  subtasks?: Subtask[];
-  expanded: boolean;
-  visibleColumns?: string[]; 
-  colourScheme: ColourScheme;       // New prop for custom colour schemes
-  colourSchemeEnabled: boolean;
-  toggleTask: (taskId: number) => void;
-    // @ts-expect-error: Ignoring error because JSX is properly handled in this project
-  renderActions?: (task: Task) => JSX.Element;
-  categories: Category[];
-}
+
 
 const DEFAULT_COLUMNS = ["title", "priority", "due_date", "category", "duration", "order"];
-
-
-
 
 
 
@@ -62,20 +46,6 @@ const TaskTable: React.FC<TaskTableProps> = ({
   categories,
   subtasks,
 }) => {
-  
-  const [expandedTasks, setExpandedTasks] = useState<Set<number>>(new Set());
-
-  const toggleTask = (taskId: number) => {
-    setExpandedTasks((prev) => {
-      const newExpandedTasks = new Set(prev);
-      if (newExpandedTasks.has(taskId)) {
-        newExpandedTasks.delete(taskId);
-      } else {
-        newExpandedTasks.add(taskId);
-      }
-      return newExpandedTasks;
-    });
-  };
   
 
   const normalizedTasks = normalizePriorities(tasks);
@@ -115,8 +85,6 @@ const TaskTable: React.FC<TaskTableProps> = ({
               task={task}
               subtasks={subtasks?.filter((subtask) => subtask.task_id === task.id)}
               visibleColumns={visibleColumns}
-              toggleTask={toggleTask}
-              expanded={expandedTasks.has(task.id)}
               renderActions={renderActions}
               colourScheme={colourScheme}
               colourSchemeEnabled={colourSchemeEnabled}
@@ -129,148 +97,5 @@ const TaskTable: React.FC<TaskTableProps> = ({
   );
 };
 
-
-const TaskRow: React.FC<TaskRowProps> = ({
-  task,
-  toggleTask,
-  expanded,
-  subtasks,
-  colourScheme,
-  colourSchemeEnabled,
-  visibleColumns = DEFAULT_COLUMNS,
-  renderActions,
-  categories
-}) => {
-  const sortedSubtasks = subtasks? getSortedSubtasks(subtasks) : [];
-  const priority = calculatePriority(task);
-  const prioritycolour = getPrioritycolour(priority, colourScheme, colourSchemeEnabled);
-  const orderedSubtasks = sortedSubtasks.filter((subtask) => subtask.order !== null);
-  const unorderedSubtasks = sortedSubtasks.filter((subtask) => subtask.order === null);
-
-  return (
-    <>
-        <tr
-          className={`${prioritycolour}`}
-          onClick={(e) => {
-            // Prevent toggle when clicking inside the Actions column
-            if ((e.target as HTMLElement).closest(".task-actions")) return;
-            toggleTask(task.id);
-          }}
-          style={{ cursor: "pointer" }}
-          >
-        {visibleColumns.includes("title") && (
-          <td className={`py-2 px-4 ${task.completed ? "line-through text-gray-400" : ""}`}>
-            {task.title || "Untitled Task"}
-          </td>
-        )}
-        {visibleColumns.includes("priority") && <td className="py-2 px-4">{priority.toFixed(2)}</td>}
-        {visibleColumns.includes("due_date") && <td className="py-2 px-4">{renderDueDate(task.due_date)}</td>}
-        {visibleColumns.includes("category") && <td className="py-2 px-4">{getCategoryName(task.category_id, categories)}</td>}
-        {visibleColumns.includes("duration") && <td className="py-2 px-4">{renderDuration(task.duration)}</td>}
-        {renderActions && <td className="py-2 px-4 task-actions">{renderActions(task)}</td>}
-      </tr>
-
-      {expanded==true && subtasks &&(
-        <>
-          {orderedSubtasks.length > 0 && (
-            <>
-              <SubtaskTable
-                subtasks={orderedSubtasks}
-                visibleColumns={visibleColumns}
-                renderDuration={renderDuration}
-                taskPrioritycolour={prioritycolour}
-                getPrioritycolour={getPrioritycolour}
-                colourScheme={colourScheme}
-                colourSchemeEnabled={colourSchemeEnabled}
-              />
-            </>
-          )}
-
-          {unorderedSubtasks.length > 0 && (
-            <>
-              <SubtaskTable
-                subtasks={unorderedSubtasks}
-                visibleColumns={visibleColumns}
-                renderDuration={renderDuration}
-                getPrioritycolour={getPrioritycolour}
-                taskPrioritycolour={prioritycolour}
-                colourScheme={colourScheme}
-                colourSchemeEnabled={colourSchemeEnabled}
-              />
-            </>
-          )}
-
-        {orderedSubtasks.length === 0 && unorderedSubtasks.length === 0 && (
-        <tr className="dark:bg-gray-700 dark:text-white">
-          <td colSpan={visibleColumns.length} className="text-center p-4">
-            No subtasks available
-          </td>
-        </tr>
-            )}
-        </>
-      )}
-    </>
-  );
-};
-
-
-const SubtaskTable: React.FC<{
-  subtasks: Subtask[];
-  visibleColumns: string[];
-  renderDuration: (duration: number) => string;
-  getPrioritycolour: (priority: number, colourScheme: ColourScheme, colourSchemeEnabled: boolean) => string;
-  colourScheme: ColourScheme;
-  colourSchemeEnabled: boolean;
-  taskPrioritycolour: string;
-}> = ({ subtasks, visibleColumns, getPrioritycolour, colourScheme, colourSchemeEnabled, taskPrioritycolour }) => {
-  // Count how many columns are visible
-
-  return(
-  <>
-  <tr className={`${taskPrioritycolour}`}>
-  <td colSpan={visibleColumns.length} className="p-0">
-    <div className="p-4">
-      <div className="overflow-hidden rounded-lg border-2 border-gray-600">
-      <table className="w-full table-auto ml-auto rounded-lg border-collapse">
-        {/* Table Head */}
-        <thead className="bg-gray-100 rounded-lg">
-          <tr className="dark:bg-gray-700 dark:text-white">
-            <th colSpan={visibleColumns.length} className="py-1 px-4 font-bold">
-            {subtasks.some((subtask) => subtask.order !== null) ? "Ordered Subtasks" : "Unordered Subtasks"}
-            </th>
-          </tr>
-          <tr className="dark:bg-gray-700 dark:text-white">
-            {visibleColumns.includes("order") && <th className="px-4 text-left w-16 pl-10">Order</th>}
-            {visibleColumns.includes("title") && <th className="py-2 px-4 text-left  ">Subtask Title</th>}
-            {visibleColumns.includes("priority") && <th className="py-2 px-4 text-left  ">Priority</th>}
-            {visibleColumns.includes("duration") && <th className="py-2 px-4 text-left  ">Duration</th>}
-          </tr>
-        </thead>
-
-        {/* Table Body */}
-        <tbody className="border-t border-gray-600">
-          {subtasks.map((subtask) => (
-            <tr key={subtask.id} className={`  ${getPrioritycolour(subtask.importance_factor ?? 5, colourScheme, colourSchemeEnabled)}`}>
-              {visibleColumns.includes("order") ? (
-                <td className="py-2 px-4 w-16 pl-10  ">
-                  {subtask.order !== null ? getOrdinalSuffix(subtask.order) : "-"}
-                </td>
-              ) : null}
-              {visibleColumns.includes("title") && <td className="py-2 px-4 ">{subtask.title || "Untitled Subtask"}</td>}
-              {visibleColumns.includes("priority") && <td className="py-2 px-4">{(subtask.importance_factor ?? 5).toFixed(2)}</td>}
-              {visibleColumns.includes("duration") && <td className="py-2 px-4 ">{renderDuration(subtask.duration)}</td>}
-            </tr>
-          ))}
-        </tbody>
-
-      </table>
-      </div>
-    </div>
-  </td>
-</tr>
-
-  </>
-);
-};
 
 export default TaskTable;
