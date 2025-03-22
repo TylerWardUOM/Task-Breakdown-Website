@@ -1,7 +1,7 @@
 import { forwardRef, useImperativeHandle } from "react";
 import { Subtask } from "@GlobalTypes/Task";
 import { TaskBreakdownResponse } from "@FrontendTypes/AiResponse";
-import useSubtasks from "@Hooks/useSubtasks";
+import useSubtaskModal from "@Hooks/useSubtaskModal";
 import SubtaskModalList from "./SubtaskModalList";
 
 
@@ -22,7 +22,7 @@ const SubtaskModal = forwardRef(({ existing_subtasks, response }: SubtaskModalPr
     moveSubtaskBetweenSections,
     changeSubtaskOrder,
     findMaxOrder,
-  } = useSubtasks({ existing_subtasks, response });
+  } = useSubtaskModal({ existing_subtasks, response });
 
   // Expose function to get subtasks
   useImperativeHandle(ref, () => ({

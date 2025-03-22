@@ -1,10 +1,9 @@
-import { useState, useEffect, useRef } from "react";
-import { Task, Subtask, Subtask_data } from "@GlobalTypes/Task";
+import { useState, useEffect } from "react";
 import { formatDueDate, formatRepeatInterval, mapRepeatIntervalToDropdownValue } from "../utils/TaskModalUtils";
-import { useTasks } from "./useTasks";
+import { saveTask, saveSubtask } from "../lib/api";
+import { Subtask, Subtask_data, Task, Task_data } from "@GlobalTypes/Task";
 
-export const useTaskModal = (existingTask: Task | null, existingSubtasks: Subtask[] | null, onSave: (task: Task) => void, onClose: () => void) => {
-  const { saveTaskData } = useTasks(); // Get saveTaskData function from useTasks
+export const useTask = (existingTask: Task | null, existingSubtasks: Subtask[] | null, onSave: (task: Task) => void) => {
   const [taskTitle, setTaskTitle] = useState("");
   const [dueDate, setDueDate] = useState<string | null>(null);
   const [hours, setHours] = useState<number | null>(null);
@@ -13,8 +12,6 @@ export const useTaskModal = (existingTask: Task | null, existingSubtasks: Subtas
   const [description, setDescription] = useState("");
   const [repeatTask, setRepeatTask] = useState("None");
   const [category, setCategory] = useState("1");
-  const [showMoreOptions, setShowMoreOptions] = useState(false);
-  const subtaskModalRef = useRef<{ getSubtasks: () => Subtask_data[] } | null>(null);
 
   useEffect(() => {
     if (existingTask) {
@@ -34,23 +31,35 @@ export const useTaskModal = (existingTask: Task | null, existingSubtasks: Subtas
     }
   }, [existingTask]);
 
-  const handleSaveTask = async () => {
-    const latestSubtasks = subtaskModalRef.current?.getSubtasks() || [];
+  const saveTaskData = async (subtasks: Subtask_data[]) => {
+    const totalDuration = (hours || 0) * 60 + (minutes || 0);
 
-    await saveTaskData(existingTask, {
-      taskTitle,
-      dueDate,
-      hours,
-      minutes,
-      importanceValue,
-      description,
-      repeatTask,
-      category,
-    }, latestSubtasks, onSave);
+    const taskData: Task_data = {
+      taskId: existingTask?.id || undefined,
+      title: taskTitle,
+      description: description || null,
+      due_date: dueDate || null,
+      importance_factor: importanceValue,
+      duration: totalDuration || null,
+      repeat_interval: repeatTask !== "None" ? formatRepeatInterval(repeatTask) : null,
+      category_id: category !== null ? parseInt(category) : null,
+    };
 
-    onClose();
+    try {
+      const savedTask = await saveTask(taskData, existingTask);
+
+      // Save subtasks
+      await Promise.all(subtasks.map(async (subtask) => await saveSubtask(savedTask.id, subtask)));
+
+      onSave(savedTask);
+      return savedTask;
+    } catch (err) {
+      console.error("Error saving task:", err);
+      throw err;
+    }
   };
-
+  
+  
   return {
     taskTitle, setTaskTitle,
     dueDate, setDueDate,
@@ -60,8 +69,6 @@ export const useTaskModal = (existingTask: Task | null, existingSubtasks: Subtas
     description, setDescription,
     repeatTask, setRepeatTask,
     category, setCategory,
-    showMoreOptions, setShowMoreOptions,
-    subtaskModalRef,
-    handleSaveTask,
+    saveTaskData
   };
 };
