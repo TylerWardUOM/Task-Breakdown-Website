@@ -8,13 +8,13 @@ import Link from "next/link";
 import { useState } from "react";
 import { FiPlusCircle } from "react-icons/fi";
 import TaskCompletedTimeframe from "../../../components/TaskCompletedTimeframe";
-import TaskTable from "../../../components/TaskTable";
+import TaskTable from "../../../components/TaskDisplays/TaskTable";
 import Card from "../../../components/ui/Card";
 import Modal from "../../../components/ui/Modal";
-import TaskModal from "../../../components/ui/TaskModal";
 import Toast from "../../../components/ui/Toast";
 import { useAuth } from "../../../contexts/authContext";
 import { useUserSettings } from "../../../contexts/UserSettingsContext";
+import TaskModal from "components/TaskCreation/TaskModal";
 
 
 

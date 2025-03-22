@@ -8,7 +8,7 @@ import useFetchTasks from "../../../../packages/hooks/useFetchTasks";
 import { toggleTaskCompletionRequest } from "../../../../packages/lib/api";
 import Link from "next/link";
 import { useState, useEffect } from "react";
-import TaskTable from "../../../components/TaskTable";
+import TaskTable from "../../../components/TaskDisplays/TaskTable";
 import FilterMenu from "../../../components/ui/FilterMenu";
 import Modal from "../../../components/ui/Modal";
 import { useUserSettings } from "../../../contexts/UserSettingsContext";

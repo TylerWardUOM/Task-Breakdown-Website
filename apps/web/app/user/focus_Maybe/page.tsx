@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useFocusStore } from "../../../store/focusStore";
-import TaskTable from "../../../components/TaskTable";
+import TaskTable from "../../../components/TaskDisplays/TaskTable";
 import useFetchCategories from "../../../../packages/hooks/useFetchCategories";
 import { useUserSettings } from "../../../contexts/UserSettingsContext";
 import useFetchTasks from "../../../../packages/hooks/useFetchTasks";

@@ -29,7 +29,7 @@ interface TaskTableProps {
 
 
 
-const DEFAULT_COLUMNS = ["title", "priority", "due_date", "category", "duration", "order"];
+const DEFAULT_COLUMNS = ["title", "priority", "due_date", "category", "duration", "order","progress"];
 
 
 
@@ -75,6 +75,7 @@ const TaskTable: React.FC<TaskTableProps> = ({
             {visibleColumns.includes("due_date") && <th className="py-2 px-4 text-left">Due Date</th>}
             {visibleColumns.includes("category") && <th className="py-2 px-4 text-left">Category</th>}
             {visibleColumns.includes("duration") && <th className="py-2 px-4 text-left">Duration</th>}
+            {visibleColumns.includes("progress") && <th className="py-2 px-4 text-left">Progress</th>}
             {renderActions && <th className="py-2 px-4 text-left">Actions</th>}
           </tr>
         </thead>
