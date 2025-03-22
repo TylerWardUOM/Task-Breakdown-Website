@@ -19,12 +19,15 @@ interface TaskTableProps {
   onFocus?: (taskId: number) => void;
   // @ts-expect-error: Ignoring error because JSX is properly handled in this project
   renderActions?: (task: Task) => JSX.Element;
+  // @ts-expect-error: Ignoring error because JSX is properly handled in this project
+  renderSubtaskActions?: (subtask: Subtask) => JSX.Element; // New prop for actions
   colourScheme: ColourScheme;       // New prop for custom colour schemes
   colourSchemeEnabled: boolean;    // New prop to toggle the colour gradient
   showCompletedTasks?: boolean; // New optional prop
   emptyStateMessage?: React.ReactNode;
   visibleColumns?: string[]; 
   subtasks?: Subtask[]; 
+  disableSubtaskToggle?: boolean; 
 }
 
 
@@ -41,10 +44,12 @@ const TaskTable: React.FC<TaskTableProps> = ({
   emptyStateMessage,
   sortBy,
   renderActions,
+  renderSubtaskActions,
   colourScheme,
   colourSchemeEnabled,
   categories,
   subtasks,
+  disableSubtaskToggle,
 }) => {
   
 
@@ -66,9 +71,9 @@ const TaskTable: React.FC<TaskTableProps> = ({
   }
   const sortedTasks = getSortedTasks(filteredTasks, sortBy);
   return (
-    <div className="overflow-x-auto bg-white shadow-md rounded-lg mt-4 w-full dark:bg-gray-900">
+    <div className="overflow-x-auto bg-gray-100 shadow-md rounded-lg mt-4 w-full">
       <table className="min-w-full table-auto">
-        <thead className="bg-gray-100">
+        <thead className="bg-gray-100 dark:bg-gray-900">
           <tr className="bg-gray-200 dark:bg-gray-700">
             {visibleColumns.includes("title") && <th className="py-2 px-4 text-left">Task Title</th>}
             {visibleColumns.includes("priority") && <th className="py-2 px-4 text-left">Priority</th>}
@@ -90,6 +95,8 @@ const TaskTable: React.FC<TaskTableProps> = ({
               colourScheme={colourScheme}
               colourSchemeEnabled={colourSchemeEnabled}
               categories={categories}
+              renderSubtaskActions={renderSubtaskActions}
+              disableSubtaskToggle={disableSubtaskToggle}
             />
           ))}
         </tbody>

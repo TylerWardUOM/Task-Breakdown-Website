@@ -15,6 +15,7 @@ import Toast from "../../../components/ui/Toast";
 import { useAuth } from "../../../contexts/authContext";
 import { useUserSettings } from "../../../contexts/UserSettingsContext";
 import TaskModal from "components/TaskCreation/TaskModal";
+import useSubtasksByTaskIds from "@Hooks/useSubtasksByTaskIds";
 
 
 
@@ -28,6 +29,7 @@ export default function Dashboard() {
   const TablecolourScheme = settings.colour_scheme
   
   const { tasks, /*error, loadingTasks,*/ setTasks } = useFetchTasks();
+  const { subtasks} = useSubtasksByTaskIds(tasks);
   const { categories, /*loadingCategories, setCategories*/ } = useFetchCategories();
 
   const openNewTaskModal = () => {
@@ -92,6 +94,7 @@ export default function Dashboard() {
             sortBy={"Priority"}
             colourScheme={TablecolourScheme}
             colourSchemeEnabled={colourSchemeEnabled}
+            subtasks={subtasks}
           />
           <div className="flex justify-center mt-4">
             <Link href="/user/tasks">

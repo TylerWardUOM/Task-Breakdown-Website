@@ -5,7 +5,7 @@ import FilterMenu from "../../../components/ui/FilterMenu";
 import Modal from "../../../components/ui/Modal";
 import { useTaskPage } from "../../../../packages/hooks/useTaskPage";
 import { useRouter } from "next/navigation";
-import { Task } from "@GlobalTypes/Task";
+import { Subtask, Task } from "@GlobalTypes/Task";
 import TaskModal from "components/TaskCreation/TaskModal";
 import TaskForm from "components/TaskCreation/TaskModalAi";
 import DeleteTaskButton from "components/TaskDisplays/TaskActionButtons/DeleteTaskButton";
@@ -43,6 +43,7 @@ const TaskListPage = () => {
     setcolourSchemeEnabled,
     colourScheme,
     closeAITaskModal,
+    toggleSubtaskCompletion
   } = useTaskPage();
 
   const router = useRouter();
@@ -75,6 +76,17 @@ const TaskListPage = () => {
     </div>
   );
 
+  const renderSubtaskActions = (subtask: Subtask) => (
+    <div className="flex space-x-2">
+      {/* Toggle Completion Button */}
+      <ToggleCompletionButton
+        isCompleted={subtask.completed}
+        onToggle={() => toggleSubtaskCompletion(subtask.id)}
+        isToggling={isToggling}
+        size="md"
+      />
+    </div>
+  );
 
   if (loadingTasks) {
     return <p>Loading tasks...</p>;
@@ -149,10 +161,12 @@ const TaskListPage = () => {
     selectedFilter={selectedFilter}
     sortBy={sortBy}
     renderActions={renderActions}
+    renderSubtaskActions={renderSubtaskActions}
     colourScheme={colourScheme}
     colourSchemeEnabled={colourSchemeEnabled}
     showCompletedTasks={showCompleted}
     subtasks={subtasks}
+    disableSubtaskToggle={false}
   />
 
   <Modal isOpen={isTaskModalOpen} onClose={closeTaskModal} width="max-w-lg">

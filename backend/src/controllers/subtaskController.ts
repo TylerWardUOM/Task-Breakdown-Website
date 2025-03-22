@@ -5,7 +5,8 @@ import {
     getSubtaskByIdFromDB,
     updateSubtaskInDB,
     completeSubtaskInDB,
-    deleteSubtaskInDB
+    deleteSubtaskInDB,
+    uncompleteSubtaskFromDB
 } from "../models/subtaskModel";
 
 // Create a new subtask
@@ -102,6 +103,24 @@ export const completeSubtask = async (req: Request, res: Response): Promise<void
     } catch (err) {
         console.error(err);
         res.status(500).json({ message: "Error completing subtask", error: err });
+    }
+};
+
+  // Unmark a subtask as completed (mark it as incomplete)
+  export const uncompleteSubtask = async (req: Request, res: Response): Promise<void> => {
+    try {
+        const { subtask_id } = req.params;
+
+        if (!subtask_id) {
+            res.status(400).json({ message: 'Invalid task ID' });
+            return;
+        }
+
+        const uncompletedSubtask = await uncompleteSubtaskFromDB(Number(subtask_id));
+        res.status(200).json(uncompletedSubtask.rows[0]);
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ message: 'Error unmarking Subtask as completed', error: err });
     }
 };
 
