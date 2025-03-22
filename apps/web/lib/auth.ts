@@ -267,7 +267,12 @@ export const signInWithGoogle = async (userCredential: UserCredential) => {
         errorMessage: "User not found. Account has been removed.",
       };
     }
-
+    try{
+      markUserAsVerified(email);
+    }catch(error){
+      console.error("error Verifying User",error)
+      logoutCookies();
+    }
     return result;
   } catch (error) {
     console.error("Google sign-in error:", error);

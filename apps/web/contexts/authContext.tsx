@@ -1,7 +1,8 @@
 "use client";
-import { createContext, useState, useEffect, useContext, ReactNode } from "react";
+import { createContext, useState, useEffect, useContext, ReactNode} from "react";
 import { useRouter, usePathname } from "next/navigation"; 
 import { getUserData } from "../lib/user";
+import { useApi } from "lib/useApi";
 
 interface AuthContextType {
   isAuthenticated: boolean;
@@ -17,6 +18,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [userName, setUserName] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const {apiCall} = useApi()
   const router = useRouter();
   const pathname = usePathname();
 
@@ -29,44 +31,62 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     redirectToLogin();
   };
 
-  useEffect(() => {
-    const checkSession = async () => {
+  const sessionRequest = async () => {
+    const res = await fetch("/api/auth/session", { credentials: "include" });
+    if (!res.ok) {
+      let errorMessage = `Session check failed with status ${res.status}`;
+      
       try {
-        setLoading(true);
-        
-        const res = await fetch("/api/auth/session", { credentials: "include" });
-        if (!res.ok) throw new Error("Session check failed");
-
-        const data = await res.json();
-
-        if (data.isAuthenticated) {
-          try {
-            // Fetch user data only if not signing up
-              const fetchedUserData = await getUserData();
-              if (fetchedUserData) {
-                setUserName(fetchedUserData.username);
-              }
-
-
-            setIsAuthenticated(true);
-          } catch (error) {
-            console.error("Error fetching user data:", error);
-            setUserName(null);
-          }
-        } else {
-          setIsAuthenticated(false);
+        const errorData = await res.json(); // Try to parse error response
+        if (errorData?.error) {
+          errorMessage = errorData.error; // Use API-provided error message if available
         }
-      } catch (error) {
-        console.error("Session validation failed:", error);
-        setIsAuthenticated(false);
-      } finally {
-        setLoading(false);
+      } catch {
+        // Ignore JSON parsing errors and fallback to default message
       }
-    };
+      throw new Error(errorMessage); // Throw detailed error
+    }
+    return res.json(); // Return parsed response
+  };
+  
 
+  const checkSession = async () => {
+    try {
+      setLoading(true);
+      const data = await apiCall(() => sessionRequest());
+  
+      if (data.isAuthenticated) {
+        try {
+          // Fetch user data
+          const fetchedUserData = await apiCall(() => getUserData());
+          if (fetchedUserData) {
+            setUserName(fetchedUserData.username);
+          }
+  
+          setIsAuthenticated(true);
+        } catch (error) {
+          console.error("Error fetching user data:", error);
+          setUserName(null);
+          setIsAuthenticated(false);
+          router.push("/login"); // 🔥 Redirect if user data fetch fails
+        }
+      } else {
+        setIsAuthenticated(false);
+        router.push("/login"); // 🔥 Redirect if not authenticated
+      }
+    } catch (error) {
+      console.error("Session validation failed:", error);
+      setIsAuthenticated(false);
+      router.push("/login"); // 🔥 Redirect on error
+    } finally {
+      setLoading(false);
+    }
+  };
+  
+  useEffect(() => {
     checkSession();
   }, [pathname]);
-
+  
   return (
     <AuthContext.Provider value={{ isAuthenticated, userName, loading, logout, redirectToLogin }}>
       {children}

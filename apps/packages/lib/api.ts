@@ -9,6 +9,9 @@ export const fetchTasks = async () => {
   });
 
   if (!response.ok) {
+    if (response.status === 401) {
+      throw new Error("Unauthorized. Please login again.");
+    }
     throw new Error("Failed to fetch tasks");
   }
 
@@ -52,6 +55,9 @@ export const fetchCategories = async () => {
   );
 
   if (!response.ok) {
+    if (response.status === 401) {
+      throw new Error("Unauthorized. Please login again.");
+    }
     throw new Error("Failed to fetch categories");
   }
 
@@ -67,6 +73,9 @@ export const saveUserSettings = async (settings: UserSettings) => {
   });
 
   if (!response.ok) {
+    if (response.status === 401) {
+      throw new Error("Unauthorized. Please login again.");
+    }
     throw new Error("Failed to save user settings");
   }
 
@@ -81,6 +90,9 @@ export const fetchUserSettings = async () => {
   });
 
   if (!response.ok) {
+    if (response.status === 401) {
+      throw new Error("Unauthorized. Please login again.");
+    }
     throw new Error("Failed to fetch user settings");
   }
 
@@ -145,6 +157,9 @@ export const saveTask = async (taskData: Partial<Task_data>, existingTask?: Task
     });
 
     if (!response.ok) {
+      if (response.status === 401) {
+        throw new Error("Unauthorized. Please login again.");
+      }
       throw new Error(existingTask ? "Failed to update task" : "Failed to create task");
     }
 
@@ -204,6 +219,9 @@ export const markUserAsVerified = async (email: string) => {
     const data = await response.json();
 
     if (!response.ok) {
+      if (response.status === 401) {
+        throw new Error("Unauthorized. Please login again.");
+      }
       throw new Error(data.error || "Failed to mark user as verified.");
     }
     if (data.message != "User is already verified."){
@@ -232,6 +250,9 @@ export const saveSubtask = async (task_id: number, subtaskData: Subtask_data) =>
   });
 
   if (!response.ok) {
+    if (response.status === 401) {
+      throw new Error("Unauthorized. Please login again.");
+    }
     console.error(`Failed to ${isNewSubtask ? "create" : "update"} subtask`, response.status);
     throw new Error(`Failed to ${isNewSubtask ? "create" : "update"} subtask`);
   }
@@ -250,6 +271,9 @@ export const fetchSubtasksByTaskId = async (taskId: number) => {
   });
 
   if (!response.ok) {
+    if (response.status === 401) {
+      throw new Error("Unauthorized. Please login again.");
+    }
     throw new Error("Failed to fetch subtasks for the task");
   }
 
@@ -267,6 +291,9 @@ export const fetchSubtaskById = async (subtaskId: string) => {
   });
 
   if (!response.ok) {
+    if (response.status === 401) {
+      throw new Error("Unauthorized. Please login again.");
+    }
     throw new Error("Failed to fetch subtask");
   }
 
@@ -285,6 +312,9 @@ export const updateSubtask = async (subtaskId: number, updatedData: Partial<Subt
   });
 
   if (!response.ok) {
+    if (response.status === 401) {
+      throw new Error("Unauthorized. Please login again.");
+    }
     throw new Error("Failed to update subtask");
   }
 
@@ -325,6 +355,9 @@ export const deleteSubtask = async (subtaskId: number) => {
   });
 
   if (!response.ok) {
+    if (response.status === 401) {
+      throw new Error("Unauthorized. Please login again.");
+    }
     throw new Error("Failed to delete subtask");
   }
 
