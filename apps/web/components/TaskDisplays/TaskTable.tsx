@@ -71,7 +71,7 @@ const TaskTable: React.FC<TaskTableProps> = ({
   }
   const sortedTasks = getSortedTasks(filteredTasks, sortBy);
   return (
-    <div className="overflow-x-auto bg-gray-100 shadow-md rounded-lg mt-4 w-full">
+    <div className="overflow-x-auto custom-scrollbar bg-gray-200 dark:bg-gray-700 shadow-md rounded-lg mt-4 w-full">
       <table className="min-w-full table-auto">
         <thead className="bg-gray-100 dark:bg-gray-900">
           <tr className="bg-gray-200 dark:bg-gray-700">
@@ -84,7 +84,7 @@ const TaskTable: React.FC<TaskTableProps> = ({
             {renderActions && <th className="py-2 px-4 text-left">Actions</th>}
           </tr>
         </thead>
-        <tbody className="text-black dark:text-black divide-y divide-gray-300">
+        <tbody className="text-black dark:text-black divide-y divide-gray-300 bg-gray-100">
           {sortedTasks.map((task) => (
             <TaskRow
               key={task.id}

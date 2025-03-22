@@ -24,7 +24,7 @@ const SubtaskTable: React.FC<{
   return (
     <>
       <tr className={`${taskPrioritycolour}`}>
-        <td colSpan={visibleColumns.length} className="p-0">
+        <td colSpan={visibleColumns.length+1} className="p-0">
           <div className="p-4">
             <div className="overflow-hidden rounded-lg border-2 border-gray-600 bg-gray-100">
               <table className="w-full table-auto ml-auto rounded-lg border-collapse">

@@ -155,7 +155,7 @@ const TaskListPage = () => {
       </button>
     </div>
   </div>
-
+ 
   <TaskTable
     tasks={tasks}
     categories={categories}

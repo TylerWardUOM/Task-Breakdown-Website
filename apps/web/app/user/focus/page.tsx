@@ -1,5 +1,4 @@
 "use client";
-
 import { Filter } from "@FrontendTypes/filter";
 import { Subtask, Task } from "@GlobalTypes/Task";
 import { CheckCircleIcon, XCircleIcon, MinusCircleIcon, CogIcon, PlusCircleIcon } from "@heroicons/react/solid";
@@ -31,7 +30,7 @@ interface TimerSettings{
 export default function FocusMode2() {
   const { settings } = useUserSettings();
   const { tasks, setTasks } = useTasks();
-  const {subtasks} = useSubtasks(tasks);
+  const {subtasks, toggleSubtaskCompletion, isTogglingSubtask} = useSubtasks(tasks);
   const { categories } = useCategories();
   const [selectedFilter, setSelectedFilter] = useState<Filter>({
     filter: null,
@@ -144,7 +143,7 @@ export default function FocusMode2() {
       <ToggleCompletionButton
         isCompleted={subtask.completed}
         onToggle={() => toggleSubtaskCompletion(subtask.id)}
-        isToggling={isToggling}
+        isToggling={isTogglingSubtask}
         size="md"
       />
     </div>
@@ -220,7 +219,8 @@ export default function FocusMode2() {
   </div>
            {/* Focus Session Tasks */}
       <h2 className="text-2xl mt-6">Current Focus Tasks</h2>
-      <div className="bg-gray-900 w-full max-w-md text-center flex flex-col items-center">
+      <div className="bg-gray-900 w-full max-w-lg text-center flex flex-col items-center">
+      <div className="w-full overflow-y-auto custom-scrollbar max-h-[400px]">
       <TaskTable 
         tasks={sessionTasks} 
         categories={categories} 
@@ -235,6 +235,7 @@ export default function FocusMode2() {
         disableSubtaskToggle={false}
         renderSubtaskActions={renderSubtaskActions}
       />
+      </div>
     </div>
       
       
@@ -251,11 +252,11 @@ export default function FocusMode2() {
           maxPriority: 10,
           selectedCategories: [],
         })}} width="max-w-3xl">
-        <div className="flex gap-4 w-full p-6">
-        <h3 className="text-lg font-semibold mb-4">Select a Task</h3>
+        <div className="flex gap-4 w-full mt-6 px-6">
+        <h3 className="text-lg font-semibold">Select a Task</h3>
         <FilterMenu categories={categories} onFilterChange={handleFilterChange} />
         </div>
-        <div className="max-h-[300px] overflow-y-auto">
+        <div className="max-h-[300px] overflow-y-auto px-6">
           <TaskTable 
             tasks={tasks.filter(task => !sessionTasks.some(t => t.id === task.id))} 
             categories={categories} 
