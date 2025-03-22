@@ -4,6 +4,7 @@ import { fetchUserSettings, saveUserSettings } from "../../packages/lib/api";
 import { usePathname } from "next/navigation";
 import { createContext, useState, useEffect, useContext } from "react";
 import { useAuth } from "./authContext";
+import { refreshAuthToken } from "lib/refreshAuthToken";
 
 interface UserSettingsContextType {
   settings: UserSettings;
@@ -73,6 +74,10 @@ export const UserSettingsProvider = ({ children }: { children: React.ReactNode }
       console.error("Failed to save settings to API", error);
     }
   };
+
+  useEffect(() => {
+    refreshAuthToken();
+  }, [pathname]);
 
   return (
     <UserSettingsContext.Provider value={{ settings: settings ?? getDefaultUserSettings(), updateSettings }}>
