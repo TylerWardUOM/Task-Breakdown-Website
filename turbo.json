@@ -1,0 +1,19 @@
+{
+    "$schema": "https://turbo.build/schema.json",
+    "tasks": {
+      "build": {
+        "dependsOn": ["^build"],
+        "outputs": [".next/**", "dist/**"],
+        "env": ["NEXT_PUBLIC_API_NODE_ENV","OPENAI_API_KEY","FIREBASE_SERVICE_ACCOUNT"]
+      },
+      "dev": {
+        "cache": false
+      },
+      "lint": {},
+      "test": {},
+      "serve": {
+        "cache": false
+      }
+    }
+  }
+  

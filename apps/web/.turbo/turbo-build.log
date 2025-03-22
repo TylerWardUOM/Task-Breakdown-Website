@@ -1,0 +1,81 @@
+
+> web@0.1.0 prebuild
+> npm install
+
+npm warn workspaces web in filter set, but no workspace folder present
+
+added 617 packages, and audited 621 packages in 8m
+
+161 packages are looking for funding
+  run `npm fund` for details
+
+found 0 vulnerabilities
+
+> web@0.1.0 build
+> next build
+
+   ▲ Next.js 15.2.1
+   - Environments: .env.local
+
+   Creating an optimized production build ...
+ ⚠ Compiled with warnings
+
+../packages/utils/getTaskBreakdown.ts
+The generated code contains 'async/await' because this module is using "topLevelAwait".
+However, your target environment does not appear to support 'async/await'.
+As a result, the code may not run as expected or may cause runtime errors.
+
+Import trace for requested module:
+../packages/utils/getTaskBreakdown.ts
+./components/ui/TaskModalAi.tsx
+./app/user/AiTask/page.tsx
+
+ ✓ Compiled successfully
+   Linting and checking validity of types ...
+
+./app/user/focus/page.tsx
+152:6  Warning: React Hook useEffect has a missing dependency: 'sessionTasks'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps
+
+./app/user/focus_Maybe/page.tsx
+50:6  Warning: React Hook useEffect has a missing dependency: 'sessionTasks'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps
+
+info  - Need to disable some ESLint rules? Learn more here: https://nextjs.org/docs/app/api-reference/config/eslint#disabling-rules
+   Collecting page data ...
+   Generating static pages (0/18) ...
+Error fetching user data: TypeError: fetch failed
+    at async o (C:\Users\tman0\Code\Task-Breakdown-Website\apps\web\.next\server\chunks\813.js:1:12875)
+    at async (C:\Users\tman0\Code\Task-Breakdown-Website\apps\web\.next\server\chunks\117.js:1:175) {
+  [cause]: [AggregateError: ] { code: 'ECONNREFUSED' }
+}
+   Generating static pages (4/18) 
+   Generating static pages (8/18) 
+   Generating static pages (13/18) 
+ ✓ Generating static pages (18/18)
+   Finalizing page optimization ...
+   Collecting build traces ...
+
+Route (app)                                 Size  First Load JS
+┌ ○ /                                      407 B         105 kB
+├ ○ /_not-found                            979 B         103 kB
+├ ƒ /api/auth/login                        147 B         102 kB
+├ ƒ /api/auth/logout                       147 B         102 kB
+├ ƒ /api/auth/register                     147 B         102 kB
+├ ƒ /api/auth/session                      147 B         102 kB
+├ ○ /login                               1.77 kB         147 kB
+├ ○ /register                            1.76 kB         147 kB
+├ ○ /resetPassword                       1.03 kB         140 kB
+├ ○ /user/AiTask                         2.16 kB         111 kB
+├ ○ /user/dashboard                      4.26 kB         117 kB
+├ ○ /user/focus                          5.19 kB         115 kB
+├ ○ /user/focus_Maybe                     2.4 kB         112 kB
+├ ○ /user/settings                       43.2 kB         145 kB
+└ ○ /user/tasks                          5.64 kB         119 kB
++ First Load JS shared by all             102 kB
+  ├ chunks/315-f6ff8b10fa882c1e.js       45.9 kB
+  ├ chunks/87c73c54-93cfb8c5d4315255.js  53.3 kB
+  └ other shared chunks (total)          2.41 kB
+
+
+○  (Static)   prerendered as static content
+ƒ  (Dynamic)  server-rendered on demand
+

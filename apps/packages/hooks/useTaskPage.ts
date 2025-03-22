@@ -5,7 +5,7 @@ import { Filter } from "@FrontendTypes/filter";
 import useFetchCategories from "./useFetchCategories";
 import useFetchTasks from "./useFetchTasks";
 import useSubtasksByTaskIds from "./useSubtasksByTaskIds";
-import { toggleTaskCompletionRequest, deleteTaskRequest } from "../lib/api";
+import { toggleTaskCompletionRequest, deleteTaskRequest, toggleSubtaskCompletionRequest } from "../lib/api";
 import { useUserSettings } from "../../web/contexts/UserSettingsContext";
 
 export const useTaskPage = () => {
@@ -68,6 +68,32 @@ export const useTaskPage = () => {
       setIsToggling(false); // Reset loading state
     }
   };
+
+  const toggleSubtaskCompletion = async (subtaskId: number) => {
+    try {
+      const subtask = subtasks.find((subtask) => subtask.id === subtaskId);
+      if (!subtask) throw new Error("Subtask not found");
+  
+      setIsToggling(true); // Start loading state
+  
+      // Call API function to update subtask completion status
+      await toggleSubtaskCompletionRequest(subtaskId, subtask.completed);
+  
+      // Update local state after successful API call
+      setSubtasks((prevSubtasks) =>
+        prevSubtasks.map((s) =>
+          s.id === subtaskId
+            ? { ...s, completed: !s.completed, completed_at: s.completed ? null : new Date().toLocaleString() }
+            : s
+        )
+      );
+    } catch (error) {
+      console.error("Error toggling subtask completion:", error);
+    } finally {
+      setIsToggling(false); // Reset loading state
+    }
+  };
+  
   
   
   const openTaskModal = (taskId: number) => {
@@ -160,6 +186,7 @@ const deleteTask = async (taskId: number) => {
     handleFilterChange,
     handleSortChange,
     toggleTaskCompletion,
+    toggleSubtaskCompletion,
     openTaskModal,
     closeTaskModal,
     handleSaveTask,

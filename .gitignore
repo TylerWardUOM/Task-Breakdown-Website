@@ -4,8 +4,7 @@ backend/.env
 web/.env.local
 backend/temp.sql
 
-/package.json
-/package-lock.json
+
 /.ignorelist
 /generateFolderStructure.js
 /node_modules
@@ -13,3 +12,5 @@ backend/temp.sql
 /backend/.env.docker
 /web/.env.docker
 /apps/node_modules
+/.vscode
+/apps/web/.vscode

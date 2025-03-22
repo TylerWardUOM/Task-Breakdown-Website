@@ -5,7 +5,8 @@ import {
     getSubtaskById,
     updateSubtask,
     completeSubtask,
-    deleteSubtask
+    deleteSubtask,
+    uncompleteSubtask
 } from "../controllers/subtaskController";
 import { verifyToken } from "../middlewares/authMiddleware";
 
@@ -26,6 +27,9 @@ router.put("/:subtask_id", updateSubtask);
 
 // Mark a subtask as completed
 router.patch("/:subtask_id/complete", completeSubtask);
+
+// Mark a subtask as uncompleted
+router.patch("/:subtask_id/uncomplete", uncompleteSubtask);
 
 // Delete a subtask
 router.delete("/:subtask_id", deleteSubtask);

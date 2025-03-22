@@ -7,14 +7,15 @@ import useFetchTasks from "../../../../packages/hooks/useFetchTasks";
 import Link from "next/link";
 import { useState } from "react";
 import { FiPlusCircle } from "react-icons/fi";
-import TaskCompletedTimeframe from "../../../components/TaskCompletedTimeframe";
-import TaskTable from "../../../components/TaskTable";
+import TaskTable from "../../../components/TaskDisplays/TaskTable";
 import Card from "../../../components/ui/Card";
 import Modal from "../../../components/ui/Modal";
-import TaskModal from "../../../components/ui/TaskModal";
 import Toast from "../../../components/ui/Toast";
 import { useAuth } from "../../../contexts/authContext";
 import { useUserSettings } from "../../../contexts/UserSettingsContext";
+import TaskModal from "components/TaskCreation/TaskModal";
+import useSubtasksByTaskIds from "@Hooks/useSubtasksByTaskIds";
+import TaskCompletedTimeframe from "components/UserStats/TaskCompletedTimeframe";
 
 
 
@@ -28,6 +29,7 @@ export default function Dashboard() {
   const TablecolourScheme = settings.colour_scheme
   
   const { tasks, /*error, loadingTasks,*/ setTasks } = useFetchTasks();
+  const { subtasks} = useSubtasksByTaskIds(tasks);
   const { categories, /*loadingCategories, setCategories*/ } = useFetchCategories();
 
   const openNewTaskModal = () => {
@@ -92,6 +94,7 @@ export default function Dashboard() {
             sortBy={"Priority"}
             colourScheme={TablecolourScheme}
             colourSchemeEnabled={colourSchemeEnabled}
+            subtasks={subtasks}
           />
           <div className="flex justify-center mt-4">
             <Link href="/user/tasks">

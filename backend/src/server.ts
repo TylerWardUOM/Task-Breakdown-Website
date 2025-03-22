@@ -26,7 +26,7 @@ scheduleCronJobs();  // This starts your cron job when the server starts
 // Middleware
 app.use(cors({
   origin: process.env.CORS_ORIGIN || 'http://localhost:3000',  // Use env var or fallback to default for local
-  methods: 'GET,POST,PUT',
+  methods: 'GET,POST,PUT,PATCH',
   credentials: true,
 }));
 app.use(express.json());

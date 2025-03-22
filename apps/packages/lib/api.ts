@@ -292,8 +292,11 @@ export const updateSubtask = async (subtaskId: number, updatedData: Partial<Subt
 };
 
 
-export const completeSubtask = async (subtaskId: number) => {
-  const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/subtasks/${subtaskId}/complete`, {
+export const toggleSubtaskCompletionRequest = async (subtaskId: number, isCompleted: boolean|null) => {
+  const url = isCompleted
+  ? `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/subtasks/${subtaskId}/uncomplete`
+  : `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/subtasks/${subtaskId}/complete`;
+  const response = await fetch(url, {
     method: "PATCH",
     headers: {
       "Content-Type": "application/json",
@@ -302,7 +305,10 @@ export const completeSubtask = async (subtaskId: number) => {
   });
 
   if (!response.ok) {
-    throw new Error("Failed to mark subtask as completed");
+    if (response.status === 401) {
+      throw new Error("Unauthorized. Please login again.");
+    }
+    throw new Error(`Failed to ${isCompleted ? "unmark" : "mark"} subtask as completed`);
   }
 
   return response.json();

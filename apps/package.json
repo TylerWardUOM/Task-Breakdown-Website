@@ -1,9 +1,17 @@
 {
+  "private": true,
   "devDependencies": {
+
+  },
+  "dependencies": {
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "uuid": "^11.1.0",
     "@types/react": "^19.0.12",
     "@types/react-dom": "^19.0.4"
   },
-  "dependencies": {
-    "uuid": "^11.1.0"
-  }
+  "scripts": {
+  "postinstall": "npm install @types/react"
 }
+}
+

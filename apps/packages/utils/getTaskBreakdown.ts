@@ -5,7 +5,6 @@ import { Subtask_data, Task_data } from "@GlobalTypes/Task";
 import { getUserData } from "../../web/lib/user";
 
 
-const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
 let MOCK = true;
 
 const user = await getUserData();
@@ -16,7 +15,7 @@ if (user!=null){
 }
 
 
-export async function getTaskBreakdown(task: string): Promise<TaskBreakdownResponse | null> {
+export async function getTaskBreakdown(OPENAI_API_KEY: string | undefined, task: string): Promise<TaskBreakdownResponse | null> {
     try {
     console.log("🔹 Received a request to break down task");
 
