@@ -2,11 +2,10 @@
 import { useState } from "react";
 import { Task, Subtask } from "@GlobalTypes/Task";
 import { Filter } from "@FrontendTypes/filter";
-import useFetchCategories from "./useFetchCategories";
-import useFetchTasks from "./useFetchTasks";
-import useSubtasksByTaskIds from "./useSubtasksByTaskIds";
-import { toggleTaskCompletionRequest, deleteTaskRequest, toggleSubtaskCompletionRequest } from "../lib/api";
 import { useUserSettings } from "../../web/contexts/UserSettingsContext";
+import { useTasks } from "./useTasks";
+import { useSubtasks } from "./useSubtasks";
+import { useCategories } from "./useCategories";
 
 export const useTaskPage = () => {
   const { settings } = useUserSettings();
@@ -15,8 +14,6 @@ export const useTaskPage = () => {
   const [isAITaskModalOpen, setIsAITaskModalOpen] = useState(false);
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
   const [selectedSubtasks, setSelectedSubtasks] = useState<Subtask[] | null>(null);
-  const [isDeleting, setIsDeleting] = useState<boolean>(false);
-  const [isToggling, setIsToggling] = useState(false);
   const [showCompleted, setShowCompleted] = useState(false);
   const [selectedFilter, setSelectedFilter] = useState<Filter>({
     filter: null,
@@ -29,9 +26,9 @@ export const useTaskPage = () => {
   const colourScheme = settings.colour_scheme;
 
   // Fetching tasks, subtasks, and categories
-  const { tasks, loadingTasks, setTasks } = useFetchTasks();
-  const { subtasks, setSubtasks } = useSubtasksByTaskIds(tasks);
-  const { categories } = useFetchCategories();
+  const {tasks, setTasks, loadingTasks, isTogglingTask, isDeletingTask, toggleTaskCompletion, deleteTask} = useTasks();
+  const {subtasks, setSubtasks, isTogglingSubtask, toggleSubtaskCompletion} = useSubtasks(tasks);
+  const {categories} = useCategories();
 
   const handleFilterChange = (filters: Filter) => setSelectedFilter(filters);
 
@@ -44,57 +41,7 @@ export const useTaskPage = () => {
     setSortBy(event.target.value);
   };
 
-  const toggleTaskCompletion = async (taskId: number) => {
-    try {
-      const task = tasks.find((task) => task.id === taskId);
-      if (!task) throw new Error("Task not found");
-  
-      setIsToggling(true); // Start loading state
-  
-      // Call API function
-      await toggleTaskCompletionRequest(taskId, task.completed);
-  
-      // Update local state after successful API call
-      setTasks((prevTasks) =>
-        prevTasks.map((t) =>
-          t.id === taskId
-            ? { ...t, completed: !t.completed, completed_at: t.completed ? null : new Date().toLocaleString() }
-            : t
-        )
-      );
-    } catch (error) {
-      console.error("Error toggling task completion:", error);
-    } finally {
-      setIsToggling(false); // Reset loading state
-    }
-  };
 
-  const toggleSubtaskCompletion = async (subtaskId: number) => {
-    try {
-      const subtask = subtasks.find((subtask) => subtask.id === subtaskId);
-      if (!subtask) throw new Error("Subtask not found");
-  
-      setIsToggling(true); // Start loading state
-  
-      // Call API function to update subtask completion status
-      await toggleSubtaskCompletionRequest(subtaskId, subtask.completed);
-  
-      // Update local state after successful API call
-      setSubtasks((prevSubtasks) =>
-        prevSubtasks.map((s) =>
-          s.id === subtaskId
-            ? { ...s, completed: !s.completed, completed_at: s.completed ? null : new Date().toLocaleString() }
-            : s
-        )
-      );
-    } catch (error) {
-      console.error("Error toggling subtask completion:", error);
-    } finally {
-      setIsToggling(false); // Reset loading state
-    }
-  };
-  
-  
   
   const openTaskModal = (taskId: number) => {
     const taskToEdit = tasks.find((task) => task.id === taskId);
@@ -146,31 +93,11 @@ export const useTaskPage = () => {
   };
   
 
-const deleteTask = async (taskId: number) => {
-  try {
-    setIsDeleting(true); // Start loading
-
-    const task = tasks.find((task) => task.id === taskId);
-    if (!task) throw new Error("Task not found");
-
-    // Call API function
-    await deleteTaskRequest(taskId);
-
-    // Update local state after successful API call
-    setTasks((prevTasks) => prevTasks.filter((task) => task.id !== taskId));
-  } catch (error) {
-    console.error("Error deleting task:", error);
-  } finally {
-    setIsDeleting(false); // Reset loading state
-  }
-};
-
-
-
   return {
     settings,
     tasks,
     subtasks,
+    isTogglingSubtask,
     categories,
     loadingTasks,
     sortBy,
@@ -178,8 +105,8 @@ const deleteTask = async (taskId: number) => {
     isAITaskModalOpen,
     selectedTask,
     selectedSubtasks,
-    isDeleting,
-    isToggling,
+    isDeletingTask,
+    isTogglingTask,
     showCompleted,
     selectedFilter,
     colourSchemeEnabled,

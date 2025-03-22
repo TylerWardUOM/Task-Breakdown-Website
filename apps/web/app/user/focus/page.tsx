@@ -1,10 +1,8 @@
 "use client";
 
 import { Filter } from "@FrontendTypes/filter";
-import { Task } from "@GlobalTypes/Task";
+import { Subtask, Task } from "@GlobalTypes/Task";
 import { CheckCircleIcon, XCircleIcon, MinusCircleIcon, CogIcon, PlusCircleIcon } from "@heroicons/react/solid";
-import useFetchCategories from "../../../../packages/hooks/useFetchCategories";
-import useFetchTasks from "../../../../packages/hooks/useFetchTasks";
 import { toggleTaskCompletionRequest } from "../../../../packages/lib/api";
 import Link from "next/link";
 import { useState, useEffect } from "react";
@@ -13,6 +11,10 @@ import FilterMenu from "../../../components/ui/FilterMenu";
 import Modal from "../../../components/ui/Modal";
 import { useUserSettings } from "../../../contexts/UserSettingsContext";
 import { useFocusStore } from "../../../store/focusStore";
+import ToggleCompletionButton from "components/TaskDisplays/TaskActionButtons/ToggleCompletionButton.tsx";
+import { useTasks } from "@Hooks/useTasks";
+import { useSubtasks } from "@Hooks/useSubtasks";
+import { useCategories } from "@Hooks/useCategories";
 
 
 
@@ -28,8 +30,9 @@ interface TimerSettings{
 
 export default function FocusMode2() {
   const { settings } = useUserSettings();
-  const { tasks, setTasks } = useFetchTasks();
-  const { categories } = useFetchCategories();
+  const { tasks, setTasks } = useTasks();
+  const {subtasks} = useSubtasks(tasks);
+  const { categories } = useCategories();
   const [selectedFilter, setSelectedFilter] = useState<Filter>({
     filter: null,
     minPriority: 1,
@@ -135,6 +138,19 @@ export default function FocusMode2() {
     </div>
   )
 
+  const renderSubtaskActions = (subtask: Subtask) => (
+    <div className="flex space-x-2">
+      {/* Toggle Completion Button */}
+      <ToggleCompletionButton
+        isCompleted={subtask.completed}
+        onToggle={() => toggleSubtaskCompletion(subtask.id)}
+        isToggling={isToggling}
+        size="md"
+      />
+    </div>
+  );
+
+
   useEffect(() => {
     let interval: NodeJS.Timeout | undefined;
     if (isRunning && timeLeft > 0) {
@@ -214,7 +230,10 @@ export default function FocusMode2() {
         colourScheme={settings.colour_scheme} 
         colourSchemeEnabled={true} 
         showCompletedTasks={true}
-        visibleColumns={["title", "priority",] }
+        visibleColumns={["title", "priority","progress"] }
+        subtasks={subtasks}
+        disableSubtaskToggle={false}
+        renderSubtaskActions={renderSubtaskActions}
       />
     </div>
       
@@ -227,12 +246,12 @@ export default function FocusMode2() {
       </button>
 
       <Modal isOpen={isTaskModalOpen} onClose={() => {setIsTaskModalOpen(false); setSelectedFilter({
-    filter: null,
-    minPriority: 1,
-    maxPriority: 10,
-    selectedCategories: [],
-  })}} width="max-w-3xl">
-        <div className="flex gap-4">
+          filter: null,
+          minPriority: 1,
+          maxPriority: 10,
+          selectedCategories: [],
+        })}} width="max-w-3xl">
+        <div className="flex gap-4 w-full p-6">
         <h3 className="text-lg font-semibold mb-4">Select a Task</h3>
         <FilterMenu categories={categories} onFilterChange={handleFilterChange} />
         </div>
@@ -257,6 +276,7 @@ export default function FocusMode2() {
             colourScheme={settings.colour_scheme} 
             colourSchemeEnabled={true} 
             showCompletedTasks={false} 
+            subtasks={subtasks}
           />
         </div>
       </Modal>

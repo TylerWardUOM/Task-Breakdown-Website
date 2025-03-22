@@ -1,9 +1,10 @@
 import { useState, useEffect, useRef } from "react";
-import { Task, Subtask, Subtask_data, Task_data } from "@GlobalTypes/Task";
+import { Task, Subtask, Subtask_data } from "@GlobalTypes/Task";
 import { formatDueDate, formatRepeatInterval, mapRepeatIntervalToDropdownValue } from "../utils/TaskModalUtils";
-import { saveTask, saveSubtask } from "../lib/api";
+import { useTasks } from "./useTasks";
 
-export const useTaskModal = (existingTask: Task | null, existing_subtasks: Subtask[] | null, onSave: (task: Task) => void, onClose: () => void) => {
+export const useTaskModal = (existingTask: Task | null, existingSubtasks: Subtask[] | null, onSave: (task: Task) => void, onClose: () => void) => {
+  const { saveTaskData } = useTasks(); // Get saveTaskData function from useTasks
   const [taskTitle, setTaskTitle] = useState("");
   const [dueDate, setDueDate] = useState<string | null>(null);
   const [hours, setHours] = useState<number | null>(null);
@@ -34,55 +35,33 @@ export const useTaskModal = (existingTask: Task | null, existing_subtasks: Subta
   }, [existingTask]);
 
   const handleSaveTask = async () => {
-    const totalDuration = (hours || 0) * 60 + (minutes || 0);
+    const latestSubtasks = subtaskModalRef.current?.getSubtasks() || [];
 
-    const taskData: Task_data = {
-      taskId: existingTask?.id || undefined,
-      title: taskTitle,
-      description: description || null,
-      due_date: dueDate || null,
-      importance_factor: importanceValue,
-      duration: totalDuration || null,
-      repeat_interval: repeatTask !== "None" ? formatRepeatInterval(repeatTask) : null,
-      category_id: category !== null ? parseInt(category) : null,
-    };
+    await saveTaskData(existingTask, {
+      taskTitle,
+      dueDate,
+      hours,
+      minutes,
+      importanceValue,
+      description,
+      repeatTask,
+      category,
+    }, latestSubtasks, onSave);
 
-    try {
-      const savedTask = await saveTask(taskData, existingTask);
-
-      // Fetch latest subtasks from SubtaskModal
-      const latestSubtasks = subtaskModalRef.current?.getSubtasks() || [];
-
-      // Save each subtask linked to the saved task
-      await Promise.all(latestSubtasks.map(async (subtask) => await saveSubtask(savedTask.id, subtask)));
-
-      onSave(savedTask);
-      onClose();
-    } catch (err) {
-      console.error("Error saving task:", err);
-    }
+    onClose();
   };
 
   return {
-    taskTitle,
-    setTaskTitle,
-    dueDate,
-    setDueDate,
-    hours,
-    setHours,
-    minutes,
-    setMinutes,
-    importanceValue,
-    setImportanceValue,
-    description,
-    setDescription,
-    repeatTask,
-    setRepeatTask,
-    category,
-    setCategory,
-    showMoreOptions,
-    setShowMoreOptions,
+    taskTitle, setTaskTitle,
+    dueDate, setDueDate,
+    hours, setHours,
+    minutes, setMinutes,
+    importanceValue, setImportanceValue,
+    description, setDescription,
+    repeatTask, setRepeatTask,
+    category, setCategory,
+    showMoreOptions, setShowMoreOptions,
+    subtaskModalRef,
     handleSaveTask,
-    subtaskModalRef
   };
 };

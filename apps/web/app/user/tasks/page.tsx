@@ -34,10 +34,11 @@ const TaskListPage = () => {
     handleSaveTask,
     handleSaveAITask,
     toggleTaskCompletion,
-    isToggling,
+    isTogglingTask,
     deleteTask,
+    isDeletingTask,
     openNewTaskModal,
-    isDeleting,
+    isTogglingSubtask,
     openAITaskModal,
     setShowCompleted,
     setcolourSchemeEnabled,
@@ -57,7 +58,7 @@ const TaskListPage = () => {
       <ToggleCompletionButton
         isCompleted={task.completed}
         onToggle={() => toggleTaskCompletion(task.id)}
-        isToggling={isToggling}
+        isToggling={isTogglingTask}
         size="md"
       />
   
@@ -67,7 +68,7 @@ const TaskListPage = () => {
       {/* Delete Task Button */}
       <DeleteTaskButton
         onDelete={() => deleteTask(task.id)}
-        isDeleting={isDeleting}
+        isDeleting={isDeletingTask}
         size="md"
       />
   
@@ -82,7 +83,7 @@ const TaskListPage = () => {
       <ToggleCompletionButton
         isCompleted={subtask.completed}
         onToggle={() => toggleSubtaskCompletion(subtask.id)}
-        isToggling={isToggling}
+        isToggling={isTogglingSubtask}
         size="md"
       />
     </div>

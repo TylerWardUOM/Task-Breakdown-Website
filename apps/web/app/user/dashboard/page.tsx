@@ -1,9 +1,6 @@
 "use client";
-
 import { Filter } from "@FrontendTypes/filter";
 import { Task } from "@GlobalTypes/Task";
-import useFetchCategories from "../../../../packages/hooks/useFetchCategories";
-import useFetchTasks from "../../../../packages/hooks/useFetchTasks";
 import Link from "next/link";
 import { useState } from "react";
 import { FiPlusCircle } from "react-icons/fi";
@@ -14,8 +11,10 @@ import Toast from "../../../components/ui/Toast";
 import { useAuth } from "../../../contexts/authContext";
 import { useUserSettings } from "../../../contexts/UserSettingsContext";
 import TaskModal from "components/TaskCreation/TaskModal";
-import useSubtasksByTaskIds from "@Hooks/useSubtasksByTaskIds";
 import TaskCompletedTimeframe from "components/UserStats/TaskCompletedTimeframe";
+import { useTasks } from "@Hooks/useTasks";
+import { useSubtasks } from "@Hooks/useSubtasks";
+import { useCategories } from "@Hooks/useCategories";
 
 
 
@@ -28,9 +27,9 @@ export default function Dashboard() {
   
   const TablecolourScheme = settings.colour_scheme
   
-  const { tasks, /*error, loadingTasks,*/ setTasks } = useFetchTasks();
-  const { subtasks} = useSubtasksByTaskIds(tasks);
-  const { categories, /*loadingCategories, setCategories*/ } = useFetchCategories();
+  const { tasks, /*error, loadingTasks,*/ setTasks, completedTasks, fetchCompletedTasksByTimeframe, loadingCompletedTasks, completedTasksError } = useTasks();
+  const {subtasks} = useSubtasks(tasks);
+  const { categories, /*loadingCategories, setCategories*/ } = useCategories();
 
   const openNewTaskModal = () => {
     setIsTaskModalOpen(true);
@@ -74,7 +73,14 @@ export default function Dashboard() {
 
       {/* Cards Section */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mt-6">
-        <TaskCompletedTimeframe timeframe="week" title="Tasks Completed This Week"/>
+          <TaskCompletedTimeframe
+          timeframe="week"
+          title="Tasks Completed This Week"
+          completedTasks={completedTasks}
+          loadingCompletedTasks={loadingCompletedTasks}
+          completedTasksError={completedTasksError}
+          fetchCompletedTasksByTimeframe={fetchCompletedTasksByTimeframe}
+        />
         <Card title="Upcoming Events">
           <p className="text-center">Meeting at 3PM</p>
         </Card>

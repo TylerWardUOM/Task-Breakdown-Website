@@ -1,9 +1,8 @@
+import { useState, useEffect } from "react";
 import { Category } from "@GlobalTypes/Category";
 import { fetchCategories } from "../lib/api";
-import { useState, useEffect } from "react";
 
-
-const useFetchCategories = () => {
+export const useCategories = () => {
   const [categories, setCategories] = useState<Category[]>([]);
   const [loadingCategories, setLoadingCategories] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -15,12 +14,7 @@ const useFetchCategories = () => {
         setCategories(data);
       } catch (err: unknown) {
         console.error("Error fetching categories:", err);
-
-        if (err instanceof Error) {
-          setError(err.message);
-        } else {
-          setError("Failed to fetch categories");
-        }
+        setError(err instanceof Error ? err.message : "Failed to fetch categories");
       } finally {
         setLoadingCategories(false);
       }
@@ -29,7 +23,5 @@ const useFetchCategories = () => {
     getCategories();
   }, []);
 
-  return { categories, loadingCategories, error, setCategories };
+  return { categories, setCategories, loadingCategories, error };
 };
-
-export default useFetchCategories;
