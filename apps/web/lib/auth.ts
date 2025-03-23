@@ -1,12 +1,9 @@
 "use client"; // Ensure it's a client-side module
 
-import { getAuth, signInWithEmailAndPassword, sendPasswordResetEmail, sendEmailVerification, UserCredential, GoogleAuthProvider, deleteUser } from "firebase/auth";
-import { app } from "./firebase"; // Import Firebase config
+import {signInWithEmailAndPassword, sendPasswordResetEmail, sendEmailVerification, UserCredential, GoogleAuthProvider, deleteUser, signOut } from "firebase/auth";
+import { auth } from "./firebase"; // Import Firebase config
 import { markUserAsVerified, registerUserInDatabase} from "../../packages/lib/api";
 import { getUserData } from "./user";
-
-const auth = getAuth(app);
-
 
 
 
@@ -35,12 +32,22 @@ export const resendVerificationEmail = async (email: string,password: string) =>
 
 
 
+export const logoutUser = async () => {  
+  try {
+    // 1️⃣ Sign out from Firebase
+    await signOut(auth);
+    console.log("✅ Firebase user signed out");
 
-export const logoutCookies = async () => {
-  await fetch("/api/auth/logout", {
-    method: "POST",
-    credentials: "include",
-  });
+    // 2️⃣ Remove authentication cookies from the server
+    await fetch("/api/auth/logout", {
+      method: "POST",
+      credentials: "include",
+    });
+
+    console.log("✅ Auth cookies removed");
+  } catch (error) {
+    console.error("❌ Error logging out:", error);
+  }
 };
 
 
@@ -82,7 +89,7 @@ export const signUpWithEmailPassword = async (email: string, password: string, u
 
   const dbResponse = await registerUserInDatabase(email, username);
   if (!dbResponse.success) {
-    await logoutCookies();
+    await logoutUser();
     if (dbResponse.errorCode) {
       if (dbResponse.errorCode != "auth/user-already-exists"){
         await deleteUser(user);
@@ -99,7 +106,7 @@ export const signUpWithEmailPassword = async (email: string, password: string, u
       errorMessage: "Failed to add user to database. Account has been removed.",
     };
   }
-    await logoutCookies();
+    await logoutUser();
     return authResponse; // Return successful auth response
 };
 
@@ -137,7 +144,7 @@ export const signUpWithGoogle = async (userCredential: UserCredential) => {
 
     // Step 3: Pass all error codes from the database
     if (!dbResponse.success) {
-      await logoutCookies();
+      await logoutUser();
       if (dbResponse.errorCode) {
         if (dbResponse.errorCode != "auth/user-already-exists"){
           await deleteUser(user);
@@ -154,7 +161,7 @@ export const signUpWithGoogle = async (userCredential: UserCredential) => {
         errorMessage: "Failed to add user to database. Account has been removed.",
       };
     }
-    await logoutCookies();
+    await logoutUser();
     return authResponse; // Return successful auth response
   } catch (error) {
     console.error("Google sign-up error:", error);
@@ -169,7 +176,7 @@ const handleAuthLoginResponse = async (response: Response) => {
   const data = await response.json();
 
   if (!response.ok) {
-    logoutCookies();
+    logoutUser();
     if (data.error && typeof data.error === "object") {
       return {
         errorCode: data.error.code || "auth/unknown-error",
@@ -199,12 +206,12 @@ export const signInWithEmailPassword = async (email: string, password: string) =
     });
 
     const result = await handleAuthLoginResponse(response);
-    if (result.emailVerified) {
+    if (result.emailVerified == false) {
       try{
-        markUserAsVerified(email);
+        await markUserAsVerified(email);
       }catch(error){
         console.error("error Verifying User",error)
-        logoutCookies();
+        logoutUser();
         return {
           errorCode: "auth/unknown-error",
           errorMessage: error instanceof Error ? error.message : "An unknown error occurred.",
@@ -253,14 +260,13 @@ export const signInWithGoogle = async (userCredential: UserCredential) => {
     if (!userData) {
       console.error("User does not exist in database. Deleting Firebase user...");
     
-      const auth = getAuth();
       const user = auth.currentUser;
 
       if (user) {
         await deleteUser(user); // 🔥 Delete Google user from Firebase
       }
 
-      await logoutCookies(); // 🔥 Clear session cookies
+      await logoutUser(); // 🔥 Clear session cookies
 
       return {
         errorCode: "auth/user-not-found",
@@ -268,10 +274,10 @@ export const signInWithGoogle = async (userCredential: UserCredential) => {
       };
     }
     try{
-      markUserAsVerified(email);
+      await markUserAsVerified(email);
     }catch(error){
       console.error("error Verifying User",error)
-      logoutCookies();
+      logoutUser();
     }
     return result;
   } catch (error) {

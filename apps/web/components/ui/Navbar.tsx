@@ -1,6 +1,6 @@
 "use client";
 import { useRouter } from "next/navigation";
-import {logoutCookies } from "../../lib/auth"; // Import the useAuth hook
+import {logoutUser } from "../../lib/auth"; // Import the useAuth hook
 import React from "react";
 
 interface NavbarProps{
@@ -16,7 +16,7 @@ const Navbar: React.FC<NavbarProps> = ({
 
   const handleLogout = async () => {
     // Assuming you have a logout function in your AuthContext or lib/auth
-    await logoutCookies(); // Call logout from AuthContext
+    await logoutUser(); // Call logout from AuthContext
     router.push("/"); // Redirect to home or login page
   };
 

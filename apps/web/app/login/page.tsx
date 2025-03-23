@@ -3,8 +3,8 @@ import { useState } from "react";
 import { resendVerificationEmail, signInWithEmailPassword, signInWithGoogle } from "../../lib/auth";
 import { useRouter } from "next/navigation";
 import { FirebaseError } from "firebase/app";
-import { getAuth, GoogleAuthProvider, signInWithPopup } from "firebase/auth";
-import { app } from "../../lib/firebase";
+import { GoogleAuthProvider, signInWithPopup } from "firebase/auth";
+import { auth } from "../../lib/firebase";
 import Image from "next/image";
 
 export default function LoginPage() {
@@ -15,7 +15,6 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false);
   const [emailVerified, setEmailVerified] = useState(true);
   const router = useRouter();
-  const auth = getAuth(app);
   const provider = new GoogleAuthProvider();
   
   const handleRegisterRedirect = () => {

@@ -1,17 +1,15 @@
 import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import {
-  getAuth,
   GoogleAuthProvider,
   signInWithCredential,
   signInWithEmailAndPassword,
   UserCredential,
 } from "firebase/auth";
-import { app } from "../../../../lib/firebase"; // Firebase instance
+import { auth } from "../../../../lib/firebase"; // Firebase instance
 import { FirebaseError } from "firebase/app";
 import { cookieOptions } from "../../../../lib/cookieOptions";
 
-const auth = getAuth(app);
 
 // Helper function to set authentication cookies
 const setAuthCookie = async (token: string) => {

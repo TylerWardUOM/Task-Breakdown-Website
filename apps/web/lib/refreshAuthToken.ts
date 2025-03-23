@@ -1,9 +1,7 @@
-import { app } from "./firebase";
-import { getAuth } from "firebase/auth";
+import { auth } from "./firebase";
 
 export const refreshAuthToken = async () => {
     try {
-      const auth = getAuth(app);
       const user = auth.currentUser;
   
       if (!user) throw new Error("No authenticated user found");

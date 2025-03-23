@@ -2,9 +2,11 @@ import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
 
 export async function POST() {
-  // Clear the authentication cookie
-  const cookieStore = await(cookies())
-  cookieStore.set("authToken", "", { expires: new Date(0) });
+  // Get the cookies object
+  const cookieStore = await(cookies());
 
-  return NextResponse.json({ message: "Logout successful." });
+  // Delete the authToken cookie by setting it with an immediate expiration
+  cookieStore.delete("authToken");
+
+  return NextResponse.json({ message: "Logout successful." }, { status: 200 });
 }

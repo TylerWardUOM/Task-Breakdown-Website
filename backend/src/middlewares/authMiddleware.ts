@@ -13,11 +13,11 @@ declare global {
 
 // Verify Firebase ID token middleware (now reads from cookies)
 export const verifyToken = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
-  console.log("🔍 [verifyToken] Middleware triggered");
+  //console.log("🔍 [verifyToken] Middleware triggered");
 
   // ✅ Extract token from cookies instead of headers
   const token = req.cookies?.authToken;
-  console.log("📌 Token from Cookie:", token);
+  //console.log("📌 Token from Cookie:", token);
 
   if (!token) {
     console.warn("❌ No token found in cookies");
@@ -26,15 +26,15 @@ export const verifyToken = async (req: Request, res: Response, next: NextFunctio
   }
 
   try {
-    console.log("🔍 [verifyToken] Verifying token...");
+    //console.log("🔍 [verifyToken] Verifying token...");
 
     // ✅ Verify the Firebase ID token
     const decodedToken = await admin.auth().verifyIdToken(token);
-    console.log("✅ Decoded Token:", decodedToken);
+    //console.log("✅ Decoded Token:", decodedToken);
 
     // ✅ Fetch the user from the database using the UID from the token
     const user = await getUserByUID(decodedToken.uid);
-    console.log("📌 Retrieved User from DB:", user);
+    //console.log("📌 Retrieved User from DB:", user);
 
     if (!user) {
       console.warn("⚠️ User not found in the database for UID:", decodedToken.uid);
@@ -44,7 +44,7 @@ export const verifyToken = async (req: Request, res: Response, next: NextFunctio
 
     // ✅ Attach user data to the request object
     req.user = user;
-    console.log("✅ [verifyToken] User attached to request:", req.user);
+    //console.log("✅ [verifyToken] User attached to request:", req.user);
 
     next(); // Proceed to the next middleware or route handler
   } catch (error) {

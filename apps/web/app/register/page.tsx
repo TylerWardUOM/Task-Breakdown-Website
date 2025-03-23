@@ -3,8 +3,8 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { signUpWithEmailPassword, signUpWithGoogle } from "../../lib/auth"; // Import updated function
 import { FirebaseError } from "firebase/app";
-import { getAuth, GoogleAuthProvider, signInWithPopup } from "firebase/auth";
-import { app } from "../../lib/firebase";
+import { GoogleAuthProvider, signInWithPopup } from "firebase/auth";
+import { auth } from "../../lib/firebase";
 import Image from "next/image";
 
 const RegisterPage = () => {
@@ -17,7 +17,6 @@ const RegisterPage = () => {
   const [isRegistered, setIsRegistered] = useState(false);
 
   const router = useRouter();
-  const auth = getAuth(app);
   const provider = new GoogleAuthProvider();
 
   const handleSubmit = async (e: React.FormEvent) => {

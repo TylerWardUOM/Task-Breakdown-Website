@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from "react";
 import { Subtask_data, Task } from "@GlobalTypes/Task";
 import { toggleTaskCompletionRequest, deleteTaskRequest, fetchTasks, saveSubtask, saveTask, fetchCompletedTasksTimeframe } from "../lib/api";
 import { formatRepeatInterval } from "@Utils/TaskModalUtils";
+import { useApi } from "lib/useApi";
 
 export const useTasks = () => {
     const [tasks, setTasks] = useState<Task[]>([]);
@@ -12,12 +13,12 @@ export const useTasks = () => {
     const [completedTasks, setCompletedTasks] = useState<number | null>(null);
     const [loadingCompletedTasks, setLoadingCompletedTasks] = useState(false);
     const [completedTasksError, setCompletedTasksError] = useState<string | null>(null);
-
+    const {apiCall} = useApi();
       // Fetch tasks on mount
   useEffect(() => {
     const getTasks = async () => {
       try {
-        const data = await fetchTasks();
+        const data = await apiCall(() => fetchTasks());
         setTasks(data);
       } catch (err) {
         console.error("Error fetching tasks:", err);
