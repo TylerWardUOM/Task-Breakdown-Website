@@ -51,7 +51,7 @@ export async function GET() {
         statusCode = 400; // Bad Request
         break;
       case "auth/id-token-expired":
-        errorMessage = "Token has expired. Please log in again.";
+        errorMessage = "Token has expired (Unauthorized). Please log in again.";
         statusCode = 401; // Unauthorized
         break;
       case "auth/invalid-id-token":

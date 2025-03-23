@@ -67,6 +67,17 @@ export const completeSubtaskInDB = async (subtask_id: number) => {
     return pool.query(query, [subtask_id]);
 };
 
+// Mark a subtask as uncompleted
+export const uncompleteSubtaskFromDB = async (subtask_id: number) => {
+    const query = `
+        UPDATE subtasks
+        SET completed = false, completed_at = NULL, updated_at = NOW()
+        WHERE id = $1
+        RETURNING *;
+    `;
+    return pool.query(query, [subtask_id]);
+};
+
 // Soft delete a subtask (set is_deleted = TRUE)
 export const deleteSubtaskInDB = async (subtask_id: number) => {
     const query = `

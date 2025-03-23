@@ -7,14 +7,19 @@ import { getUserData } from "../../web/lib/user";
 
 let MOCK = true;
 
-const user = await getUserData();
-if (user!=null){
-  if (user.email=="tylerward123456@gmail.com"){
-    MOCK=false;
+async function initializeMockFlag() {
+  try{
+  const user = await getUserData();
+  if (user && user.email === "tylerward123456@gmail.com") {
+    MOCK = false;
+  }
+  }
+  catch{
+    MOCK=true;
   }
 }
 
-
+initializeMockFlag();
 export async function getTaskBreakdown(OPENAI_API_KEY: string | undefined, task: string): Promise<TaskBreakdownResponse | null> {
     try {
     console.log("🔹 Received a request to break down task");

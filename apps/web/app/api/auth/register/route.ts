@@ -1,11 +1,10 @@
 import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
-import { getAuth, sendEmailVerification, signInWithCredential, GoogleAuthProvider, createUserWithEmailAndPassword } from "firebase/auth";
-import { app } from "../../../../lib/firebase"; // Import Firebase instance
+import { sendEmailVerification, signInWithCredential, GoogleAuthProvider, createUserWithEmailAndPassword } from "firebase/auth";
+import { auth } from "../../../../lib/firebase"; // Import Firebase instance
 import { FirebaseError } from "firebase/app";
 import { cookieOptions } from "../../../../lib/cookieOptions";
 
-const auth = getAuth(app);
 
 export async function POST(req: Request) {
   try {

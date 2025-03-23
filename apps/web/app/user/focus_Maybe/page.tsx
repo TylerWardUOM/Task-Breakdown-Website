@@ -2,20 +2,20 @@
 
 import { useEffect, useState } from "react";
 import { useFocusStore } from "../../../store/focusStore";
-import TaskTable from "../../../components/TaskTable";
-import useFetchCategories from "../../../../packages/hooks/useFetchCategories";
+import TaskTable from "../../../components/TaskDisplays/TaskTable";
 import { useUserSettings } from "../../../contexts/UserSettingsContext";
-import useFetchTasks from "../../../../packages/hooks/useFetchTasks";
 import Modal from "../../../components/ui/Modal"; // Using your custom modal
 import { CheckCircleIcon, MinusCircleIcon, PlusCircleIcon } from "@heroicons/react/solid";
 import Link from "next/link";
 import { Task } from "@GlobalTypes/Task";
 import { toggleTaskCompletionRequest } from "@lib/api";
+import { useCategories } from "@Hooks/useCategories";
+import { useTasks } from "@Hooks/useTasks";
 
 export default function FocusMode() {
   const { settings } = useUserSettings();
-  const { tasks, setTasks } = useFetchTasks();
-  const { categories } = useFetchCategories();
+  const { tasks, setTasks } = useTasks();
+  const { categories } = useCategories();
 
   // Focus Mode State (Zustand)
   const { tasks: sessionTasks, addTask, removeTask, isRunning, timeLeft, startTimer, pauseTimer, resetTimer, tick } =

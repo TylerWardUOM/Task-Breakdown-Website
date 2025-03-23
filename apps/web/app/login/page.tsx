@@ -1,170 +1,27 @@
 "use client";
-import { useState } from "react";
-import { resendVerificationEmail, signInWithEmailPassword, signInWithGoogle } from "../../lib/auth";
-import { useRouter } from "next/navigation";
-import { FirebaseError } from "firebase/app";
-import { getAuth, GoogleAuthProvider, signInWithPopup } from "firebase/auth";
-import { app } from "../../lib/firebase";
 import Image from "next/image";
+import { useAuthLogin } from "hooks/useAuthLogin";
 
 export default function LoginPage() {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [error, setError] = useState("");
-  const [success, setSuccess] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [emailVerified, setEmailVerified] = useState(true);
-  const router = useRouter();
-  const auth = getAuth(app);
-  const provider = new GoogleAuthProvider();
-  
-  const handleRegisterRedirect = () => {
-    router.push("/register");
-  };
+  const {
+    email,
+    setEmail,
+    password,
+    setPassword,
+    error,
+    success,
+    loading,
+    emailVerified,
+    signInWithEmail,
+    signInWithGoogle,
+    handleResendVerificationEmail,
+    handleRegisterRedirect,
+    handlePasswordResetRedirect,
+  } = useAuthLogin();
 
-  const handlePasswordResetRedirect = () =>{
-    router.push("/resetPassword")
-  }
-
-  const handleLogin = async (e: React.FormEvent) => {
+  const handleEmailLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    setLoading(true);
-    setError(""); // Reset errors
-
-    try {
-      const result = await signInWithEmailPassword(email, password);
-
-      // ✅ Check if the API returned an error response
-      if (result.errorCode) {
-        console.error("API Error:", result.errorCode, result.errorMessage);
-
-        // Handle specific Firebase authentication errors from API response
-        switch (result.errorCode) {
-          case "auth/user-not-found":
-            setError("No account found with this email. Please check your email or sign up.");
-            break;
-          case "auth/wrong-password":
-          case "auth/invalid-credential":
-            setError("Incorrect password. Please try again.");
-            break;
-          case "auth/invalid-email":
-            setError("Invalid email format. Please enter a valid email address.");
-            break;
-          case "auth/too-many-requests":
-            setError("Too many failed attempts. Please wait a moment and try again.");
-            break;
-          case "auth/user-disabled":
-            setError("This account has been disabled. Please contact support.");
-            break;
-          case "auth/network-request-failed":
-            setError("Network error. Please check your internet connection.");
-            break;
-          default:
-            setError(result.errorMessage || "Login failed. Please try again.");
-        }
-        return; // Exit function if there was an error
-      }
-
-      // ✅ Check if email is not verified
-      if (result.emailVerified === false) {
-        setError("Please verify your email before logging in.");
-        setEmailVerified(false);
-        return;
-      }
-
-      // ✅ If login is successful, redirect to dashboard
-      router.push("/user/dashboard");
-    } catch (error: unknown) {
-      console.error("Unexpected Login Error:", error);
-
-      if (error instanceof FirebaseError) {
-        setError(error.message || "Login failed. Please try again.");
-      } else if (error instanceof Error) {
-        setError(error.message || "An unexpected error occurred. Please try again.");
-      } else {
-        setError("An unexpected error occurred. Please try again.");
-      }
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleGoogleSignIn = async () => {
-    try {
-      setLoading(true);      
-      const userCredential = await signInWithPopup(auth, provider);
-  
-      if (!userCredential) {
-        throw new Error("Google sign-in failed. No user credential returned.");
-      }
-  
-      // Call function to handle Google authentication & send tokens to the backend
-      const response = await signInWithGoogle(userCredential);
-  
-      // ✅ Check if the API returned an error response
-      if (response.errorCode) {
-        console.error("API Error:", response.errorCode, response.errorMessage);
-  
-        // Handle specific Firebase authentication errors from API response
-        switch (response.errorCode) {
-          case "auth/user-not-found":
-            setError("No account found with this email. Please sign up first.");
-            break;
-          case "auth/wrong-password":
-          case "auth/invalid-credential":
-            setError("Incorrect password. Please try again.");
-            break;
-          case "auth/invalid-email":
-            setError("Invalid email format. Please enter a valid email.");
-            break;
-          case "auth/too-many-requests":
-            setError("Too many failed attempts. Please wait a moment and try again.");
-            break;
-          case "auth/user-disabled":
-            setError("This account has been disabled. Please contact support.");
-            break;
-          case "auth/network-request-failed":
-            setError("Network error. Please check your internet connection.");
-            break;
-          default:
-            setError(response.errorMessage || "Login failed. Please try again.");
-        }
-        return; // Exit function if there was an error
-      }
-  
-      // ✅ Check if email is not verified
-      if (!userCredential.user.emailVerified) {
-        setError("Please verify your email before logging in.");
-        setEmailVerified(false);
-        return;
-      }
-  
-      // ✅ If login is successful, redirect to dashboard
-      router.push("/user/dashboard");
-    } catch (error: unknown) {
-      console.error("Unexpected Login Error:", error);
-  
-      if (error instanceof FirebaseError) {
-        setError(error.message || "Login failed. Please try again.");
-      } else if (error instanceof Error) {
-        setError(error.message || "An unexpected error occurred. Please try again.");
-      } else {
-        setError("An unexpected error occurred. Please try again.");
-      }
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  
-  const handleResendVerificationEmail = async () => {
-    try {
-      const response = await resendVerificationEmail(email, password);
-      setSuccess(response.message);
-    } catch (err) {
-      console.error("Error sending verification email:", err);
-      setError("Failed to send verification email. Please try again later.");
-    }
+    await signInWithEmail(email, password);
   };
 
   return (
@@ -173,7 +30,7 @@ export default function LoginPage() {
         <h2 className="text-2xl font-semibold text-center mb-6">Login</h2>
         {error && <p className="text-red-500 text-sm text-center mb-4">{error}</p>}
         {success && <p className="text-green-500 text-sm text-center mb-4">{success}</p>}
-        <form onSubmit={handleLogin} className="space-y-4">
+        <form onSubmit={handleEmailLogin} className="space-y-4">
           <div>
             <label htmlFor="email" className="block text-sm font-medium text-gray-700">
               Email
@@ -236,7 +93,7 @@ export default function LoginPage() {
         )}
         <div className="mt-6 flex justify-center">
           <button
-            onClick={handleGoogleSignIn}
+            onClick={signInWithGoogle}
             aria-label="Sign in with Google"
             className="w-max-full bg-white border border-gray-300 rounded-md flex items-center justify-center hover:bg-gray-100 transition duration-300 shadow-md"
           >
@@ -252,4 +109,4 @@ export default function LoginPage() {
       </div>
     </div>
   );
-}
+};

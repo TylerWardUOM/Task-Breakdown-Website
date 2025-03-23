@@ -1,14 +1,14 @@
 "use client";
 import { UserSettings } from "@GlobalTypes/UserSettings";
-import { fetchUserSettings, saveUserSettings } from "../../packages/lib/api";
 import { usePathname } from "next/navigation";
 import { createContext, useState, useEffect, useContext } from "react";
-import { useAuth } from "./authContext";
+import { useApiWrapper } from "@Hooks/useApiWrapper";
 
 interface UserSettingsContextType {
   settings: UserSettings;
   updateSettings: (newSettings: Partial<UserSettings>) => void;
 }
+
 const UserSettingsContext = createContext<UserSettingsContextType | undefined>(undefined);
 
 export const UserSettingsProvider = ({ children }: { children: React.ReactNode }) => {
@@ -25,12 +25,12 @@ export const UserSettingsProvider = ({ children }: { children: React.ReactNode }
 
   const [settings, setSettings] = useState<UserSettings | null>(null); // Initially null
   const pathname = usePathname();
-  const {isAuthenticated} = useAuth();
+  const {fetchUserSettings,saveUserSettings} = useApiWrapper();
+
   useEffect(() => {
     const fetchSettings = async () => {
       try {
         const userSettings = await fetchUserSettings();
-        
         if (userSettings) {
           setSettings(userSettings);
           localStorage.setItem("userSettings", JSON.stringify(userSettings));
@@ -40,7 +40,6 @@ export const UserSettingsProvider = ({ children }: { children: React.ReactNode }
       } catch (error) {
         console.error("Error fetching user settings:", error);
         
-        // Only apply defaults if settings were never set
         if (!settings) {
           console.warn("Using Default Settings");
           const defaultSettings = getDefaultUserSettings();
@@ -50,14 +49,13 @@ export const UserSettingsProvider = ({ children }: { children: React.ReactNode }
       }
     };
 
+    // Check localStorage for cached settings first
     const savedSettings = localStorage.getItem("userSettings");
-
     if (savedSettings) {
-      setSettings(JSON.parse(savedSettings)); // Use cached settings
+      setSettings(JSON.parse(savedSettings));
     }
-    if (isAuthenticated===true){
-      fetchSettings(); // Always fetch to get latest settings
-    }
+
+    fetchSettings(); // Always try fetching latest settings
   }, [pathname]);
 
   const updateSettings = async (newSettings: Partial<UserSettings>) => {
@@ -68,11 +66,12 @@ export const UserSettingsProvider = ({ children }: { children: React.ReactNode }
     localStorage.setItem("userSettings", JSON.stringify(updatedSettings));
 
     try {
-        await saveUserSettings(updatedSettings);
+      await saveUserSettings(updatedSettings);
     } catch (error) {
       console.error("Failed to save settings to API", error);
     }
   };
+
 
   return (
     <UserSettingsContext.Provider value={{ settings: settings ?? getDefaultUserSettings(), updateSettings }}>

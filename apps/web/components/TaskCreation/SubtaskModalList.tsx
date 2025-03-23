@@ -1,9 +1,9 @@
 import { Subtask_data } from "@GlobalTypes/Task";
-import useSubtasks from "@Hooks/useSubtasks";
+import useSubtaskModal from "@Hooks/useSubtaskModal";
 
 // ✅ SubtaskList Component
 interface SubtaskListProps {
-  subtasks: ReturnType<typeof useSubtasks>["orderedSubtasks"];
+  subtasks: ReturnType<typeof useSubtaskModal>["orderedSubtasks"];
   isOrdered: boolean;
   updateSubtaskField: (uuid: string, field: keyof Subtask_data, value: unknown) => void;
   deleteSubtask: (uuid: string) => void;
