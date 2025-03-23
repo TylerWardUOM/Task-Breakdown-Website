@@ -281,7 +281,7 @@ export const fetchSubtasksByTaskId = async (taskId: number) => {
 };
 
 
-export const fetchSubtaskById = async (subtaskId: string) => {
+export const fetchSubtaskById = async (subtaskId: number) => {
   const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/subtasks/${subtaskId}`, {
     method: "GET",
     headers: {

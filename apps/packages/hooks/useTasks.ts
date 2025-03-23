@@ -1,8 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { Subtask_data, Task } from "@GlobalTypes/Task";
-import { toggleTaskCompletionRequest, deleteTaskRequest, fetchTasks, saveSubtask, saveTask, fetchCompletedTasksTimeframe } from "../lib/api";
 import { formatRepeatInterval } from "@Utils/TaskModalUtils";
-import { useApi } from "lib/useApi";
+import { useApiWrapper } from "./useApiWrapper";
 
 export const useTasks = () => {
     const [tasks, setTasks] = useState<Task[]>([]);
@@ -13,12 +12,12 @@ export const useTasks = () => {
     const [completedTasks, setCompletedTasks] = useState<number | null>(null);
     const [loadingCompletedTasks, setLoadingCompletedTasks] = useState(false);
     const [completedTasksError, setCompletedTasksError] = useState<string | null>(null);
-    const {apiCall} = useApi();
+    const {fetchTasks, toggleTaskCompletionRequest,deleteTaskRequest, saveTask, saveSubtask, fetchCompletedTasksTimeframe} = useApiWrapper();
       // Fetch tasks on mount
   useEffect(() => {
     const getTasks = async () => {
       try {
-        const data = await apiCall(() => fetchTasks());
+        const data = await fetchTasks();
         setTasks(data);
       } catch (err) {
         console.error("Error fetching tasks:", err);

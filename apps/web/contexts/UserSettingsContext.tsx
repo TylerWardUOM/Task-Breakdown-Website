@@ -1,8 +1,8 @@
 "use client";
 import { UserSettings } from "@GlobalTypes/UserSettings";
-import { fetchUserSettings, saveUserSettings } from "../../packages/lib/api";
 import { usePathname } from "next/navigation";
 import { createContext, useState, useEffect, useContext } from "react";
+import { useApiWrapper } from "@Hooks/useApiWrapper";
 
 interface UserSettingsContextType {
   settings: UserSettings;
@@ -25,6 +25,7 @@ export const UserSettingsProvider = ({ children }: { children: React.ReactNode }
 
   const [settings, setSettings] = useState<UserSettings | null>(null); // Initially null
   const pathname = usePathname();
+  const {fetchUserSettings,saveUserSettings} = useApiWrapper();
 
   useEffect(() => {
     const fetchSettings = async () => {

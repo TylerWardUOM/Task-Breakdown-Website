@@ -1,11 +1,12 @@
 import { useState, useEffect } from "react";
 import { Category } from "@GlobalTypes/Category";
-import { fetchCategories } from "../lib/api";
+import { useApiWrapper } from "./useApiWrapper";
 
 export const useCategories = () => {
   const [categories, setCategories] = useState<Category[]>([]);
   const [loadingCategories, setLoadingCategories] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const { fetchCategories } = useApiWrapper(); // ✅ Wrapped API call
 
   useEffect(() => {
     const getCategories = async () => {

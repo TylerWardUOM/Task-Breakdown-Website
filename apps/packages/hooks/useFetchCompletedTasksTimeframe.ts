@@ -1,5 +1,5 @@
-import { fetchCompletedTasksTimeframe } from "../lib/api";
 import { useState, useEffect } from "react";
+import { useApiWrapper } from "./useApiWrapper";
 
 interface UseFetchCompletedTasksTimeframeProps {
   timeframe: string;
@@ -9,6 +9,7 @@ const useFetchCompletedTasksTimeframe = ({ timeframe}: UseFetchCompletedTasksTim
   const [completedTasks, setCompletedTasks] = useState<number | null>(null);
   const [loadingCompletedTasks, setLoadingCompletedTasks] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const { fetchCompletedTasksTimeframe } = useApiWrapper(); // ✅ Wrapped API call
 
   useEffect(() => {
     const getCompletedTasks = async () => {

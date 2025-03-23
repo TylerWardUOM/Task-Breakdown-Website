@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { formatDueDate, formatRepeatInterval, mapRepeatIntervalToDropdownValue } from "../utils/TaskModalUtils";
-import { saveTask, saveSubtask } from "../lib/api";
 import { Subtask, Subtask_data, Task, Task_data } from "@GlobalTypes/Task";
+import { useApiWrapper } from "./useApiWrapper";
 
 export const useTask = (existingTask: Task | null, existingSubtasks: Subtask[] | null, onSave: (task: Task) => void) => {
   const [taskTitle, setTaskTitle] = useState("");
@@ -12,6 +12,7 @@ export const useTask = (existingTask: Task | null, existingSubtasks: Subtask[] |
   const [description, setDescription] = useState("");
   const [repeatTask, setRepeatTask] = useState("None");
   const [category, setCategory] = useState("1");
+  const { saveTask, saveSubtask } = useApiWrapper(); // ✅ Wrapped API call
 
   useEffect(() => {
     if (existingTask) {

@@ -8,9 +8,14 @@ import { getUserData } from "../../web/lib/user";
 let MOCK = true;
 
 async function initializeMockFlag() {
+  try{
   const user = await getUserData();
   if (user && user.email === "tylerward123456@gmail.com") {
     MOCK = false;
+  }
+  }
+  catch{
+    MOCK=true;
   }
 }
 
