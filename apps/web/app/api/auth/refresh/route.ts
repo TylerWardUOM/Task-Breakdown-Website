@@ -2,10 +2,9 @@ import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { cookieOptions } from "lib/cookieOptions";
 
-// ✅ API route only sets the token in cookies
 export async function POST(req: Request) {
   try {
-    const { token } = await req.json(); // Extract token from request body
+    const { token } = await req.json();
 
     if (!token) {
       return NextResponse.json(
@@ -14,13 +13,25 @@ export async function POST(req: Request) {
       );
     }
 
-    // ✅ Store token in cookies
-    const cookieStore = await cookies();
+    const cookieStore = await(cookies());
+    const existingToken = cookieStore.get("authToken");
+
+    if (!existingToken) {
+      return NextResponse.json(
+        { success: false, error: "Session expired. Please log in again." },
+        { status: 401 } // Unauthorized
+      );
+    }
+
+    // ✅ Update token in cookies
     cookieStore.set("authToken", token, cookieOptions);
 
-    return NextResponse.json({ success: true, message: "Token stored" });
+    return NextResponse.json({ success: true, message: "Token refreshed successfully" });
   } catch (error) {
-    console.error("❌ Error setting auth cookie:", error);
-    return NextResponse.json({ success: false, error: "Failed to set token" }, { status: 500 });
+    console.error("❌ Error refreshing auth token:", error);
+    return NextResponse.json(
+      { success: false, error: "Failed to refresh token" },
+      { status: 500 }
+    );
   }
 }
