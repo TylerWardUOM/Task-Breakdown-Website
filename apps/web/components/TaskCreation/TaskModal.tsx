@@ -34,7 +34,8 @@ const TaskModal: React.FC<TaskModalProps> = ({ onClose, onSave, existingTask, ca
     showMoreOptions,
     setShowMoreOptions,
     handleSaveTask,
-    subtaskModalRef
+    subtaskModalRef,
+    saving
   } = useTaskModal(existingTask || null, existing_subtasks || null, onSave, onClose);
 
 
@@ -141,7 +142,9 @@ const TaskModal: React.FC<TaskModalProps> = ({ onClose, onSave, existingTask, ca
     <button className="bg-gray-300 dark:bg-gray-700 dark:text-white px-4 py-2 rounded" onClick={onClose}>
       Cancel
     </button>
-    <button className="bg-green-500 dark:bg-green-600 text-white px-4 py-2 rounded" onClick={handleSaveTask}>
+    <button className="bg-green-500 dark:bg-green-600 text-white px-4 py-2 rounded" 
+    onClick={handleSaveTask}
+      disabled={saving}>
       {existingTask ? "Update Task" : "Save Task"}
     </button>
   </div>

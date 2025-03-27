@@ -14,6 +14,7 @@ export const useTaskModal = (existingTask: Task | null, existingSubtasks: Subtas
   const [repeatTask, setRepeatTask] = useState("None");
   const [category, setCategory] = useState("1");
   const [showMoreOptions, setShowMoreOptions] = useState(false);
+  const [saving, setSaving] = useState(false);
   const subtaskModalRef = useRef<{ getSubtasks: () => Subtask_data[] } | null>(null);
 
   useEffect(() => {
@@ -35,6 +36,7 @@ export const useTaskModal = (existingTask: Task | null, existingSubtasks: Subtas
   }, [existingTask]);
 
   const handleSaveTask = async () => {
+    setSaving(true);
     const latestSubtasks = subtaskModalRef.current?.getSubtasks() || [];
 
     await saveTaskData(existingTask, {
@@ -47,7 +49,7 @@ export const useTaskModal = (existingTask: Task | null, existingSubtasks: Subtas
       repeatTask,
       category,
     }, latestSubtasks, onSave);
-
+    setSaving(false);
     onClose();
   };
 
@@ -63,5 +65,6 @@ export const useTaskModal = (existingTask: Task | null, existingSubtasks: Subtas
     showMoreOptions, setShowMoreOptions,
     subtaskModalRef,
     handleSaveTask,
+    saving
   };
 };

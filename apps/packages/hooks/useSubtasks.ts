@@ -1,12 +1,14 @@
 import { useState, useEffect } from "react";
 import { Subtask, Task } from "@GlobalTypes/Task";
-import { fetchSubtasksByTaskId, toggleSubtaskCompletionRequest } from "../lib/api";
+import { useApiWrapper } from "./useApiWrapper";
 
 export const useSubtasks = (tasks: Task[]) => {
   const [subtasks, setSubtasks] = useState<Subtask[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isTogglingSubtask, setIsToggling] = useState(false);
+  const { fetchSubtasksByTaskId, toggleSubtaskCompletionRequest } = useApiWrapper(); // ✅ Wrapped API call
+
 
   // Fetch subtasks when tasks change
   useEffect(() => {
