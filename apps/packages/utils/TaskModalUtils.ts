@@ -1,5 +1,12 @@
 import { RepeatInterval } from "@GlobalTypes/Task";
 
+
+export const convertToUTC = (localDate: string): string => {
+  const [year, month, day] = localDate.split('-').map(Number);
+  const date = new Date(Date.UTC(year, month - 1, day)); // month is 0-indexed
+  return date.toISOString(); // Returns UTC in the format "YYYY-MM-DDT00:00:00.000Z"
+};
+
 export const formatDueDate = (date: string | null): string | null => {
     if (!date) return null;
     const parsedDate = new Date(date);

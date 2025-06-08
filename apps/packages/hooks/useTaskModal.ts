@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { Task, Subtask, Subtask_data } from "@GlobalTypes/Task";
-import { formatDueDate, formatRepeatInterval, mapRepeatIntervalToDropdownValue } from "../utils/TaskModalUtils";
+import { convertToUTC, formatDueDate, formatRepeatInterval, mapRepeatIntervalToDropdownValue } from "../utils/TaskModalUtils";
 import { useTasks } from "./useTasks";
 
 export const useTaskModal = (existingTask: Task | null, existingSubtasks: Subtask[] | null, onSave: (task: Task) => void, onClose: () => void) => {
@@ -14,6 +14,7 @@ export const useTaskModal = (existingTask: Task | null, existingSubtasks: Subtas
   const [repeatTask, setRepeatTask] = useState("None");
   const [category, setCategory] = useState("1");
   const [showMoreOptions, setShowMoreOptions] = useState(false);
+  const [saving, setSaving] = useState(false);
   const subtaskModalRef = useRef<{ getSubtasks: () => Subtask_data[] } | null>(null);
 
   useEffect(() => {
@@ -34,7 +35,17 @@ export const useTaskModal = (existingTask: Task | null, existingSubtasks: Subtas
     }
   }, [existingTask]);
 
+  const handleDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const selectedDate = e.target.value;
+    if (selectedDate) {
+      setDueDate(convertToUTC(selectedDate));
+    } else {
+      setDueDate(null);
+    }
+  };
+
   const handleSaveTask = async () => {
+    setSaving(true);
     const latestSubtasks = subtaskModalRef.current?.getSubtasks() || [];
 
     await saveTaskData(existingTask, {
@@ -47,7 +58,7 @@ export const useTaskModal = (existingTask: Task | null, existingSubtasks: Subtas
       repeatTask,
       category,
     }, latestSubtasks, onSave);
-
+    setSaving(false);
     onClose();
   };
 
@@ -63,5 +74,6 @@ export const useTaskModal = (existingTask: Task | null, existingSubtasks: Subtas
     showMoreOptions, setShowMoreOptions,
     subtaskModalRef,
     handleSaveTask,
+    saving, handleDateChange
   };
 };

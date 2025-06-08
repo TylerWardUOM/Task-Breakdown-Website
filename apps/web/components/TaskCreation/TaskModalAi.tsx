@@ -33,6 +33,7 @@ const TaskForm: React.FC<TaskFormProps> = ({categories, onSave, onClose}) => {
   const [repeatTask, setRepeatTask] = useState("None");
   const [showResults, setShowResults] = useState(false); // Toggle between form & results
   const [taskBreakdownResponse, setTaskBreakdownResponse] = useState<TaskBreakdownResponse | null>(null);
+  const [saving, setSaving] = useState(false);
 
   const subtaskModalRef = useRef<{ getSubtasks: () => Subtask_data[] } | null>(null);
 
@@ -104,6 +105,7 @@ const TaskForm: React.FC<TaskFormProps> = ({categories, onSave, onClose}) => {
 
 const handleSaveTask = async () => {
   if (!taskData) return;
+  setSaving(true); // Disable inputs & buttons while saving
 
   try {
     // Save main task
@@ -133,6 +135,9 @@ const handleSaveTask = async () => {
   } catch (err) {
     console.error("Error saving task:", err);
     return null;
+  }
+  finally{
+    setSaving(false); // Re-enable inputs & buttons
   }
 };
 
@@ -305,12 +310,14 @@ const handleEditPrompt = () => {
       {/* Buttons for actions */}
       <div className="flex space-x-4 mt-4">
         <button
+          disabled={saving}
           onClick={handleEditPrompt}
           className="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600"
         >
           Edit Prompt
         </button>
         <button
+          disabled={saving}
           onClick={handleRegenerate}
           className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
         >
@@ -318,6 +325,7 @@ const handleEditPrompt = () => {
         </button>
         {/* Save Task Button */}
         <button
+        disabled={saving}
         onClick={handleSaveTask}
         className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600"
         >
