@@ -1,0 +1,8 @@
+{
+  "/api/auth/refresh/route": "app/api/auth/refresh/route.js",
+  "/favicon.ico/route": "app/favicon.ico/route.js",
+  "/api/auth/session/route": "app/api/auth/session/route.js",
+  "/login/page": "app/login/page.js",
+  "/user/tasks/page": "app/user/tasks/page.js",
+  "/user/dashboard/page": "app/user/dashboard/page.js"
+}
