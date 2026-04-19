@@ -177,8 +177,6 @@ export const signUpWithGoogle = async (userCredential: UserCredential) => {
 
 
 export const handleAuthLoginResponse = async (userCredential: UserCredential) => {
-  const auth = getFirebaseAuth();
-
   if (!userCredential) throw new Error("Authentication failed. No credential found.");
 
   const user = userCredential.user;
@@ -199,7 +197,7 @@ export const handleAuthLoginResponse = async (userCredential: UserCredential) =>
 
   const userData = await getUserData();
   if (!userData) {  
-    const user = auth.currentUser;
+    const user = getFirebaseAuth().currentUser;
     if (user) {
       await deleteUser(user); // 🔥 Delete Google user from Firebase
     }
