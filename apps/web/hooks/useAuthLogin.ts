@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { FirebaseError } from "firebase/app";
 import { GoogleAuthProvider, signInWithEmailAndPassword, signInWithPopup } from "firebase/auth";
-import { auth } from "../lib/firebase";
+import { getFirebaseAuth } from "../lib/firebase";
 import { resendVerificationEmail, handleAuthLoginResponse, logoutUser} from "../lib/auth";
 import { markUserAsVerified } from "@lib/api";
 
@@ -46,6 +46,7 @@ export const useAuthLogin = () => {
     setError("");
 
     try {
+      const auth = getFirebaseAuth();
       const userCredential = await signInWithEmailAndPassword(auth, email, password);
       const user = userCredential.user;
 
@@ -84,6 +85,7 @@ export const useAuthLogin = () => {
     setError("");
 
     try {
+      const auth = getFirebaseAuth();
       const provider = new GoogleAuthProvider();
       const userCredential = await signInWithPopup(auth, provider);
       const user = userCredential.user;

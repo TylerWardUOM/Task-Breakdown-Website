@@ -1,8 +1,9 @@
-import { auth } from "./firebase";
+import { getFirebaseAuth } from "./firebase";
 import { signOut } from "firebase/auth";
 
 export const refreshAuthToken = async (): Promise<{ success: boolean; shouldRedirect: boolean }> => {
   try {
+    const auth = getFirebaseAuth();
     const user = auth.currentUser;
 
     if (!user) {

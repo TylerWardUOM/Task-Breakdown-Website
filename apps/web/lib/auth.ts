@@ -1,7 +1,7 @@
 "use client"; // Ensure it's a client-side module
 
 import {signInWithEmailAndPassword, sendPasswordResetEmail, sendEmailVerification, UserCredential, GoogleAuthProvider, deleteUser, signOut } from "firebase/auth";
-import { auth } from "./firebase"; // Import Firebase config
+import { getFirebaseAuth } from "./firebase";
 import {registerUserInDatabase} from "../../packages/lib/api";
 import { getUserData } from "./user";
 import { FirebaseError } from "firebase/app";
@@ -10,6 +10,7 @@ import { FirebaseError } from "firebase/app";
 
 export const sendPasswordReset = async (email: string) => {
   try {
+    const auth = getFirebaseAuth();
     await sendPasswordResetEmail(auth, email);
     console.log("Password reset email sent!");
   } catch (error) {
@@ -22,9 +23,10 @@ export const sendPasswordReset = async (email: string) => {
 
 export const resendVerificationEmail = async (email: string,password: string) => {
   try {
+    const auth = getFirebaseAuth();
     const user = await signInWithEmailAndPassword(auth, email, password);
     await sendEmailVerification(user.user); // Send verification email again
-    return { success: true, message: "Verification Email Sent Succesfully" };
+    return { success: true, message: "Verification Email Sent Successfully" };
   } catch (err) {
     console.error("Error sending verification email:", err);
     throw new Error("Failed to send verification email. Please try again later.");
@@ -35,6 +37,7 @@ export const resendVerificationEmail = async (email: string,password: string) =>
 
 export const logoutUser = async () => {  
   try {
+    const auth = getFirebaseAuth();
     // 1️⃣ Sign out from Firebase
     await signOut(auth);
     console.log("✅ Firebase user signed out");
@@ -194,7 +197,7 @@ export const handleAuthLoginResponse = async (userCredential: UserCredential) =>
 
   const userData = await getUserData();
   if (!userData) {  
-    const user = auth.currentUser;
+    const user = getFirebaseAuth().currentUser;
     if (user) {
       await deleteUser(user); // 🔥 Delete Google user from Firebase
     }

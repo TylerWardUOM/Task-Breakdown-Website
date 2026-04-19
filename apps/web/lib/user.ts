@@ -9,7 +9,12 @@ interface User {
  */
 export const getUserData = async (): Promise<User | null> => {
   try {
-    const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/user/me`, {
+    const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL;
+    if (!apiBaseUrl) {
+      return null;
+    }
+
+    const response = await fetch(`${apiBaseUrl}/api/user/me`, {
       method: "GET",
       headers: { "Content-Type": "application/json" },
       credentials: "include", // 🔥 Automatically sends cookies with the request

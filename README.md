@@ -50,8 +50,9 @@ A neurodivergent-friendly task management app for better productivity, schedulin
 ├── package-lock.json
 ├── package.json
 ├── README.md
-│── web
-│   ├── .gitignore
+├── apps
+│   ├── web
+│   │   ├── .gitignore
 │   │── .next
 │   │── app
 │   │   │── dashboard
@@ -123,3 +124,63 @@ A neurodivergent-friendly task management app for better productivity, schedulin
 - **Database:** PostgreSQL (Cloud) + SQLite (Offline)
 - **Authentication:** Firebase Auth
 - **Notifications:** Firebase Cloud Messaging (FCM) & Apple Push Notification Service (APNs)
+
+## ✅ Quick restart plan (no paid hosting)
+You can run and deploy this project fully on free tiers:
+
+1. **Frontend (free):** Vercel Hobby plan (`apps/web`)
+2. **Backend API + Postgres (free):** Railway free trial, or switch to Render (free web service) + Neon/Supabase Postgres free tier
+3. **Auth (free):** Firebase Authentication Spark plan
+
+## 🔧 Local setup
+1. Install dependencies from repo root:
+   ```bash
+   npm install
+   ```
+2. Copy environment templates:
+   - Create `apps/web/.env.local` and add the variables shown below
+   - `backend/.env.example` → `backend/.env`
+3. Fill in your Firebase and database values.
+4. Start backend:
+   ```bash
+   cd backend && npm start
+   ```
+5. Start web app:
+   ```bash
+   cd apps/web && npm run dev
+   ```
+
+## 🧪 Build note
+With missing Firebase env vars, `next build` no longer crashes on auth route module import. Auth endpoints now return a clear `503 auth/misconfigured` response until `NEXT_PUBLIC_FIREBASE_*` values are set.
+
+### `apps/web/.env.local` (example)
+```env
+NEXT_PUBLIC_API_BASE_URL=http://localhost:5000
+NEXT_PUBLIC_FIREBASE_API_KEY=
+NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=
+NEXT_PUBLIC_FIREBASE_PROJECT_ID=
+NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET=
+NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=
+NEXT_PUBLIC_FIREBASE_APP_ID=
+NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID=
+FIREBASE_SERVICE_ACCOUNT_JSON=
+OPENAI_API_KEY=
+```
+
+## 🔐 GitHub Environments (for all hosted secrets/variables)
+Store runtime config in a GitHub Environment instead of repository-level plaintext files.
+
+1. Create environment: **Settings → Environments → New environment** (recommended name: `production`).
+2. Add **Environment variables**:
+   - `NEXT_PUBLIC_API_BASE_URL`
+   - `NEXT_PUBLIC_FIREBASE_API_KEY`
+   - `NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN`
+   - `NEXT_PUBLIC_FIREBASE_PROJECT_ID`
+   - `NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET`
+   - `NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID`
+   - `NEXT_PUBLIC_FIREBASE_APP_ID`
+   - `NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID`
+3. Add **Environment secrets**:
+   - `FIREBASE_SERVICE_ACCOUNT_JSON`
+   - `OPENAI_API_KEY`
+4. CI now reads from this environment in `.github/workflows/ci.yml`.

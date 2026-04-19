@@ -4,7 +4,7 @@ import { useRouter } from "next/navigation";
 import { signUpWithEmailPassword, signUpWithGoogle } from "../../lib/auth"; // Import updated function
 import { FirebaseError } from "firebase/app";
 import { GoogleAuthProvider, signInWithPopup } from "firebase/auth";
-import { auth } from "../../lib/firebase";
+import { getFirebaseAuth } from "../../lib/firebase";
 import Image from "next/image";
 
 const RegisterPage = () => {
@@ -57,6 +57,7 @@ const RegisterPage = () => {
 
   const handleGoogleSignIn = async () => {
     try {
+      const auth = getFirebaseAuth();
       const userCredential = await signInWithPopup(auth, provider);
       if (userCredential) {
         const response = await signUpWithGoogle(userCredential);

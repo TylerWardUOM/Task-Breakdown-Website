@@ -2,10 +2,12 @@ import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import admin from "firebase-admin";
 
-// Initialize Firebase Admin only if not already initialized
-if (!admin.apps.length) {
+const serviceAccountJson = process.env.FIREBASE_SERVICE_ACCOUNT_JSON;
+
+// Initialize Firebase Admin only when credentials are available
+if (!admin.apps.length && serviceAccountJson) {
   try {
-    const serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT as string);
+    const serviceAccount = JSON.parse(serviceAccountJson);
     admin.initializeApp({
       credential: admin.credential.cert(serviceAccount),
     });
@@ -21,6 +23,13 @@ interface FirebaseAuthError extends Error {
 
 export async function GET() {
   try {
+    if (!admin.apps.length) {
+      return NextResponse.json(
+        { isAuthenticated: false, user: null, error: "Firebase admin is not configured." },
+        { status: 503 }
+      );
+    }
+
     const token = (await cookies()).get("authToken")?.value;
 
     if (!token) {
