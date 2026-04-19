@@ -26,7 +26,7 @@ export const resendVerificationEmail = async (email: string,password: string) =>
     const auth = getFirebaseAuth();
     const user = await signInWithEmailAndPassword(auth, email, password);
     await sendEmailVerification(user.user); // Send verification email again
-    return { success: true, message: "Verification Email Sent Succesfully" };
+    return { success: true, message: "Verification Email Sent Successfully" };
   } catch (err) {
     console.error("Error sending verification email:", err);
     throw new Error("Failed to send verification email. Please try again later.");
