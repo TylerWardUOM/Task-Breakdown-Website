@@ -1,7 +1,7 @@
 "use client"; // Ensure it's a client-side module
 
 import {signInWithEmailAndPassword, sendPasswordResetEmail, sendEmailVerification, UserCredential, GoogleAuthProvider, deleteUser, signOut } from "firebase/auth";
-import { auth } from "./firebase"; // Import Firebase config
+import { getFirebaseAuth } from "./firebase";
 import {registerUserInDatabase} from "../../packages/lib/api";
 import { getUserData } from "./user";
 import { FirebaseError } from "firebase/app";
@@ -10,6 +10,7 @@ import { FirebaseError } from "firebase/app";
 
 export const sendPasswordReset = async (email: string) => {
   try {
+    const auth = getFirebaseAuth();
     await sendPasswordResetEmail(auth, email);
     console.log("Password reset email sent!");
   } catch (error) {
@@ -22,6 +23,7 @@ export const sendPasswordReset = async (email: string) => {
 
 export const resendVerificationEmail = async (email: string,password: string) => {
   try {
+    const auth = getFirebaseAuth();
     const user = await signInWithEmailAndPassword(auth, email, password);
     await sendEmailVerification(user.user); // Send verification email again
     return { success: true, message: "Verification Email Sent Succesfully" };
@@ -35,6 +37,7 @@ export const resendVerificationEmail = async (email: string,password: string) =>
 
 export const logoutUser = async () => {  
   try {
+    const auth = getFirebaseAuth();
     // 1️⃣ Sign out from Firebase
     await signOut(auth);
     console.log("✅ Firebase user signed out");
@@ -174,6 +177,8 @@ export const signUpWithGoogle = async (userCredential: UserCredential) => {
 
 
 export const handleAuthLoginResponse = async (userCredential: UserCredential) => {
+  const auth = getFirebaseAuth();
+
   if (!userCredential) throw new Error("Authentication failed. No credential found.");
 
   const user = userCredential.user;

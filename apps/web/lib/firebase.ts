@@ -18,7 +18,15 @@ const hasFirebaseConfig =
   Boolean(process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET) &&
   Boolean(process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID) &&
   Boolean(process.env.NEXT_PUBLIC_FIREBASE_APP_ID);
-const app = getApps().length ? getApp() : initializeApp(firebaseConfig);
+
+const getFirebaseApp = () => {
+  if (!hasFirebaseConfig) {
+    throw new Error("Firebase is not configured. Set NEXT_PUBLIC_FIREBASE_* environment variables.");
+  }
+
+  return getApps().length ? getApp() : initializeApp(firebaseConfig);
+};
+
+export const getFirebaseAuth = () => getAuth(getFirebaseApp());
 export const provider = new GoogleAuthProvider(); // Google provider instance
-export const auth = getAuth(app);
 export const isFirebaseConfigured = hasFirebaseConfig;

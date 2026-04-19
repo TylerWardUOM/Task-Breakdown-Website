@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { sendEmailVerification, signInWithCredential, GoogleAuthProvider, createUserWithEmailAndPassword } from "firebase/auth";
-import { auth, isFirebaseConfigured } from "../../../../lib/firebase"; // Import Firebase instance
+import { getFirebaseAuth, isFirebaseConfigured } from "../../../../lib/firebase";
 import { FirebaseError } from "firebase/app";
 import { cookieOptions } from "../../../../lib/cookieOptions";
 
@@ -20,6 +20,7 @@ export async function POST(req: Request) {
       );
     }
 
+    const auth = getFirebaseAuth();
     const { email, password, google, idToken, accessToken } = await req.json();
     let userCredential;
 
