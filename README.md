@@ -191,4 +191,4 @@ Store runtime config in a GitHub Environment instead of repository-level plainte
    - `FIREBASE_SERVICE_ACCOUNT`
    - `FIREBASE_SERVICE_ACCOUNT_JSON`
    - `OPENAI_API_KEY`
-4. CI now reads from this environment in `.github/workflows/ci.yml` (`DATABASE_PUBLIC_URL` is also mapped to `DATABASE_URL` for backend compatibility).
+4. CI now reads from this environment in `.github/workflows/ci.yml`.
