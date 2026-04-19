@@ -191,4 +191,5 @@ Store runtime config in a GitHub Environment instead of repository-level plainte
    - `FIREBASE_SERVICE_ACCOUNT`
    - `FIREBASE_SERVICE_ACCOUNT_JSON`
    - `OPENAI_API_KEY`
+   - CI reads `FIREBASE_SERVICE_ACCOUNT`; `FIREBASE_SERVICE_ACCOUNT_JSON` remains supported in runtime code for backward compatibility.
 4. CI now reads from this environment in `.github/workflows/ci.yml`.
