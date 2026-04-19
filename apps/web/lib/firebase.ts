@@ -27,6 +27,15 @@ const getFirebaseApp = () => {
   return getApps().length ? getApp() : initializeApp(firebaseConfig);
 };
 
-export const getFirebaseAuth = () => getAuth(getFirebaseApp());
+let firebaseAuth: ReturnType<typeof getAuth> | null = null;
+
+export const getFirebaseAuth = () => {
+  if (firebaseAuth) {
+    return firebaseAuth;
+  }
+
+  firebaseAuth = getAuth(getFirebaseApp());
+  return firebaseAuth;
+};
 export const provider = new GoogleAuthProvider(); // Google provider instance
 export const isFirebaseConfigured = hasFirebaseConfig;
