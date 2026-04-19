@@ -50,8 +50,9 @@ A neurodivergent-friendly task management app for better productivity, schedulin
 ├── package-lock.json
 ├── package.json
 ├── README.md
-│── web
-│   ├── .gitignore
+├── apps
+│   ├── web
+│   │   ├── .gitignore
 │   │── .next
 │   │── app
 │   │   │── dashboard
@@ -150,7 +151,7 @@ You can run and deploy this project fully on free tiers:
    ```
 
 ## 🧪 Build note
-The web build now fails gracefully with a clear configuration error response if Firebase env vars are missing, instead of crashing during `next build`.
+With missing Firebase env vars, `next build` no longer crashes on auth route module import. Auth endpoints now return a clear `503 auth/misconfigured` response until `NEXT_PUBLIC_FIREBASE_*` values are set.
 
 ### `apps/web/.env.local` (example)
 ```env
