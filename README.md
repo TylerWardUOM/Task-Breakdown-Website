@@ -163,6 +163,10 @@ NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET=
 NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=
 NEXT_PUBLIC_FIREBASE_APP_ID=
 NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID=
+RAILWAY_DEPLOYMENT_DRAINING_SECONDS=
+PORT=
+DATABASE_PUBLIC_URL=
+FIREBASE_SERVICE_ACCOUNT=
 FIREBASE_SERVICE_ACCOUNT_JSON=
 OPENAI_API_KEY=
 ```
@@ -172,6 +176,9 @@ Store runtime config in a GitHub Environment instead of repository-level plainte
 
 1. Create environment: **Settings → Environments → New environment** (recommended name: `production`).
 2. Add **Environment variables**:
+   - `RAILWAY_DEPLOYMENT_DRAINING_SECONDS`
+   - `PORT`
+   - `DATABASE_PUBLIC_URL`
    - `NEXT_PUBLIC_API_BASE_URL`
    - `NEXT_PUBLIC_FIREBASE_API_KEY`
    - `NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN`
@@ -181,6 +188,7 @@ Store runtime config in a GitHub Environment instead of repository-level plainte
    - `NEXT_PUBLIC_FIREBASE_APP_ID`
    - `NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID`
 3. Add **Environment secrets**:
+   - `FIREBASE_SERVICE_ACCOUNT`
    - `FIREBASE_SERVICE_ACCOUNT_JSON`
    - `OPENAI_API_KEY`
 4. CI now reads from this environment in `.github/workflows/ci.yml`.

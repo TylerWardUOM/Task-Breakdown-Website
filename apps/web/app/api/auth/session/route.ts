@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import admin from "firebase-admin";
 
-const serviceAccountJson = process.env.FIREBASE_SERVICE_ACCOUNT_JSON;
+const serviceAccountJson = process.env.FIREBASE_SERVICE_ACCOUNT || process.env.FIREBASE_SERVICE_ACCOUNT_JSON;
 
 // Initialize Firebase Admin only when credentials are available
 if (!admin.apps.length && serviceAccountJson) {
