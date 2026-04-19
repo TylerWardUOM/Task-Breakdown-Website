@@ -178,7 +178,6 @@ Store runtime config in a GitHub Environment instead of repository-level plainte
 2. Add **Environment variables**:
    - `RAILWAY_DEPLOYMENT_DRAINING_SECONDS`
    - `PORT`
-   - `DATABASE_PUBLIC_URL`
    - `NEXT_PUBLIC_API_BASE_URL`
    - `NEXT_PUBLIC_FIREBASE_API_KEY`
    - `NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN`
@@ -188,10 +187,11 @@ Store runtime config in a GitHub Environment instead of repository-level plainte
    - `NEXT_PUBLIC_FIREBASE_APP_ID`
    - `NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID`
 3. Add **Environment secrets**:
+   - `DATABASE_PUBLIC_URL`
    - `FIREBASE_SERVICE_ACCOUNT`
    - `FIREBASE_SERVICE_ACCOUNT_JSON`
    - `OPENAI_API_KEY`
-   - CI reads `FIREBASE_SERVICE_ACCOUNT`; `FIREBASE_SERVICE_ACCOUNT_JSON` remains supported in runtime code for backward compatibility.
+   - Note: CI reads `FIREBASE_SERVICE_ACCOUNT` (with fallback to `FIREBASE_SERVICE_ACCOUNT_JSON`); runtime code supports both names for backward compatibility.
 4. CI now reads from this environment in `.github/workflows/ci.yml`.
 
 ## ▲ Vercel environment settings (if repo env files are required)
