@@ -1,13 +1,25 @@
 import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { sendEmailVerification, signInWithCredential, GoogleAuthProvider, createUserWithEmailAndPassword } from "firebase/auth";
-import { auth } from "../../../../lib/firebase"; // Import Firebase instance
+import { auth, isFirebaseConfigured } from "../../../../lib/firebase"; // Import Firebase instance
 import { FirebaseError } from "firebase/app";
 import { cookieOptions } from "../../../../lib/cookieOptions";
 
 
 export async function POST(req: Request) {
   try {
+    if (!isFirebaseConfigured) {
+      return NextResponse.json(
+        {
+          error: {
+            code: "auth/misconfigured",
+            message: "Firebase is not configured. Set NEXT_PUBLIC_FIREBASE_* environment variables before using auth routes.",
+          },
+        },
+        { status: 503 }
+      );
+    }
+
     const { email, password, google, idToken, accessToken } = await req.json();
     let userCredential;
 
