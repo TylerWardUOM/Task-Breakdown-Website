@@ -163,6 +163,10 @@ NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET=
 NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=
 NEXT_PUBLIC_FIREBASE_APP_ID=
 NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID=
+RAILWAY_DEPLOYMENT_DRAINING_SECONDS=
+PORT=
+DATABASE_PUBLIC_URL=
+FIREBASE_SERVICE_ACCOUNT=
 FIREBASE_SERVICE_ACCOUNT_JSON=
 OPENAI_API_KEY=
 ```
@@ -172,6 +176,9 @@ Store runtime config in a GitHub Environment instead of repository-level plainte
 
 1. Create environment: **Settings → Environments → New environment** (recommended name: `production`).
 2. Add **Environment variables**:
+   - `RAILWAY_DEPLOYMENT_DRAINING_SECONDS`
+   - `PORT`
+   - `DATABASE_PUBLIC_URL`
    - `NEXT_PUBLIC_API_BASE_URL`
    - `NEXT_PUBLIC_FIREBASE_API_KEY`
    - `NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN`
@@ -181,6 +188,16 @@ Store runtime config in a GitHub Environment instead of repository-level plainte
    - `NEXT_PUBLIC_FIREBASE_APP_ID`
    - `NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID`
 3. Add **Environment secrets**:
+   - `FIREBASE_SERVICE_ACCOUNT`
    - `FIREBASE_SERVICE_ACCOUNT_JSON`
    - `OPENAI_API_KEY`
+   - CI reads `FIREBASE_SERVICE_ACCOUNT`; `FIREBASE_SERVICE_ACCOUNT_JSON` remains supported in runtime code for backward compatibility.
 4. CI now reads from this environment in `.github/workflows/ci.yml`.
+
+## ▲ Vercel environment settings (if repo env files are required)
+Vercel can build with env files in the repo, but only for values not already defined in Vercel project settings.
+
+1. In Vercel: **Project → Settings → Environment Variables**.
+2. For any key you want sourced from git-based env files, remove that key from Vercel Environment Variables (or keep the same value in both places).
+3. Commit the required env file for the web app (typically `apps/web/.env.production`) with non-secret values only.
+4. Keep secrets (`FIREBASE_SERVICE_ACCOUNT`, `OPENAI_API_KEY`, etc.) in Vercel/GitHub secrets and do not commit them to git.
