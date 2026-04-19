@@ -138,7 +138,7 @@ You can run and deploy this project fully on free tiers:
    ```
 2. Copy environment templates:
    - Create `apps/web/.env.local` and add the variables shown below
-   - `/home/runner/work/Task-Breakdown-Website/Task-Breakdown-Website/backend/.env.example` → `backend/.env`
+   - `backend/.env.example` → `backend/.env`
 3. Fill in your Firebase and database values.
 4. Start backend:
    ```bash
