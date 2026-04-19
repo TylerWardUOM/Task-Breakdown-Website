@@ -165,3 +165,21 @@ NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID=
 FIREBASE_SERVICE_ACCOUNT_JSON=
 OPENAI_API_KEY=
 ```
+
+## 🔐 GitHub Environments (for all hosted secrets/variables)
+Store runtime config in a GitHub Environment instead of repository-level plaintext files.
+
+1. Create environment: **Settings → Environments → New environment** (recommended name: `production`).
+2. Add **Environment variables**:
+   - `NEXT_PUBLIC_API_BASE_URL`
+   - `NEXT_PUBLIC_FIREBASE_API_KEY`
+   - `NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN`
+   - `NEXT_PUBLIC_FIREBASE_PROJECT_ID`
+   - `NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET`
+   - `NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID`
+   - `NEXT_PUBLIC_FIREBASE_APP_ID`
+   - `NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID`
+3. Add **Environment secrets**:
+   - `FIREBASE_SERVICE_ACCOUNT_JSON`
+   - `OPENAI_API_KEY`
+4. CI now reads from this environment in `.github/workflows/ci.yml`.
