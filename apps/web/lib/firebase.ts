@@ -11,17 +11,13 @@ const firebaseConfig = {
   measurementId: process.env.NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID,
 };
 
-const requiredFirebaseVars = [
-  "NEXT_PUBLIC_FIREBASE_API_KEY",
-  "NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN",
-  "NEXT_PUBLIC_FIREBASE_PROJECT_ID",
-  "NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET",
-  "NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID",
-  "NEXT_PUBLIC_FIREBASE_APP_ID",
-] as const;
-
-const hasFirebaseConfig = requiredFirebaseVars.every((envVar) => Boolean(process.env[envVar]));
-
+const hasFirebaseConfig =
+  Boolean(process.env.NEXT_PUBLIC_FIREBASE_API_KEY) &&
+  Boolean(process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN) &&
+  Boolean(process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID) &&
+  Boolean(process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET) &&
+  Boolean(process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID) &&
+  Boolean(process.env.NEXT_PUBLIC_FIREBASE_APP_ID);
 const app = getApps().length ? getApp() : initializeApp(firebaseConfig);
 export const provider = new GoogleAuthProvider(); // Google provider instance
 export const auth = getAuth(app);
